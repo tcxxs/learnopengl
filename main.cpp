@@ -1,25 +1,10 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <iostream>
 
-#include "config.h"
-
-void onResize(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
-
-void onInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-}
-
-void onRender()
-{
-	glClearColor(BG_COLOR);
-	glClear(GL_COLOR_BUFFER_BIT);
-}
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
+#include "config.hpp"
+#include "event.hpp"
+#include "render.hpp"
 
 int main()
 {
