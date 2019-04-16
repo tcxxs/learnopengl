@@ -4,6 +4,23 @@
 
 #include "config.h"
 
+void onResize(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
+void onInput(GLFWwindow* window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+}
+
+void onRender()
+{
+	glClearColor(BG_COLOR);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
 int main()
 {
     glfwInit();
@@ -28,6 +45,18 @@ int main()
 	}
 
 	glViewport(0, 0, WIDTH, HIGHT);
+	glfwSetFramebufferSizeCallback(window, onResize);
 
-    return 0;
+	while (!glfwWindowShouldClose(window))
+	{
+		onInput(window);
+
+		onRender();
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	glfwTerminate();
+	return 0;
 }
