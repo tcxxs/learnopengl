@@ -24,4 +24,5 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:
 add_executable(learnopengl ${files_hpp} ${files_cpp})
 
 # link
+set_property(TARGET learnopengl PROPERTY CXX_STANDARD 17)
 target_link_libraries(learnopengl ${libs})
