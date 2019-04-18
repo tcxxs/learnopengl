@@ -7,6 +7,7 @@
 #include "GLFW/glfw3.h"
 #include "config.hpp"
 #include "resource.hpp"
+#include "event.hpp"
 
 class Shader {
 public:

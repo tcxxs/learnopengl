@@ -5,6 +5,7 @@
 #include "config.hpp"
 #include "event.hpp"
 #include "render.hpp"
+#include "resource.hpp"
 
 int main()
 {
@@ -31,6 +32,13 @@ int main()
 
 	glViewport(0, 0, WIDTH, HIGHT);
 	glfwSetFramebufferSizeCallback(window, onResize);
+
+	GLfloat vertices[] = {
+	-0.5f, -0.5f, 0.0f,
+	 0.5f, -0.5f, 0.0f,
+	 0.0f,  0.5f, 0.0f
+	};
+	MeshMgr::inst().emplace_back(vertices, sizeof(vertices));
 
 	while (!glfwWindowShouldClose(window))
 	{

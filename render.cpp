@@ -94,28 +94,6 @@ void onRender()
 	glClearColor(BG_COLOR);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	GLfloat vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	 0.5f, -0.5f, 0.0f,
-	 0.0f,  0.5f, 0.0f
-	};
-
-	static GLuint VBO = 0;
-	if (!VBO) {
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	}
-
-	static GLuint VAO = 0;
-	if (!VAO) {
-		glGenVertexArrays(1, &VAO);
-		glBindVertexArray(VAO);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
-		glEnableVertexAttribArray(0);
-	}
-
 	Shader shader("simple");
 	if (!shader.loadProgram()) {
 		return;
@@ -124,6 +102,9 @@ void onRender()
 		return;
 	}
 	
-	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	for (auto& it = MeshMgr::inst().begin(); it != MeshMgr::inst().end(); it++) {
+		it->draw();
+	}
+
+	oglError();
 }
