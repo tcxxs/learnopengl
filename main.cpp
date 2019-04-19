@@ -4,8 +4,10 @@
 #include "GLFW/glfw3.h"
 #include "config.hpp"
 #include "event.hpp"
-#include "render.hpp"
-#include "resource.hpp"
+#include "utils/resource.hpp"
+#include "render/render.hpp"
+#include "render/model.hpp"
+#include "render/shader.hpp"
 
 int main()
 {
@@ -38,7 +40,17 @@ int main()
 	 0.5f, -0.5f, 0.0f,
 	 0.0f,  0.5f, 0.0f
 	};
-	MeshMgr::inst().emplace_back(vertices, sizeof(vertices));
+	Mesh::ptr mesh = Mesh::create(vertices, sizeof(vertices));
+	if (!mesh) {
+		return -1;
+	}
+	MeshMgr::inst().add("test", mesh);
+
+	Shader::ptr shader = Shader::create("simple");
+	if (!shader) {
+		return -1;
+	}
+	ShaderMgr::inst().add("simple", shader);
 
 	while (!glfwWindowShouldClose(window))
 	{

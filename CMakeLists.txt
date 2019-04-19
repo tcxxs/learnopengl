@@ -2,14 +2,19 @@ cmake_minimum_required(VERSION 3.0)
 project(learnopengl)
 
 # includes
+include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/glfw/include)
 include_directories(${PROJECT_SOURCE_DIR}/glad/include)
-file(GLOB files_hpp "*.hpp")
-source_group("include" FILES ${files_hpp})
 
 # sources
-file(GLOB files_cpp "*.cpp")
-source_group("source" FILES ${files_cpp})
+file(GLOB_RECURSE files_render "render/*.?pp")
+source_group("render" FILES ${files_render})
+file(GLOB_RECURSE files_utils "utils/*.?pp")
+source_group("utils" FILES ${files_utils})
+file(GLOB files_other "*.?pp")
+source_group("source" FILES ${files_other})
+
+file(GLOB_RECURSE files_all "*.?pp")
 
 # library
 add_library(glad_lib ${PROJECT_SOURCE_DIR}/glad/src/glad.c)
@@ -21,8 +26,6 @@ set(libs
 
 # main
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-add_executable(learnopengl ${files_hpp} ${files_cpp})
-
-# link
+add_executable(learnopengl ${files_all})
 set_property(TARGET learnopengl PROPERTY CXX_STANDARD 17)
 target_link_libraries(learnopengl ${libs})

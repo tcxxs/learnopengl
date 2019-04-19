@@ -1,4 +1,17 @@
-#include "render.hpp"
+#include "shader.hpp"
+
+Shader::ptr Shader::create(const std::string& name) {
+	Shader::ptr shader = std::shared_ptr<Shader>(new Shader());
+
+	shader->_name = name;
+	if (!shader->loadProgram())
+		return nullptr;
+
+	if (oglError())
+		return nullptr;
+
+	return shader;
+}
 
 Shader::~Shader() {
 	glDeleteProgram(_prog);
@@ -8,10 +21,10 @@ bool Shader::_loadShader(int type, GLuint& shader) {
 	std::filesystem::path path = std::filesystem::current_path() / "shader";
 	switch(type) {
 		case GL_VERTEX_SHADER:
-			path /= name + ".vs";
+			path /= _name + ".vs";
 			break;
 		case GL_FRAGMENT_SHADER:
-			path /= name + ".fs";
+			path /= _name + ".fs";
 			break;
 		default:
 			std::cout << "load shader, unknow type" << type << std::endl;
@@ -74,37 +87,6 @@ bool Shader::loadProgram() {
 
 bool Shader::useProgram() {
 	glUseProgram(_prog);
-
-	GLint success;
-	glGetProgramiv(_prog, GL_LINK_STATUS, &success);
-
-	if (!success)
-	{
-		GLchar infoLog[512];
-		glGetProgramInfoLog(_prog, 512, NULL, infoLog);
-		std::cout << "use program, fail: \n" << infoLog << std::endl;
-		return false;
-	}
-
 	return true;
 }
 
-void onRender()
-{
-	glClearColor(BG_COLOR);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	Shader shader("simple");
-	if (!shader.loadProgram()) {
-		return;
-	}
-	if (!shader.useProgram()) {
-		return;
-	}
-	
-	for (auto& it = MeshMgr::inst().begin(); it != MeshMgr::inst().end(); it++) {
-		it->draw();
-	}
-
-	oglError();
-}
