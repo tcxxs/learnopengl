@@ -5,16 +5,17 @@ Shader::ptr Shader::create(const std::string& name) {
 
 	shader->_name = name;
 	if (!shader->loadProgram())
-		return nullptr;
+		return {};
 
 	if (oglError())
-		return nullptr;
+		return {};
 
-	return shader;
+	return std::move(shader);
 }
 
 Shader::~Shader() {
-	glDeleteProgram(_prog);
+	if (_prog)
+		glDeleteProgram(_prog);
 }
 
 bool Shader::_loadShader(int type, GLuint& shader) {

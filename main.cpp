@@ -46,7 +46,7 @@ int main()
 	}
 	MeshMgr::inst().add("test", mesh);
 
-	Shader::ptr shader = Shader::create("simple");
+	Shader::ptr&& shader = Shader::create("simple");
 	if (!shader) {
 		return -1;
 	}

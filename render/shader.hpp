@@ -12,14 +12,13 @@ public:
 
 	bool loadProgram();
 	bool useProgram();
-protected:
-	Shader() : _prog(0) {}
+
 private:
 	bool _loadShader(int type, GLuint& shader);
 
 private:
 	std::string _name;
-	GLuint _prog;
+	GLuint _prog{0};
 };
 
 using ShaderMgr = ResMgr<std::string, Shader>;

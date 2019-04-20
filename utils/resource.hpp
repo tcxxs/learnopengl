@@ -32,10 +32,10 @@ public:
         _con.erase(key);
     }
 
-    inline resptr get(const K& key) {
+    inline const resptr& get(const K& key) {
         auto it = _con.find(key);
 		if (it == _con.end())
-			return nullptr;
+			return _empty;
 		else
 			return it->second;
     }
@@ -45,6 +45,7 @@ public:
 	}
 
 private:
+	inline static const resptr _empty{};
 	conmap _con;
 };
 

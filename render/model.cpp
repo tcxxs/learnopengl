@@ -16,9 +16,9 @@ Mesh::ptr Mesh::create(GLfloat verts[], int len) {
 	glBindVertexArray(0);
 
 	if (oglError())
-		return nullptr;
+		return {};
 
-	return mesh;
+	return std::move(mesh);
 }
 
 Mesh::~Mesh() {

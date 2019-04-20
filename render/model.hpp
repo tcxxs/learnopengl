@@ -11,12 +11,9 @@ public:
 
 	void draw();
 
-protected:
-	Mesh() : _vbo(0), _vao(0) {}
-
 private:
-	GLuint _vbo;
-	GLuint _vao;
+	GLuint _vbo{0};
+	GLuint _vao{0};
 };
 
 using MeshMgr = ResMgr<std::string, Mesh>;
