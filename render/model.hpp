@@ -6,13 +6,14 @@
 
 class Mesh: public Res<Mesh> {
 public:
-	static ptr create(GLfloat verts[], int len);
+	static ptr create(const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds);
 	virtual ~Mesh();
 
 	void draw();
 
 private:
 	GLuint _vbo{0};
+	GLuint _ibo{0};
 	GLuint _vao{0};
 };
 

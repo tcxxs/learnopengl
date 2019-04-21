@@ -35,12 +35,17 @@ int main()
 	glViewport(0, 0, WIDTH, HIGHT);
 	glfwSetFramebufferSizeCallback(window, onResize);
 
-	GLfloat vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	 0.5f, -0.5f, 0.0f,
-	 0.0f,  0.5f, 0.0f
+	std::vector<GLfloat> verts = {
+    0.5f, 0.5f, 0.0f,   // 右上角
+    0.5f, -0.5f, 0.0f,  // 右下角
+    -0.5f, -0.5f, 0.0f, // 左下角
+    -0.5f, 0.5f, 0.0f   // 左上角
 	};
-	Mesh::ptr mesh = Mesh::create(vertices, sizeof(vertices));
+	std::vector<GLuint> inds = { // 注意索引从0开始! 
+    0, 1, 3, // 第一个三角形
+    1, 2, 3  // 第二个三角形
+	};
+	Mesh::ptr mesh = Mesh::create(verts, inds);
 	if (!mesh) {
 		return -1;
 	}
