@@ -83,7 +83,26 @@ bool Shader::loadProgram() {
 	glDeleteShader(vs);
 	glDeleteShader(fs);
 
-	_loc = glGetAttribLocation(_prog, "aPos");
+	std::string name;
+	GLenum type{0};
+	GLint count{0}, size{0};
+	GLsizei namesize{20}, length{0};
+	glGetProgramiv(_prog, GL_ACTIVE_ATTRIBUTES, &count);
+	for (auto i = 0; i < count; i++) {
+		name.clear();
+		name.resize(namesize, 0);
+		glGetActiveAttrib(_prog, (GLuint)i, namesize, &length, &size, &type, name.data());
+		_vars[name.c_str()] = i;
+	}
+
+	glGetProgramiv(_prog, GL_ACTIVE_UNIFORMS, &count);
+	for (auto i = 0; i < count; i++) {
+		name.clear();
+		name.resize(namesize, 0);
+		glGetActiveUniform(_prog, (GLuint)i, namesize, &length, &size, &type, name.data());
+		_vars[name.c_str()] = i;
+	}
+
 	return true;
 }
 

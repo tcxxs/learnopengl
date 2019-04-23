@@ -13,7 +13,13 @@ public:
 	bool loadProgram();
 	bool useProgram();
 
-	inline GLint getLocation() const { return _loc; }
+	inline GLint getVar(const std::string& name) const {
+		auto it = _vars.find(name);
+		if (it == _vars.end())
+			return -1;
+		else
+			return it->second;
+	}
 
 private:
 	bool _loadShader(int type, GLuint& shader);
@@ -21,7 +27,7 @@ private:
 private:
 	std::string _name;
 	GLuint _prog{0};
-	GLint _loc{0};
+	std::map<std::string, GLint> _vars;
 };
 
 using ShaderMgr = ResMgr<std::string, Shader>;

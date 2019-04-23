@@ -47,8 +47,10 @@ Model::~Model() {
 
 void Model::draw() {
 	_shader->useProgram();
+	glUniform4f(_shader->getVar("color"), 0.0f, 0.5f, 0.0f, 1.0f);
+
 	glBindVertexArray(_mesh->getVAO());
-	glEnableVertexAttribArray(_shader->getLocation());
+	glEnableVertexAttribArray(_shader->getVar("pos"));
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
