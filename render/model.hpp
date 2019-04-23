@@ -3,13 +3,14 @@
 #include "glad/glad.h"
 #include "event.hpp"
 #include "utils/resource.hpp"
+#include "render/shader.hpp"
 
 class Mesh: public Res<Mesh> {
 public:
 	static ptr create(const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds);
 	virtual ~Mesh();
 
-	void draw();
+	inline GLuint getVAO() const { return _vao; }
 
 private:
 	GLuint _vbo{0};
@@ -17,4 +18,16 @@ private:
 	GLuint _vao{0};
 };
 
-using MeshMgr = ResMgr<std::string, Mesh>;
+class Model: public Res<Model> {
+public:
+	static ptr create(const Mesh::ptr& _mesh, const Shader::ptr& _shader);
+	virtual ~Model();
+
+	void draw();
+
+private:
+	Mesh::ptr _mesh;
+	Shader::ptr _shader;
+};
+
+using ModelMgr = ResMgr<std::string, Model>;

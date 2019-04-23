@@ -13,7 +13,6 @@ Mesh::ptr Mesh::create(const std::vector<GLfloat>& verts, const std::vector<GLui
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->_ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(GLuint), inds.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(0);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -32,8 +31,24 @@ Mesh::~Mesh() {
 		glDeleteVertexArrays(1, &_vao);
 }
 
-void Mesh::draw() {
-	glBindVertexArray(_vao);
+Model::ptr Model::create(const Mesh::ptr& _mesh, const Shader::ptr& _shader) {
+	Model::ptr model = Model::ptr(new Model());
+
+	model->_mesh = _mesh;
+	model->_shader = _shader;
+
+	return std::move(model);
+}
+
+Model::~Model() {
+	_mesh = nullptr;
+	_shader = nullptr;
+}
+
+void Model::draw() {
+	_shader->useProgram();
+	glBindVertexArray(_mesh->getVAO());
+	glEnableVertexAttribArray(_shader->getLocation());
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

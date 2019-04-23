@@ -35,6 +35,14 @@ int main()
 	glViewport(0, 0, WIDTH, HIGHT);
 	glfwSetFramebufferSizeCallback(window, onResize);
 
+	oglFeature();
+
+	Shader::ptr&& shader = Shader::create("simple");
+	if (!shader) {
+		return -1;
+	}
+	ShaderMgr::inst().add("simple", shader);
+
 	std::vector<GLfloat> verts = {
     0.5f, 0.5f, 0.0f,   // 右上角
     0.5f, -0.5f, 0.0f,  // 右下角
@@ -49,13 +57,8 @@ int main()
 	if (!mesh) {
 		return -1;
 	}
-	MeshMgr::inst().add("test", mesh);
-
-	Shader::ptr&& shader = Shader::create("simple");
-	if (!shader) {
-		return -1;
-	}
-	ShaderMgr::inst().add("simple", shader);
+	Model::ptr model = Model::create(mesh, shader);
+	ModelMgr::inst().add("test", model);
 
 	while (!glfwWindowShouldClose(window))
 	{

@@ -13,12 +13,15 @@ public:
 	bool loadProgram();
 	bool useProgram();
 
+	inline GLint getLocation() const { return _loc; }
+
 private:
 	bool _loadShader(int type, GLuint& shader);
 
 private:
 	std::string _name;
 	GLuint _prog{0};
+	GLint _loc{0};
 };
 
 using ShaderMgr = ResMgr<std::string, Shader>;

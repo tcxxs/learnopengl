@@ -72,7 +72,6 @@ bool Shader::loadProgram() {
 
 	GLint success;
 	glGetProgramiv(_prog, GL_LINK_STATUS, &success);
-
 	if (!success)
 	{
 		GLchar infoLog[512];
@@ -83,6 +82,8 @@ bool Shader::loadProgram() {
 
 	glDeleteShader(vs);
 	glDeleteShader(fs);
+
+	_loc = glGetAttribLocation(_prog, "aPos");
 	return true;
 }
 
@@ -90,4 +91,3 @@ bool Shader::useProgram() {
 	glUseProgram(_prog);
 	return true;
 }
-

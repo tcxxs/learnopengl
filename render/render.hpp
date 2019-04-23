@@ -11,4 +11,5 @@
 #include "render/model.hpp"
 #include "render/shader.hpp"
 
+void oglFeature();
 void onRender();
