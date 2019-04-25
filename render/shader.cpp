@@ -14,8 +14,10 @@ Shader::ptr Shader::create(const std::string& name) {
 }
 
 Shader::~Shader() {
-	if (_prog)
+	if (_prog) {
 		glDeleteProgram(_prog);
+		_prog = 0;
+	}
 }
 
 bool Shader::_loadShader(int type, GLuint& shader) {

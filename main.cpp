@@ -8,6 +8,7 @@
 #include "render/render.hpp"
 #include "render/model.hpp"
 #include "render/shader.hpp"
+#include "render/texture.hpp"
 
 int main()
 {
@@ -43,11 +44,18 @@ int main()
 	}
 	ShaderMgr::inst().add("simple", shader);
 
+	Texture::ptr&& texture = Texture::create("oops.png");
+	if (!texture) {
+		return -1;
+	}
+	TextureMgr::inst().add("oops", texture);
+
 	std::vector<GLfloat> verts = {
-    0.5f, 0.5f, 0.0f,   // 右上角
-    0.5f, -0.5f, 0.0f,  // 右下角
-    -0.5f, -0.5f, 0.0f, // 左下角
-    -0.5f, 0.5f, 0.0f   // 左上角
+//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
+     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
+     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
+    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
+    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
 	};
 	std::vector<GLuint> inds = { // 注意索引从0开始! 
     0, 1, 3, // 第一个三角形
@@ -57,7 +65,11 @@ int main()
 	if (!mesh) {
 		return -1;
 	}
-	Model::ptr model = Model::create(mesh, shader);
+
+	Model::ptr model = Model::create(mesh, shader, texture);
+	if (!model) {
+		return -1;
+	}
 	ModelMgr::inst().add("test", model);
 
 	while (!glfwWindowShouldClose(window))

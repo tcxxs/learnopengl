@@ -4,23 +4,24 @@
 #include "event.hpp"
 #include "utils/resource.hpp"
 #include "render/shader.hpp"
+#include "render/texture.hpp"
 
 class Mesh: public Res<Mesh> {
 public:
 	static ptr create(const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds);
 	virtual ~Mesh();
 
-	inline GLuint getVAO() const { return _vao; }
+	inline const GLuint getVBO() const { return _vbo; }
+	inline const GLuint getIBO() const { return _ibo; }
 
 private:
 	GLuint _vbo{0};
 	GLuint _ibo{0};
-	GLuint _vao{0};
 };
 
 class Model: public Res<Model> {
 public:
-	static ptr create(const Mesh::ptr& _mesh, const Shader::ptr& _shader);
+	static ptr create(const Mesh::ptr& mesh, const Shader::ptr& shader, const Texture::ptr& tex);
 	virtual ~Model();
 
 	void draw();
@@ -28,6 +29,9 @@ public:
 private:
 	Mesh::ptr _mesh;
 	Shader::ptr _shader;
+	Texture::ptr _tex;
+	GLuint _vao{0};
+	GLint _pos{0}, _color{0}, _uv{0};
 };
 
 using ModelMgr = ResMgr<std::string, Model>;

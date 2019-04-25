@@ -7,6 +7,8 @@ include_directories(${PROJECT_SOURCE_DIR}/glfw/include)
 include_directories(${PROJECT_SOURCE_DIR}/glad/include)
 
 # sources
+file(GLOB_RECURSE files_stb "stb/*.?pp")
+source_group("stb" FILES ${files_stb})
 file(GLOB_RECURSE files_render "render/*.?pp")
 source_group("render" FILES ${files_render})
 file(GLOB_RECURSE files_utils "utils/*.?pp")

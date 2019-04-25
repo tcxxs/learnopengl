@@ -13,7 +13,7 @@ public:
 	bool loadProgram();
 	bool useProgram();
 
-	inline GLint getVar(const std::string& name) const {
+	inline const GLint getVar(const std::string& name) const {
 		auto it = _vars.find(name);
 		if (it == _vars.end())
 			return -1;
