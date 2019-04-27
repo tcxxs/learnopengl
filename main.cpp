@@ -1,5 +1,8 @@
 #include <iostream>
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "config.hpp"
@@ -18,7 +21,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -33,7 +36,7 @@ int main()
 		return -1;
 	}
 
-	glViewport(0, 0, WIDTH, HIGHT);
+	glViewport(0, 0, WIDTH, HEIGHT);
 	glfwSetFramebufferSizeCallback(window, onResize);
 
 	oglFeature();
@@ -76,7 +79,7 @@ int main()
 	{
 		onInput(window);
 
-		onRender();
+		RenderMgr::inst().onRender();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

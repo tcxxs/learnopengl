@@ -33,29 +33,21 @@ Model::ptr Model::create(const Mesh::ptr& mesh, const Shader::ptr& shader, const
 	model->_mesh = mesh;
 	model->_shader = shader;
 	model->_tex = tex;
-	model->_pos = shader->getVar("pos");
-	if (model->_pos < 0) {
-		std::cout << "shader bind, no pos" << std::endl;
-		return {};
-	}
-	model->_color = shader->getVar("color");
-	if (model->_color < 0) {
-		std::cout << "shader bind, no color" << std::endl;
-		return {};
-	}
-	model->_uv = shader->getVar("uv");
-	if (model->_uv < 0) {
-		std::cout << "shader bind, no uv" << std::endl;
-		return {};
-	}
+	model->_lpos = shader->getVar("pos");
+	model->_lcolor = shader->getVar("color");
+	model->_luv = shader->getVar("uv");
+	model->_ltex = shader->getVar("tex");
 
 	glGenVertexArrays(1, &model->_vao);
 	glBindVertexArray(model->_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->getVBO());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->getIBO());
-	glVertexAttribPointer(model->_pos, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-	glVertexAttribPointer(model->_color, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-	glVertexAttribPointer(model->_uv, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	if (model->_lpos >= 0)
+		glVertexAttribPointer(model->_lpos, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
+	if (model->_lcolor >= 0)
+		glVertexAttribPointer(model->_lcolor, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	if (model->_luv >= 0)
+		glVertexAttribPointer(model->_luv, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -75,15 +67,28 @@ Model::~Model() {
 	}
 }
 
-void Model::draw() {
+void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 	_shader->useProgram();
-	//glUniform4f(_shader->getVar("color"), 0.0f, 0.5f, 0.0f, 1.0f);
 
-	glBindTexture(GL_TEXTURE_2D, _tex->getTexture());
+	glm::mat4 model(1.0f);
+	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+	glUniformMatrix4fv(_shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(_shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(_shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(proj));
+
 	glBindVertexArray(_vao);
-	glEnableVertexAttribArray(_pos);
-	glEnableVertexAttribArray(_color);
-	glEnableVertexAttribArray(_uv);
+	if (_lpos >= 0)
+		glEnableVertexAttribArray(_lpos);
+	if (_lcolor >= 0)
+		glEnableVertexAttribArray(_lcolor);
+	if (_luv >= 0 && _ltex >= 0) {
+		glEnableVertexAttribArray(_luv);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, _tex->getTexture());
+		glUniform1i(_ltex, 0);
+	}
+
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

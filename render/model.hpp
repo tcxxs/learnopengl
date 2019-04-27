@@ -1,5 +1,7 @@
 #pragma once
 
+#include "glm/glm.hpp"
+#include "glm/ext.hpp"
 #include "glad/glad.h"
 #include "event.hpp"
 #include "utils/resource.hpp"
@@ -24,14 +26,15 @@ public:
 	static ptr create(const Mesh::ptr& mesh, const Shader::ptr& shader, const Texture::ptr& tex);
 	virtual ~Model();
 
-	void draw();
+	void draw(const glm::mat4& view, const glm::mat4& proj);
 
 private:
 	Mesh::ptr _mesh;
 	Shader::ptr _shader;
 	Texture::ptr _tex;
 	GLuint _vao{0};
-	GLint _pos{0}, _color{0}, _uv{0};
+	GLint _lpos{-1}, _lcolor{-1}, _luv{-1}, _ltex{-1};
+	glm::mat4 _mat{1.0f};
 };
 
 using ModelMgr = ResMgr<std::string, Model>;

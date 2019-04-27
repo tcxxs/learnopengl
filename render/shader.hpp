@@ -27,7 +27,7 @@ private:
 private:
 	std::string _name;
 	GLuint _prog{0};
-	std::map<std::string, GLint> _vars;
+	std::map<std::string, GLuint> _vars;
 };
 
 using ShaderMgr = ResMgr<std::string, Shader>;
