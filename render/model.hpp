@@ -26,6 +26,7 @@ public:
 	static ptr create(const Mesh::ptr& mesh, const Shader::ptr& shader, const Texture::ptr& tex);
 	virtual ~Model();
 
+	inline void matrixModel(const glm::mat4& model) { _mat = model; }
 	void draw(const glm::mat4& view, const glm::mat4& proj);
 
 private:

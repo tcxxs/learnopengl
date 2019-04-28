@@ -70,10 +70,7 @@ Model::~Model() {
 void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 	_shader->useProgram();
 
-	glm::mat4 model(1.0f);
-	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-	glUniformMatrix4fv(_shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(_shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(_mat));
 	glUniformMatrix4fv(_shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(_shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
@@ -89,6 +86,6 @@ void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 		glUniform1i(_ltex, 0);
 	}
 
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
