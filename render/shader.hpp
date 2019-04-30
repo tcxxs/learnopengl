@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glad/glad.h"
-#include "event.hpp"
+#include "utils/utils.hpp"
 #include "utils/resource.hpp"
 
 class Shader: public Res<Shader> {

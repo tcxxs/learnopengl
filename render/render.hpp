@@ -3,25 +3,26 @@
 #include <string>
 #include <filesystem>
 
+#include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
-#include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "config.hpp"
-#include "event.hpp"
 #include "utils/resource.hpp"
 #include "render/model.hpp"
 #include "render/shader.hpp"
-
-void oglFeature();
+#include "render/camera.hpp"
 
 class Render: public NoCopy {
 public:
 	void init();
     void onRender();
 
+    inline const Camera::ptr& getCamera() const { return _cam; }
+
 private:
     glm::mat4 _view{1.0f}, _proj{1.0f};
+    Camera::ptr _cam;
 };
 
 using RenderMgr = Singleton<Render>;

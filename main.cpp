@@ -1,9 +1,8 @@
 #include <iostream>
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 #include "glad/glad.h"
+#include "glm/glm.hpp"
+#include "glm/ext.hpp"
 #include "GLFW/glfw3.h"
 #include "config.hpp"
 #include "event.hpp"
@@ -110,14 +109,11 @@ int main()
 	}
 	ModelMgr::inst().add("test", model);
 
+    EventMgr::inst().init(window, FPS);
 	RenderMgr::inst().init();
 	while (!glfwWindowShouldClose(window))
 	{
-		onInput(window);
-
-		RenderMgr::inst().onRender();
-
-		glfwSwapBuffers(window);
+        EventMgr::inst().onUpdate();
 		glfwPollEvents();
 	}
 

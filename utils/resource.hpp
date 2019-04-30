@@ -12,7 +12,7 @@ template <typename R>
 class Res: public std::enable_shared_from_this<R> {
 public:
     using ptr = std::shared_ptr<R>;
-	virtual ~Res(){};
+	virtual ~Res() = default;
 
 protected:
     Res() = default;

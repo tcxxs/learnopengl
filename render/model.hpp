@@ -1,9 +1,9 @@
 #pragma once
 
+#include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
-#include "glad/glad.h"
-#include "event.hpp"
+#include "utils/utils.hpp"
 #include "utils/resource.hpp"
 #include "render/shader.hpp"
 #include "render/texture.hpp"
