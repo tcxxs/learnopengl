@@ -17,6 +17,7 @@ public:
     void onUpdate();
     void onInput();
 	void onMouse(float xpos, float ypos);
+	void onScroll(float xoffset, float yoffset);
 
 private:
     GLFWwindow* _window;
@@ -24,6 +25,7 @@ private:
     float _frame_interv{0.0f}, _frame_last{0.0f}, _frame_delta{0.0f};
 	bool _mouse_init{false};
 	float _mouse_x{0.0f}, _mouse_y{0.0f};
+    float _fox{0.0f};
 };
 
 using EventMgr = Singleton<Event>;

@@ -21,7 +21,6 @@ public:
     inline const Camera::ptr& getCamera() const { return _cam; }
 
 private:
-    glm::mat4 _view{1.0f}, _proj{1.0f};
     Camera::ptr _cam;
 };
 

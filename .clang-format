@@ -6,3 +6,7 @@ UseTab: ForIndentation
 PointerAlignment: Left
 AlwaysBreakTemplateDeclarations: true
 SortIncludes: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+    BeforeElse: true
+ColumnLimit: 0

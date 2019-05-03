@@ -16,6 +16,10 @@ void Event::init(GLFWwindow* window, int fps) {
 	                         [](GLFWwindow* window, double xpos, double ypos) {
 		                         EventMgr::inst().onMouse((float)xpos, (float)ypos);
 	                         });
+	glfwSetScrollCallback(window,
+	                         [](GLFWwindow* window, double xoffset, double yoffset) {
+		                         EventMgr::inst().onScroll((float)xoffset, (float)yoffset);
+	                         });
 }
 
 void Event::onUpdate() {
@@ -36,7 +40,7 @@ void Event::onInput() {
 	if (glfwGetKey(_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(_window, true);
 
-	const Camera::ptr& cam = RenderMgr::inst().getCamera();
+	auto& cam = RenderMgr::inst().getCamera();
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
 		cam->setPos(cam->getPos() - CAM_MOVE * _time_delta * cam->getFront());
 	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS)
@@ -60,7 +64,12 @@ void Event::onMouse(float xpos, float ypos) {
 	_mouse_x = xpos;
 	_mouse_y = ypos;
 
-	const Camera::ptr& cam = RenderMgr::inst().getCamera();
+	auto& cam = RenderMgr::inst().getCamera();
 	cam->setYaw(cam->getYaw() + xoffset);
 	cam->setPitch(cam->getPitch() - yoffset);
+}
+
+void Event::onScroll(float xoffset, float yoffset) {
+	auto& cam = RenderMgr::inst().getCamera();
+	cam->setFov(cam->getFov() + yoffset * CAM_FOV);
 }

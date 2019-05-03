@@ -79,11 +79,25 @@ void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 		glEnableVertexAttribArray(_lpos);
 	if (_lcolor >= 0)
 		glEnableVertexAttribArray(_lcolor);
-	if (_luv >= 0 && _ltex >= 0) {
+	if (_tex && _luv >= 0 && _ltex >= 0) {
 		glEnableVertexAttribArray(_luv);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, _tex->getTexture());
 		glUniform1i(_ltex, 0);
+	}
+
+	GLint loc{0};
+	for (auto it : _vars) {
+		loc = _shader->getVar(it.first);
+		if (loc < 0)
+			continue;
+
+		if (it.second.type() == typeid(glm::vec3)) {
+			glUniform3fv(loc, 1, glm::value_ptr(std::any_cast<glm::vec3>(it.second)));
+		}
+		else {
+			std::cout << "model var unknow, name: " << it.first << ", type: " << it.second.type().name() << std::endl;
+		}
 	}
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
