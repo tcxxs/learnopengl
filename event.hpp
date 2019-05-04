@@ -8,19 +8,20 @@
 #include "render/render.hpp"
 #include "config.hpp"
 
-void onResize(GLFWwindow* window, int width, int height);
-
 class Event: public NoCopy {
 public:
-    void init(GLFWwindow* window, int fps);
+    ~Event();
 
-    void onUpdate();
+    bool init(int fps);
+    void process();
+
+    void onResize(int width, int height);
     void onInput();
 	void onMouse(float xpos, float ypos);
 	void onScroll(float xoffset, float yoffset);
 
 private:
-    GLFWwindow* _window;
+    GLFWwindow* _window{nullptr};
     float _time_last{0.0f}, _time_delta{0.0f};
     float _frame_interv{0.0f}, _frame_last{0.0f}, _frame_delta{0.0f};
 	bool _mouse_init{false};

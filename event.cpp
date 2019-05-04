@@ -1,38 +1,68 @@
 #include "event.hpp"
 
-void onResize(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, width, height);
+Event::~Event() {
+	glfwTerminate();
 }
 
-void Event::init(GLFWwindow* window, int fps) {
-	_window = window;
+bool Event::init(int fps) {
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+	_window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL);
+	if (_window == nullptr) {
+		std::cout << "Failed to create GLFW window" << std::endl;
+		return false;
+	}
+	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwMakeContextCurrent(_window);
+	glfwSetFramebufferSizeCallback(_window,
+	                               [](GLFWwindow* window, int width, int height) {
+		                               EventMgr::inst().onResize(width, height);
+	                               });
+	glfwSetCursorPosCallback(_window,
+	                         [](GLFWwindow* window, double xpos, double ypos) {
+		                         EventMgr::inst().onMouse((float)xpos, (float)ypos);
+	                         });
+	glfwSetScrollCallback(_window,
+	                      [](GLFWwindow* window, double xoffset, double yoffset) {
+		                      EventMgr::inst().onScroll((float)xoffset, (float)yoffset);
+	                      });
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return false;
+	}
 
 	float now = (float)glfwGetTime();
 	_time_last = now;
 	_frame_last = now;
 	_frame_interv = 1.0f / fps;
-
-	glfwSetCursorPosCallback(window,
-	                         [](GLFWwindow* window, double xpos, double ypos) {
-		                         EventMgr::inst().onMouse((float)xpos, (float)ypos);
-	                         });
-	glfwSetScrollCallback(window,
-	                         [](GLFWwindow* window, double xoffset, double yoffset) {
-		                         EventMgr::inst().onScroll((float)xoffset, (float)yoffset);
-	                         });
+	return true;
 }
 
-void Event::onUpdate() {
-	float now = (float)glfwGetTime();
-	_time_delta = now - _time_last;
-	_time_last = now;
-	_frame_delta = now - _frame_last;
+void Event::onResize(int width, int height) {
+	glViewport(0, 0, width, height);
+}
 
-	onInput();
-	if (_frame_delta > _frame_interv) {
-		_frame_last = now;
-		RenderMgr::inst().onRender();
-		glfwSwapBuffers(_window);
+void Event::process() {
+	float now;
+	while (!glfwWindowShouldClose(_window)) {
+		now = (float)glfwGetTime();
+		_time_delta = now - _time_last;
+		_time_last = now;
+		_frame_delta = now - _frame_last;
+
+		onInput();
+		if (_frame_delta > _frame_interv) {
+			_frame_last = now;
+			RenderMgr::inst().onRender();
+			glfwSwapBuffers(_window);
+		}
+
+		glfwPollEvents();
 	}
 }
 

@@ -17,9 +17,6 @@ void Render::onRender()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	for (auto& it: ModelMgr::inst().container()) {
-		glm::mat4 model(1.0f);
-		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-		//it.second->setMatrix(model);
 		it.second->draw(_cam->getView(), _cam->getProj());
 	}
 }
