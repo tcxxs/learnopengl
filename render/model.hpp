@@ -26,7 +26,7 @@ private:
 	Shader::ptr _shader;
 	Texture::ptr _tex;
 	GLuint _vao{0};
-	GLint _lpos{-1}, _lcolor{-1}, _luv{-1}, _ltex{-1};
+	GLint _lpos{-1}, _lcolor{-1}, _luv{-1}, _lnormal{-1}, _ltex{-1};
 	std::map<std::string, std::any> _vars;
 	glm::mat4 _mat{1.0f};
 };

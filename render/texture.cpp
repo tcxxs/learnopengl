@@ -26,7 +26,7 @@ Texture::ptr Texture::create(const std::string& name) {
 
 	stbi_image_free(data);
 	
-	return std::move(texture);
+	return texture;
 }
 
 Texture::~Texture() {

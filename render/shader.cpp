@@ -10,7 +10,7 @@ Shader::ptr Shader::create(const std::string& name) {
 	if (oglError())
 		return {};
 
-	return std::move(shader);
+	return shader;
 }
 
 Shader::~Shader() {

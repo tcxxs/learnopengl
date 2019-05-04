@@ -12,9 +12,12 @@
 #include "render/model.hpp"
 #include "render/shader.hpp"
 #include "render/camera.hpp"
+#include "render/light.hpp"
 
 class Render: public NoCopy {
 public:
+    ~Render();
+
 	void init();
     void onRender();
 
@@ -22,6 +25,7 @@ public:
 
 private:
     Camera::ptr _cam;
+    Light::ptr _light;
 };
 
 using RenderMgr = Singleton<Render>;

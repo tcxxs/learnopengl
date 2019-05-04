@@ -21,26 +21,33 @@ int main()
 	RenderMgr::inst().init();
 
 
-	Shader::ptr&& simple = Shader::create("simple");
-	ShaderMgr::inst().add("simple", simple);
-	Shader::ptr&& color = Shader::create("color");
+	// Shader::ptr simple = Shader::create("simple");
+	// ShaderMgr::inst().add("simple", simple);
+	Shader::ptr color = Shader::create("color");
+	if (!color) return -1;
 	ShaderMgr::inst().add("color", color);
+	Shader::ptr phong = Shader::create("phong");
+	if (!phong) return -1;
+	ShaderMgr::inst().add("phong", phong);
 
-	Texture::ptr&& oops = Texture::create("oops.png");
+	Texture::ptr oops = Texture::create("oops.png");
 	TextureMgr::inst().add("oops", oops);
 
 	Mesh::ptr cube = Mesh::create(CUBE_VERTEX, CUBE_INDEX);
 	MeshMgr::inst().add("cube", cube);
 
-	Model::ptr test = Model::create(cube, simple, oops);
+	Model::ptr test = Model::create(cube, phong, oops);
+	test->setVar("light_pos", glm::vec3(1.5f, 1.5f, 1.0f));
+	test->setVar("light_color", glm::vec3(1.0f));
+	test->setVar("ambient", glm::vec3(1.0f)*0.1f);
 	ModelMgr::inst().add("test", test);
 
 	Model::ptr light = Model::create(cube, color, nullptr);
     glm::mat4 mat{1.0f};
-    mat = glm::translate(mat, glm::vec3(2.0f, 2.0f, -1.0f));
-	mat = glm::scale(mat, glm::vec3(0.5f, 0.5f, 0.5f));
+	mat = glm::translate(mat, glm::vec3(1.5f, 1.5f, 1.0f));
+	mat = glm::scale(mat, glm::vec3(0.2f));
     light->setMatrix(mat);
-	light->setVar("uf_color", glm::vec3(1.0f, 1.0f, 1.0f));
+	light->setVar("uf_color", glm::vec3(1.0f));
 	ModelMgr::inst().add("light", light);
 
 	EventMgr::inst().process();

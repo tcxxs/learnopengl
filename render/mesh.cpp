@@ -17,7 +17,7 @@ Mesh::ptr Mesh::create(const std::vector<GLfloat>& verts, const std::vector<GLui
 	if (oglError())
 		return {};
 
-	return std::move(mesh);
+	return mesh;
 }
 
 Mesh::~Mesh() {

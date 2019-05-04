@@ -6,9 +6,10 @@ Model::ptr Model::create(const Mesh::ptr& mesh, const Shader::ptr& shader, const
 	model->_mesh = mesh;
 	model->_shader = shader;
 	model->_tex = tex;
-	model->_lpos = shader->getVar("pos");
+	model->_lpos = shader->getVar("vt_pos");
 	model->_lcolor = shader->getVar("vt_color");
 	model->_luv = shader->getVar("vt_uv");
+	model->_lnormal = shader->getVar("vt_normal");
 	model->_ltex = shader->getVar("tex");
 
 	glGenVertexArrays(1, &model->_vao);
@@ -16,17 +17,19 @@ Model::ptr Model::create(const Mesh::ptr& mesh, const Shader::ptr& shader, const
 	glBindBuffer(GL_ARRAY_BUFFER, mesh->getVBO());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->getIBO());
 	if (model->_lpos >= 0)
-		glVertexAttribPointer(model->_lpos, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
+		glVertexAttribPointer(model->_lpos, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)0);
 	if (model->_lcolor >= 0)
-		glVertexAttribPointer(model->_lcolor, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+		glVertexAttribPointer(model->_lcolor, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 	if (model->_luv >= 0)
-		glVertexAttribPointer(model->_luv, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+		glVertexAttribPointer(model->_luv, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	if (model->_lnormal >= 0)
+		glVertexAttribPointer(model->_lnormal, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(8 * sizeof(GLfloat)));
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	return std::move(model);
+	return model;
 }
 
 Model::~Model() {
@@ -52,6 +55,8 @@ void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 		glEnableVertexAttribArray(_lpos);
 	if (_lcolor >= 0)
 		glEnableVertexAttribArray(_lcolor);
+	if (_lnormal >= 0)
+		glEnableVertexAttribArray(_lnormal);
 	if (_tex && _luv >= 0 && _ltex >= 0) {
 		glEnableVertexAttribArray(_luv);
 		glActiveTexture(GL_TEXTURE0);
