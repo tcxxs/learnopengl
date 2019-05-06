@@ -25,6 +25,7 @@ void Render::onRender()
 	glClearColor(BG_COLOR);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	ModelMgr::inst().get("test")->setVar("camera_pos", _cam->getPos());
 	for (auto& it: ModelMgr::inst().container()) {
 		it.second->draw(_cam->getView(), _cam->getProj());
 	}

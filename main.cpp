@@ -39,7 +39,7 @@ int main()
 	Model::ptr test = Model::create(cube, phong, oops);
 	test->setVar("light_pos", glm::vec3(1.5f, 1.5f, 1.0f));
 	test->setVar("light_color", glm::vec3(1.0f));
-	test->setVar("ambient", glm::vec3(1.0f)*0.1f);
+	test->setVar("ambient_color", glm::vec3(1.0f));
 	ModelMgr::inst().add("test", test);
 
 	Model::ptr light = Model::create(cube, color, nullptr);

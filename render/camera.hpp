@@ -69,7 +69,12 @@ private:
 		_up = glm::normalize(glm::cross(_front, _right));
 	}
 	inline void _coordToEuler() {
-		_yaw = fmod(asin(_front.z / glm::length(glm::vec2(_front.x, _front.z))), 2 * PI);
+		_yaw = atan(_front.z / _front.x);
+		if (_front.x < 0)
+			_yaw += PI;
+		else if (_front.z < 0)
+			_yaw += 1.5 * PI;
+		_yaw = fmod(_yaw, 2 * PI);
 		_pitch = fmod(asin(_front.y / glm::length(_front)), 2 * PI);
 	}
 	inline void _eulerToLookat() {
@@ -77,7 +82,6 @@ private:
 		_front.y = sin(_pitch);
 		_front.z = sin(_yaw) * cos(_pitch);
 		_front = glm::normalize(_front);
-		std::cout << glm::to_string(_front) << std::endl;
 	}
 
 private:
