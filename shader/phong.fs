@@ -22,7 +22,7 @@ void main()
     float diffuse_fac = max(dot(light_dir, normalize(fg_normal)), 0.0);
 
     vec3 camera_dir = normalize(camera_pos - fg_pos);
-    vec3 reflect_dir = reflect(-light_dir, fg_normal);
+    vec3 reflect_dir = reflect(-light_dir, normalize(fg_normal));
     specular_fac = specular_fac * pow(max(dot(camera_dir, reflect_dir), 0.0), specular_pow);
 
     vec3 light = ambient_color * ambient_fac + diffuse_fac * light_color + specular_fac * light_color;
