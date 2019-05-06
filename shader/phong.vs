@@ -19,5 +19,5 @@ void main()
     fg_pos = vec3(model * vec4(vt_pos, 1.0));
     fg_color = vt_color;
     fg_uv = vt_uv;
-    fg_normal =vt_normal;
+    fg_normal = mat3(transpose(inverse(model))) * vt_normal;
 }

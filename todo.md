@@ -1,0 +1,2 @@
+- light更新来控制pos、color
+- coord2euler还有问题，w、s前进后退的时候控制方向
