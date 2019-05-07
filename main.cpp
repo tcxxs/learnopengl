@@ -37,14 +37,17 @@ int main()
 	MeshMgr::inst().add("cube", cube);
 
 	Model::ptr test = Model::create(cube, phong, oops);
-	test->setVar("light_pos", glm::vec3(1.5f, 1.5f, 1.0f));
-	test->setVar("light_color", glm::vec3(1.0f));
-	test->setVar("ambient_color", glm::vec3(1.0f));
+	test->setVar("light.pos", glm::vec3(-1.2f, 1.2f, -0.5f));
+	test->setVar("light.color", glm::vec3(1.0f));
+	test->setVar("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+	test->setVar("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
+	test->setVar("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+	test->setVar("material.shininess", 32.0f);
 	ModelMgr::inst().add("test", test);
 
 	Model::ptr light = Model::create(cube, color, nullptr);
     glm::mat4 mat{1.0f};
-	mat = glm::translate(mat, glm::vec3(1.5f, 1.5f, 1.0f));
+	mat = glm::translate(mat, glm::vec3(-1.2f, 1.2f, -0.5f));
 	mat = glm::scale(mat, glm::vec3(0.2f));
     light->setMatrix(mat);
 	light->setVar("uf_color", glm::vec3(1.0f));

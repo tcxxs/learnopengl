@@ -11,7 +11,7 @@ void Render::init() {
 
 	_cam = Camera::create();
 	_cam->setFov(FOV);
-	_cam->lookAt(glm::vec3(2.0f, 1.0f, 5.0f), glm::vec3(0.0, 0.0, 0.0));
+	_cam->lookAt(glm::vec3(1.5f, 1.0f, 2.0f), glm::vec3(0.0, 0.0, 0.0));
 
 	_light = Light::create();
 	_light->setPos(glm::vec3(1.5f, 1.5f, 1.0f));

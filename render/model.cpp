@@ -73,6 +73,9 @@ void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 		if (it.second.type() == typeid(glm::vec3)) {
 			glUniform3fv(loc, 1, glm::value_ptr(std::any_cast<glm::vec3>(it.second)));
 		}
+		else if (it.second.type() == typeid(float)) {
+			glUniform1f(loc, std::any_cast<float>(it.second));
+		}
 		else {
 			std::cout << "model var unknow, name: " << it.first << ", type: " << it.second.type().name() << std::endl;
 		}

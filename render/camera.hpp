@@ -32,13 +32,16 @@ public:
 		_lookatToView();
 	}
 	inline void setYaw(float yaw) {
-		_yaw = fmod(yaw, 2 * PI);
+		if (yaw < 0)
+			_yaw = 2*PI - fmod(-yaw, 2*PI);
+		else
+			_yaw = fmod(yaw, 2*PI);
 		_eulerToLookat();
 		_lookatToCoord();
 		_lookatToView();
 	}
 	inline void setPitch(float pitch) {
-		_pitch = fmod(pitch, 2 * PI);
+		_pitch = fmod(pitch, 2*PI);
 		_eulerToLookat();
 		_lookatToCoord();
 		_lookatToView();
@@ -73,15 +76,19 @@ private:
 		if (_front.x < 0)
 			_yaw += PI;
 		else if (_front.z < 0)
-			_yaw += 1.5 * PI;
-		_yaw = fmod(_yaw, 2 * PI);
-		_pitch = fmod(asin(_front.y / glm::length(_front)), 2 * PI);
+			_yaw += 2*PI;
+		_yaw = fmod(_yaw, 2*PI);
+		_pitch = fmod(asin(_front.y / glm::length(_front)), 2*PI);
+
+		std::cout << glm::to_string(_front) << "->" << _yaw << std::endl;
 	}
 	inline void _eulerToLookat() {
 		_front.x = cos(_yaw) * cos(_pitch);
 		_front.y = sin(_pitch);
 		_front.z = sin(_yaw) * cos(_pitch);
 		_front = glm::normalize(_front);
+
+		std::cout << _yaw << "->" << glm::to_string(_front) << std::endl;
 	}
 
 private:
