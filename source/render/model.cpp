@@ -1,3 +1,4 @@
+#include "yaml-cpp/yaml.h"
 #include "model.hpp"
 
 Model::ptr Model::create(const Mesh::ptr& mesh, const Shader::ptr& shader, const Texture::ptr& tex) {
@@ -33,13 +34,25 @@ Model::ptr Model::create(const Mesh::ptr& mesh, const Shader::ptr& shader, const
 }
 
 Model::ptr Model::create(const std::string& name) {
-	std::filesystem::path path = std::filesystem::current_path()/"resource"/"model"/(name + ".json");
-	std::string content;
-	if (!readFile(path, content)) {
-		return false;
+	std::filesystem::path path = std::filesystem::current_path()/"resource"/"model"/(name + ".yml");
+	YAML::Node conf = YAML::LoadFile(path.string());
+
+	std::string key;
+	key = conf["mesh"].as<std::string, std::string>("");
+	const Mesh::ptr& mesh = MeshMgr::inst()[key];
+	if (!mesh)
+		return {};
+	key = conf["shader"].as<std::string, std::string>("");
+	const Shader::ptr& shader = ShaderMgr::inst()[key];
+	if (!shader)
+		return {};
+	key = conf["texture"].as<std::string, std::string>("");
+	Texture::ptr tex;
+	if (!key.empty()) {
+		tex = TextureMgr::inst()[key];
 	}
 
-	
+	return Model::create(mesh, shader, tex);
 }
 
 Model::~Model() {

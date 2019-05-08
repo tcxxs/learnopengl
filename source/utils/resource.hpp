@@ -40,6 +40,20 @@ public:
 			return it->second;
     }
 
+    inline const resptr& operator[] (const K& key) {
+        auto it = _con.find(key);
+        if (it == _con.end()) {
+            resptr r = R::create(key);
+            if (!r)
+                return _empty;
+
+			auto rit = _con.insert(conmap::value_type(key, r));
+            return rit.first->second;
+        }
+        else
+            return it->second;
+    }
+
 	inline conmap container() {
 		return _con;
 	}

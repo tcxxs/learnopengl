@@ -8,6 +8,7 @@
 class Mesh: public Res<Mesh> {
 public:
 	static ptr create(const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds);
+	static ptr create(const std::string& name) { return {}; };
 	virtual ~Mesh();
 
 	inline const GLuint getVBO() const { return _vbo; }

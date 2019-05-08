@@ -26,17 +26,13 @@ int main()
 	Shader::ptr color = Shader::create("color");
 	if (!color) return -1;
 	ShaderMgr::inst().add("color", color);
-	Shader::ptr phong = Shader::create("phong");
-	if (!phong) return -1;
-	ShaderMgr::inst().add("phong", phong);
-
-	Texture::ptr oops = Texture::create("oops.png");
-	TextureMgr::inst().add("oops", oops);
 
 	Mesh::ptr cube = Mesh::create(CUBE_VERTEX, CUBE_INDEX);
 	MeshMgr::inst().add("cube", cube);
 
-	Model::ptr test = Model::create(cube, phong, oops);
+	Model::ptr test = Model::create("test");
+	if (!test)
+		return -1;
 	test->setVar("light.pos", glm::vec3(-1.2f, 1.2f, -0.5f));
 	test->setVar("light.ambient", glm::vec3(0.2f));
 	test->setVar("light.diffuse", glm::vec3(0.5f));

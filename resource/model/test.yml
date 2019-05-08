@@ -1,1 +1,2 @@
 mesh: cube
+shader: phong
