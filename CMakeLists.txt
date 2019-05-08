@@ -2,34 +2,27 @@ cmake_minimum_required(VERSION 3.0)
 project(learnopengl)
 
 # includes
-include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/glfw/include)
-include_directories(${PROJECT_SOURCE_DIR}/glad/include)
+include_directories(${CMAKE_SOURCE_DIR}/contrib/include)
+include_directories(${CMAKE_SOURCE_DIR}/source)
 
 # sources
-file(GLOB_RECURSE files_stb "stb/*.?pp")
-source_group("stb" FILES ${files_stb})
-file(GLOB_RECURSE files_glm "glm/*.?pp")
-source_group("glm" FILES ${files_glm})
-file(GLOB_RECURSE files_render "render/*.?pp")
-source_group("render" FILES ${files_render})
-file(GLOB_RECURSE files_utils "utils/*.?pp")
-source_group("utils" FILES ${files_utils})
-file(GLOB files_other "*.?pp")
-source_group("source" FILES ${files_other})
-
-file(GLOB_RECURSE files_all "*.?pp")
+file(GLOB_RECURSE files_contrib "contrib/*")
+source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${files_contrib})
+file(GLOB_RECURSE files_source "source/*")
+source_group(TREE "${CMAKE_SOURCE_DIR}/source" FILES ${files_source})
 
 # library
-add_library(glad_lib ${PROJECT_SOURCE_DIR}/glad/src/glad.c)
+add_library(glad_lib ${CMAKE_SOURCE_DIR}/contrib/source/glad/glad.c)
 set(libs
     opengl32.lib
-    ${PROJECT_SOURCE_DIR}/glfw/bin/glfw3.lib
+    ${CMAKE_SOURCE_DIR}/contrib/lib/glfw3.lib
+    ${CMAKE_SOURCE_DIR}/contrib/lib/libyaml-cppmd.lib
     glad_lib
 )
 
 # main
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:CONSOLE /ENTRY:mainCRTStartup")
-add_executable(learnopengl ${files_all})
+add_executable(learnopengl ${files_contrib} ${files_source})
 set_property(TARGET learnopengl PROPERTY CXX_STANDARD 17)
+set_property(TARGET learnopengl PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 target_link_libraries(learnopengl ${libs})
