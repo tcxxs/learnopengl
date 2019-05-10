@@ -8,6 +8,7 @@ include_directories(${CMAKE_SOURCE_DIR}/source)
 # sources
 file(GLOB_RECURSE files_contrib "contrib/*")
 source_group(TREE "${CMAKE_SOURCE_DIR}" FILES ${files_contrib})
+set_property(SOURCE ${files_contrib} APPEND_STRING PROPERTY COMPILE_FLAGS "/w34996")
 file(GLOB_RECURSE files_source "source/*")
 source_group(TREE "${CMAKE_SOURCE_DIR}/source" FILES ${files_source})
 

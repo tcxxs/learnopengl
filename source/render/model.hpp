@@ -12,7 +12,6 @@
 
 class Model: public Res<Model> {
 public:
-	static ptr create(const Mesh::ptr& mesh, const Shader::ptr& shader, const Texture::ptr& tex);
 	static ptr create(const std::string& name);
 	virtual ~Model();
 
@@ -22,7 +21,12 @@ public:
 	inline void setMatrix(const glm::mat4& model) { _mat = model; }
 	void draw(const glm::mat4& view, const glm::mat4& proj);
 
+protected:
+	bool initShader();
+	bool initGL();
+
 private:
+	Config _conf;
 	Mesh::ptr _mesh;
 	Shader::ptr _shader;
 	Texture::ptr _tex;

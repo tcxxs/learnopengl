@@ -1,0 +1,5 @@
+mesh: cube
+shader:
+  name: color
+  vars:
+    uf_color: [1.0, 1.0, 1.0]

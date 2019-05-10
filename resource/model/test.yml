@@ -1,2 +1,8 @@
 mesh: cube
-shader: phong
+shader:
+  name: phong
+  vars:
+    material.ambient: [1.0, 0.5, 0.31]
+    material.diffuse: [1.0, 0.5, 0.31]
+    material.specular: [0.5, 0.5, 0.5]
+    material.shininess: 32.0

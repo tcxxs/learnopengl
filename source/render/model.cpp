@@ -1,58 +1,30 @@
-#include "yaml-cpp/yaml.h"
 #include "model.hpp"
 
-Model::ptr Model::create(const Mesh::ptr& mesh, const Shader::ptr& shader, const Texture::ptr& tex) {
-	Model::ptr model = Model::ptr(new Model());
-
-	model->_mesh = mesh;
-	model->_shader = shader;
-	model->_tex = tex;
-	model->_lpos = shader->getVar("vt_pos");
-	model->_lcolor = shader->getVar("vt_color");
-	model->_luv = shader->getVar("vt_uv");
-	model->_lnormal = shader->getVar("vt_normal");
-	model->_ltex = shader->getVar("tex");
-
-	glGenVertexArrays(1, &model->_vao);
-	glBindVertexArray(model->_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, mesh->getVBO());
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->getIBO());
-	if (model->_lpos >= 0)
-		glVertexAttribPointer(model->_lpos, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)0);
-	if (model->_lcolor >= 0)
-		glVertexAttribPointer(model->_lcolor, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-	if (model->_luv >= 0)
-		glVertexAttribPointer(model->_luv, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-	if (model->_lnormal >= 0)
-		glVertexAttribPointer(model->_lnormal, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(8 * sizeof(GLfloat)));
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	return model;
-}
-
 Model::ptr Model::create(const std::string& name) {
-	std::filesystem::path path = std::filesystem::current_path()/"resource"/"model"/(name + ".yml");
-	YAML::Node conf = YAML::LoadFile(path.string());
-
-	std::string key;
-	key = conf["mesh"].as<std::string, std::string>("");
-	const Mesh::ptr& mesh = MeshMgr::inst()[key];
-	if (!mesh)
+	Model::ptr model = Model::ptr(new Model());
+	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / (name + ".yml");
+	if (!model->_conf.load(path)) {
+		std::cout << "model config error, " << path << std::endl;
 		return {};
-	key = conf["shader"].as<std::string, std::string>("");
-	const Shader::ptr& shader = ShaderMgr::inst()[key];
-	if (!shader)
-		return {};
-	key = conf["texture"].as<std::string, std::string>("");
-	Texture::ptr tex;
-	if (!key.empty()) {
-		tex = TextureMgr::inst()[key];
 	}
 
-	return Model::create(mesh, shader, tex);
+	std::string key;
+	key = model->_conf["mesh"].as<std::string, std::string>("");
+	model->_mesh = MeshMgr::inst().req(key);
+	if (!model->_mesh)
+		return {};
+
+	key = model->_conf["texture"].as<std::string, std::string>("");
+	if (!key.empty()) {
+		model->_tex = TextureMgr::inst().req(key);
+	}
+
+	if (!model->initShader())
+		return {};
+	if (!model->initGL())
+		return {};
+
+	return model;
 }
 
 Model::~Model() {
@@ -64,6 +36,58 @@ Model::~Model() {
 		glDeleteVertexArrays(1, &_vao);
 		_vao = 0;
 	}
+}
+
+bool Model::initShader() {
+	const std::string& key = _conf["shader.name"].as<std::string, std::string>("");
+	_shader = ShaderMgr::inst().req(key);
+	if (!_shader) {
+		std::cout << "model shader error, " << key << std::endl;
+		return false;
+	}
+
+	_lpos = _shader->getVar("vt_pos");
+	_lcolor = _shader->getVar("vt_color");
+	_luv = _shader->getVar("vt_uv");
+	_lnormal = _shader->getVar("vt_normal");
+	_ltex = _shader->getVar("tex");
+
+	const auto node = _conf["shader.vars"];
+	if (node.IsDefined()) {
+		for (const auto& it: node) {
+			if (it.second.IsScalar()) {
+				setVar(it.first.as<std::string>(), it.second.as<float>());
+			}
+			else if (it.second.IsSequence()) {
+				if (it.second.size() == 3) {
+					setVar(it.first.as<std::string>(), it.second.as<glm::vec3>());
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+bool Model::initGL() {
+	glGenVertexArrays(1, &_vao);
+	glBindVertexArray(_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, _mesh->getVBO());
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _mesh->getIBO());
+	if (_lpos >= 0)
+		glVertexAttribPointer(_lpos, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)0);
+	if (_lcolor >= 0)
+		glVertexAttribPointer(_lcolor, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	if (_luv >= 0)
+		glVertexAttribPointer(_luv, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	if (_lnormal >= 0)
+		glVertexAttribPointer(_lnormal, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(8 * sizeof(GLfloat)));
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	return true;
 }
 
 void Model::draw(const glm::mat4& view, const glm::mat4& proj) {

@@ -80,7 +80,7 @@ private:
 		_yaw = fmod(_yaw, 2*PI);
 		_pitch = fmod(asin(_front.y / glm::length(_front)), 2*PI);
 
-		std::cout << glm::to_string(_front) << "->" << _yaw << std::endl;
+		//std::cout << glm::to_string(_front) << "->" << _yaw << std::endl;
 	}
 	inline void _eulerToLookat() {
 		_front.x = cos(_yaw) * cos(_pitch);
@@ -88,7 +88,7 @@ private:
 		_front.z = sin(_yaw) * cos(_pitch);
 		_front = glm::normalize(_front);
 
-		std::cout << _yaw << "->" << glm::to_string(_front) << std::endl;
+		//std::cout << _yaw << "->" << glm::to_string(_front) << std::endl;
 	}
 
 private:

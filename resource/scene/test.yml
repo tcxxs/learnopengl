@@ -1,0 +1,6 @@
+models:
+  - name: test
+    conf: test
+    pos: [0.0, 0.0, 0.0]
+  #- name: light
+#lights:
