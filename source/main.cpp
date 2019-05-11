@@ -40,6 +40,8 @@ int main()
 
 	Scene::ptr scene = Scene::create("test");
 	SceneMgr::inst().add("test", scene);
+	scene->active();
+
 	EventMgr::inst().process();
 	return 0;
 }
