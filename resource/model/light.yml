@@ -2,4 +2,4 @@ mesh: cube
 shader:
   name: color
   vars:
-    uf_color: [1.0, 1.0, 1.0]
+    uf_color: [0.7, 0.7, 0.7]

@@ -16,16 +16,8 @@
 
 class Render: public NoCopy {
 public:
-    ~Render();
-
 	void init();
     void onRender();
-
-    inline const Camera::ptr& getCamera() const { return _cam; }
-
-private:
-    Camera::ptr _cam;
-    Light::ptr _light;
 };
 
 using RenderMgr = Singleton<Render>;

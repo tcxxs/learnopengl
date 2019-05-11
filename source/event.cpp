@@ -1,4 +1,5 @@
 #include "event.hpp"
+#include "render/scene.hpp"
 
 Event::~Event() {
 	glfwTerminate();
@@ -70,7 +71,7 @@ void Event::onInput() {
 	if (glfwGetKey(_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(_window, true);
 
-	auto& cam = RenderMgr::inst().getCamera();
+	auto& cam = Scene::current->getCamera();
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
 		cam->setPos(cam->getPos() - CAM_MOVE * _time_delta * cam->getFront());
 	if (glfwGetKey(_window, GLFW_KEY_S) == GLFW_PRESS)
@@ -94,12 +95,12 @@ void Event::onMouse(float xpos, float ypos) {
 	_mouse_x = xpos;
 	_mouse_y = ypos;
 
-	auto& cam = RenderMgr::inst().getCamera();
+	auto& cam = Scene::current->getCamera();
 	cam->setYaw(cam->getYaw() + xoffset);
 	cam->setPitch(cam->getPitch() - yoffset);
 }
 
 void Event::onScroll(float xoffset, float yoffset) {
-	auto& cam = RenderMgr::inst().getCamera();
+	auto& cam = Scene::current->getCamera();
 	cam->setFov(cam->getFov() + yoffset * CAM_FOV);
 }

@@ -18,24 +18,55 @@ bool Config::load(const std::filesystem::path& path) {
 	return _doc.IsDefined();
 }
 
-const Config::node Config::visit(const Config::node& doc, const std::string& path) {
+const Config::node& Config::visit(const Config::node& doc, const std::string& path) {
 	size_t start = 0;
 	size_t pos = 0;
 	size_t len = path.size();
-	Config::node node = doc;
+	const Config::node* node = &doc;
 	while (start < len) {
 		pos = path.find('.', start);
 		if (pos == std::string::npos) {
-			node.reset(node[path.substr(start, len - start)]);
+			node = &(*node)[path.substr(start, len - start)];
 			start = len;
 		}
 		else {
-			node.reset(node[path.substr(start, pos - start)]);
+			node = &(*node)[path.substr(start, pos - start)];
 			start = pos + 1;
-		}		
-		if (!node.IsDefined())
-			return {};
+		}
+		if (!(*node).IsDefined())
+			return Config::_empty;
 	}
 
-	return node;
+	return (*node);
+}
+
+std::any Config::guess(const Config::node& doc) {
+	if (doc.IsScalar()) {
+		const std::string& scalar = doc.Scalar();
+		if (std::isdigit(scalar[0]) || scalar[0] == '-') {
+			if (scalar.find('.') == std::string::npos) {
+				try {
+					return {std::stoi(scalar)};
+				} catch (...) {
+					return {};
+				}
+			}
+			else {
+				try {
+					return {std::stof(scalar)};
+				} catch (...) {
+					return {};
+				}
+			}
+		}
+		else
+			return {scalar};
+	}
+	else if (doc.IsSequence()) {
+		if (doc.size() == 3) {
+			return std::make_any<glm::vec3>(doc.as<glm::vec3>());
+		}
+	}
+	else
+		return {};
 }

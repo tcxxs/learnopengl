@@ -12,6 +12,7 @@ public:
 	static ptr create(const std::string& name);
 	virtual ~Scene();
 
+	const Camera::ptr& getCamera() const { return _cam; }
 	void addCamera(const Config::node& conf);
 	void addModel(const Config::node& conf);
 	void addLight(const Config::node& conf);

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <any>
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
@@ -97,10 +98,14 @@ struct convert<glm::vec3> {
 class Config {
 public:
 	using node = YAML::Node;
-	static const node visit(const node& doc, const std::string& path);
+	static const node& visit(const node& doc, const std::string& path);
+	static std::any guess(const node& doc);
 
 	bool load(const std::filesystem::path& path);
-	inline const node operator[] (const std::string& path) const {
+	const node& root() const {
+		return _doc;
+	}
+	inline const node& operator[] (const std::string& path) const {
 		return visit(_doc, path);
 	}
 
