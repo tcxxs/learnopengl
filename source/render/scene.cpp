@@ -41,6 +41,9 @@ void Scene::addCamera(const Config::node& conf) {
 
 void Scene::addModel(const Config::node& conf) {
 	const Model::ptr& model = ModelMgr::inst().req(conf["conf"].as<std::string>());
+	if (!model)
+		return;
+
 	glm::mat4 mat{1.0f};
 	mat = glm::translate(mat, conf["pos"].as<glm::vec3>());
 	const Config::node scale = conf["scale"];

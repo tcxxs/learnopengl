@@ -6,7 +6,7 @@
 Texture::ptr Texture::create(const std::string& name) {
 	Texture::ptr texture = std::shared_ptr<Texture>(new Texture());
 
-	std::filesystem::path path = std::filesystem::current_path() / "texture" / name;
+	std::filesystem::path path = std::filesystem::current_path() / "resource" / "texture" / name;
 	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(path.string().c_str(), &texture->_w, &texture->_h, &texture->_n, 4);
 	if (!data) {

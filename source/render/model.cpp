@@ -53,7 +53,10 @@ bool Model::initShader() {
 
 		for (auto& it: attrs) {
 			if (it.second.type() == typeid(std::string)) {
-				it.second = TextureMgr::inst().req(std::any_cast<std::string&>(it.second));
+				const auto& tex = TextureMgr::inst().req(std::any_cast<std::string&>(it.second));
+				if (!tex)
+					return false;
+				it.second = tex;
 			}
 		}
 	}
