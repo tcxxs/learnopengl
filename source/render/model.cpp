@@ -39,7 +39,7 @@ Model::~Model() {
 }
 
 bool Model::initShader() {
-	const std::string& key = _conf["shader.name"].as<std::string, std::string>("");
+	const std::string key = _conf["shader.name"].as<std::string, std::string>("");
 	_shader = ShaderMgr::inst().req(key);
 	if (!_shader) {
 		std::cout << "model shader error, " << key << std::endl;

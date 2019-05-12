@@ -17,7 +17,7 @@ public:
 	}
 	template <typename V>
 	const V& getAttr(const std::string& key) {
-		return std::any_cast<V>(_attrs[key]);
+		return std::any_cast<V&>(_attrs[key]);
 	}
 	template <>
 	const std::any& getAttr(const std::string& key) {
@@ -29,7 +29,7 @@ public:
 		if (it == _attrs.end())
 			return dft;
 		else
-			return std::any_cast<V>(*it);
+			return std::any_cast<V&>(*it);
 	}
 
 private:

@@ -10,14 +10,14 @@ Scene::ptr Scene::create(const std::string& name) {
 
 	scene->addCamera(scene->_conf["camera"]);
 
-	const auto& models = scene->_conf["models"];
+	const auto models = scene->_conf["models"];
 	if (models.IsDefined()) {
 		for (const auto& it: models) {
 			scene->addModel(it);
 		}
 	}
 
-	const auto& lights = scene->_conf["lights"];
+	const auto lights = scene->_conf["lights"];
 	if (lights.IsDefined()) {
 		for (const auto& it: lights) {
 			scene->addLight(it);
@@ -42,11 +42,11 @@ void Scene::addCamera(const Config::node& conf) {
 void Scene::addModel(const Config::node& conf) {
 	const Model::ptr& model = ModelMgr::inst().req(conf["conf"].as<std::string>());
 	glm::mat4 mat{1.0f};
+	mat = glm::translate(mat, conf["pos"].as<glm::vec3>());
 	const Config::node scale = conf["scale"];
 	if (scale.IsDefined()) {
 		mat = glm::scale(mat, glm::vec3(scale.as<float>()));
 	}
-	mat = glm::translate(mat, conf["pos"].as<glm::vec3>());
 	model->setMatrix(mat);
 	
 	_models[conf["name"].as<std::string>()] = model;

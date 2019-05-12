@@ -18,26 +18,27 @@ bool Config::load(const std::filesystem::path& path) {
 	return _doc.IsDefined();
 }
 
-const Config::node& Config::visit(const Config::node& doc, const std::string& path) {
+// yaml内部实现基于了大量的复制拷贝，如果引用，问题比较多
+const Config::node Config::visit(const Config::node& doc, const std::string& path) {
 	size_t start = 0;
 	size_t pos = 0;
 	size_t len = path.size();
-	const Config::node* node = &doc;
+	Config::node node = doc;
 	while (start < len) {
 		pos = path.find('.', start);
 		if (pos == std::string::npos) {
-			node = &(*node)[path.substr(start, len - start)];
+			node.reset(node[path.substr(start, len - start)]);
 			start = len;
 		}
 		else {
-			node = &(*node)[path.substr(start, pos - start)];
+			node.reset(node[path.substr(start, pos - start)]);
 			start = pos + 1;
 		}
-		if (!(*node).IsDefined())
+		if (!node.IsDefined())
 			return Config::_empty;
 	}
 
-	return (*node);
+	return node;
 }
 
 std::any Config::guess(const Config::node& doc) {
@@ -64,7 +65,7 @@ std::any Config::guess(const Config::node& doc) {
 	}
 	else if (doc.IsSequence()) {
 		if (doc.size() == 3) {
-			return std::make_any<glm::vec3>(doc.as<glm::vec3>());
+			return {doc.as<glm::vec3>()};
 		}
 	}
 	else
