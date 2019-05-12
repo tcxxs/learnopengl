@@ -14,11 +14,6 @@ Model::ptr Model::create(const std::string& name) {
 	if (!model->_mesh)
 		return {};
 
-	key = model->_conf["texture"].as<std::string, std::string>("");
-	if (!key.empty()) {
-		model->_tex = TextureMgr::inst().req(key);
-	}
-
 	if (!model->initShader())
 		return {};
 	if (!model->initGL())
@@ -30,7 +25,6 @@ Model::ptr Model::create(const std::string& name) {
 Model::~Model() {
 	_mesh = nullptr;
 	_shader = nullptr;
-	_tex = nullptr;
 
 	if (_vao) {
 		glDeleteVertexArrays(1, &_vao);
@@ -54,14 +48,12 @@ bool Model::initShader() {
 
 	const auto node = _conf["shader.vars"];
 	if (node.IsDefined()) {
-		for (const auto& it: node) {
-			if (it.second.IsScalar()) {
-				setVar(it.first.as<std::string>(), it.second.as<float>());
-			}
-			else if (it.second.IsSequence()) {
-				if (it.second.size() == 3) {
-					setVar(it.first.as<std::string>(), it.second.as<glm::vec3>());
-				}
+		if (!attrs.guessAttrs(node))
+			return false;
+
+		for (auto& it: attrs) {
+			if (it.second.type() == typeid(std::string)) {
+				it.second = TextureMgr::inst().req(std::any_cast<std::string&>(it.second));
 			}
 		}
 	}
@@ -104,24 +96,27 @@ void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 		glEnableVertexAttribArray(_lcolor);
 	if (_lnormal >= 0)
 		glEnableVertexAttribArray(_lnormal);
-	if (_tex && _luv >= 0 && _ltex >= 0) {
+	if (_luv >= 0) {
 		glEnableVertexAttribArray(_luv);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, _tex->getTexture());
-		glUniform1i(_ltex, 0);
 	}
 
 	GLint loc{0};
-	for (auto it : _vars) {
+	GLuint tex{0};
+	for (const auto& it: attrs) {
 		loc = _shader->getVar(it.first);
 		if (loc < 0)
 			continue;
 
-		if (it.second.type() == typeid(glm::vec3)) {
-			glUniform3fv(loc, 1, glm::value_ptr(std::any_cast<glm::vec3>(it.second)));
+		if (it.second.type() == typeid(float)) {
+			glUniform1f(loc, std::any_cast<const float&>(it.second));
 		}
-		else if (it.second.type() == typeid(float)) {
-			glUniform1f(loc, std::any_cast<float>(it.second));
+		else if (it.second.type() == typeid(glm::vec3)) {
+			glUniform3fv(loc, 1, glm::value_ptr(std::any_cast<const glm::vec3&>(it.second)));
+		}
+		else if (it.second.type() == typeid(Texture::ptr)) {
+			glActiveTexture(GL_TEXTURE0 + tex);
+			glBindTexture(GL_TEXTURE_2D, std::any_cast<const Texture::ptr&>(it.second)->getTexture());
+			glUniform1i(loc, tex);
 		}
 		else {
 			std::cout << "model var unknow, name: " << it.first << ", type: " << it.second.type().name() << std::endl;

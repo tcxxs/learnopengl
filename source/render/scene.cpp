@@ -71,11 +71,11 @@ void Scene::draw() {
 
 	for (auto& it: _models) {
 		const Model::ptr& model = it.second;
-		model->setVar("camera_pos", cam_pos);
-		model->setVar("light.pos", light_pos);
-		model->setVar("light.ambient", light_ambient);
-		model->setVar("light.diffuse", light_diffuse);
-		model->setVar("light.specular", light_specular);
+		model->attrs.setAttr("camera_pos", cam_pos);
+		model->attrs.setAttr("light.pos", light_pos);
+		model->attrs.setAttr("light.ambient", light_ambient);
+		model->attrs.setAttr("light.diffuse", light_diffuse);
+		model->attrs.setAttr("light.specular", light_specular);
 		model->draw(view, proj);
 	}
 }

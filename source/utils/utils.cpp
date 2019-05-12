@@ -18,3 +18,25 @@ bool oglError() {
 
 	return ret;
 }
+
+bool Attributes::guessAttrs(const Config::node& doc) {
+	if (!doc.IsMap()) {
+		return false;
+	}
+
+	for (const auto& it: doc) {
+		if (!it.first.IsScalar()) {
+			std::cout << "attribute guess, key is not string, " << it.first.Mark().line << std::endl;
+			return false;
+		}
+		const std::string& key = it.first.as<std::string>();
+		std::any value = Config::guess(it.second);
+		if (!value.has_value()) {
+			std::cout << "attribute guess, not know, " << key << std::endl;
+			return false;
+		}
+		setAttr(key, value);
+	}
+
+	return true;
+}

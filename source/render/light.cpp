@@ -8,14 +8,8 @@ Light::ptr Light::create(const std::string& name) {
 		return {};
 	}
 
-	for (const auto& it: light->_conf.root()) {
-		const std::string& key = it.first.as<std::string>();
-		std::any value = Config::guess(it.second);
-		if (!value.has_value()) {
-			std::cout << "light attribute guess fail, " << key << std::endl;
-			continue;
-		}
-		light->attrs.setAttr(key, value);
+	if (!light->attrs.guessAttrs(light->_conf.root())) {
+		return {};
 	}
 
 	return light;
