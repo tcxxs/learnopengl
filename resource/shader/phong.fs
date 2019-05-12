@@ -1,7 +1,7 @@
 #version 460 core
 struct Material {
     sampler2D diffuse;
-    vec3 specular;
+    sampler2D specular;
     float shininess;
 };
 
@@ -26,6 +26,7 @@ out vec4 FragColor;
 void main()
 {
     vec3 diffuse_color = texture(material.diffuse, fg_uv).rgb;
+    vec3 specular_color = texture(material.specular, fg_uv).rgb;
 
 	vec3 ambient = light.ambient * diffuse_color;
 
@@ -36,7 +37,7 @@ void main()
     vec3 camera_dir = normalize(camera_pos - fg_pos);
     vec3 reflect_dir = reflect(-light_dir, normalize(fg_normal));
     float specular_fac = pow(max(dot(camera_dir, reflect_dir), 0.0), material.shininess);
-	vec3 specular = light.specular * material.specular * specular_fac;
+	vec3 specular = light.specular * specular_color * specular_fac;
 
     FragColor = vec4(ambient + diffuse + specular, 1.0);
 } 

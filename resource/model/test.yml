@@ -3,5 +3,5 @@ shader:
   name: phong
   vars:
     material.diffuse: box.png
-    material.specular: [0.5, 0.5, 0.5]
+    material.specular: specular.png
     material.shininess: 32.0

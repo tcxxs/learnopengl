@@ -120,6 +120,7 @@ void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 			glActiveTexture(GL_TEXTURE0 + tex);
 			glBindTexture(GL_TEXTURE_2D, std::any_cast<const Texture::ptr&>(it.second)->getTexture());
 			glUniform1i(loc, tex);
+			tex += 1;
 		}
 		else {
 			std::cout << "model var unknow, name: " << it.first << ", type: " << it.second.type().name() << std::endl;
