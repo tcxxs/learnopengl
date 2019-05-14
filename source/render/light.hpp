@@ -22,4 +22,4 @@ private:
 	glm::vec3 _pos{0.0f};
 };
 
-using LightMgr = ResMgr<std::string, Light>;
+using LightMgr = ResMgr<Light>;

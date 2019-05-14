@@ -20,6 +20,7 @@ public:
 		else
 			return it->second;
 	}
+	void setVars(const Attributes& attrs);
 
 private:
 	bool _loadShader(int type, GLuint& shader);
@@ -30,4 +31,4 @@ private:
 	std::map<std::string, GLuint> _vars;
 };
 
-using ShaderMgr = ResMgr<std::string, Shader>;
+using ShaderMgr = ResMgr<Shader>;

@@ -1,7 +1,7 @@
 #include "model.hpp"
 
-Model::ptr Model::create(const std::string& name) {
-	Model::ptr model = Model::ptr(new Model());
+ModelProto::ptr ModelProto::create(const std::string& name) {
+	ModelProto::ptr model = ModelProto::ptr(new ModelProto());
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / (name + ".yml");
 	if (!model->_conf.load(path)) {
 		std::cout << "model config error, " << path << std::endl;
@@ -19,10 +19,11 @@ Model::ptr Model::create(const std::string& name) {
 	if (!model->initGL())
 		return {};
 
+	model->setName(name);
 	return model;
 }
 
-Model::~Model() {
+ModelProto::~ModelProto() {
 	_mesh = nullptr;
 	_shader = nullptr;
 
@@ -32,7 +33,7 @@ Model::~Model() {
 	}
 }
 
-bool Model::initShader() {
+bool ModelProto::initShader() {
 	const std::string key = _conf["shader.name"].as<std::string, std::string>("");
 	_shader = ShaderMgr::inst().req(key);
 	if (!_shader) {
@@ -44,7 +45,6 @@ bool Model::initShader() {
 	_lcolor = _shader->getVar("vt_color");
 	_luv = _shader->getVar("vt_uv");
 	_lnormal = _shader->getVar("vt_normal");
-	_ltex = _shader->getVar("tex");
 
 	const auto node = _conf["shader.vars"];
 	if (node.IsDefined()) {
@@ -64,7 +64,7 @@ bool Model::initShader() {
 	return true;
 }
 
-bool Model::initGL() {
+bool ModelProto::initGL() {
 	glGenVertexArrays(1, &_vao);
 	glBindVertexArray(_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, _mesh->getVBO());
@@ -85,10 +85,10 @@ bool Model::initGL() {
 	return true;
 }
 
-void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
+void ModelProto::draw(const glm::mat4& view, const glm::mat4& proj) {
 	_shader->useProgram();
+	_shader->setVars(attrs);
 
-	glUniformMatrix4fv(_shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(_mat));
 	glUniformMatrix4fv(_shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(_shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
@@ -103,30 +103,37 @@ void Model::draw(const glm::mat4& view, const glm::mat4& proj) {
 		glEnableVertexAttribArray(_luv);
 	}
 
-	GLint loc{0};
-	GLuint tex{0};
-	for (const auto& it: attrs) {
-		loc = _shader->getVar(it.first);
-		if (loc < 0)
-			continue;
-
-		if (it.second.type() == typeid(float)) {
-			glUniform1f(loc, std::any_cast<const float&>(it.second));
-		}
-		else if (it.second.type() == typeid(glm::vec3)) {
-			glUniform3fv(loc, 1, glm::value_ptr(std::any_cast<const glm::vec3&>(it.second)));
-		}
-		else if (it.second.type() == typeid(Texture::ptr)) {
-			glActiveTexture(GL_TEXTURE0 + tex);
-			glBindTexture(GL_TEXTURE_2D, std::any_cast<const Texture::ptr&>(it.second)->getTexture());
-			glUniform1i(loc, tex);
-			tex += 1;
-		}
-		else {
-			std::cout << "model var unknow, name: " << it.first << ", type: " << it.second.type().name() << std::endl;
-		}
+	for (auto& it: _insts) {
+		it.second->draw(_shader);
 	}
 
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::node& conf) {
+	ModelInst::ptr model = ModelInst::ptr(new ModelInst());
+	
+	glm::mat4 mat{1.0f};
+	mat = glm::translate(mat, conf["pos"].as<glm::vec3>());
+	const Config::node scale = conf["scale"];
+	if (scale.IsDefined()) {
+		mat = glm::scale(mat, glm::vec3(scale.as<float>()));
+	}
+	const Config::node rotate = conf["rotate"];
+	if (rotate.IsDefined()) {
+		mat = glm::rotate(mat, glm::radians(rotate[0].as<float>()), glm::vec3(0.0, 1.0, 0.0));
+		mat = glm::rotate(mat, glm::radians(rotate[1].as<float>()), glm::vec3(1.0, 0.0, 0.0));
+		mat = glm::rotate(mat, glm::radians(rotate[2].as<float>()), glm::vec3(0.0, 0.0, 1.0));
+	}
+	model->setMatrix(mat);
+	model->setName(conf["name"].as<std::string>());
+	model->_proto = proto;
+
+	return model;
+}
+
+void ModelInst::draw(const Shader::ptr& shader) {
+	shader->setVars(attrs);
+	glUniformMatrix4fv(shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(_mat));
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }

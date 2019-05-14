@@ -17,59 +17,105 @@ template <typename R>
 class Res : public std::enable_shared_from_this<R> {
 public:
 	using ptr = std::shared_ptr<R>;
+	using idt = unsigned long long;
+	using nat = std::string;
+
 	virtual ~Res() = default;
 
+	inline void setID(const idt id) { _id = id; }
+	inline const idt getID() const { return _id; }
+	inline void setName(const nat& name) { _name = name; }
+	inline const nat& getName() const { return _name; }
+
 protected:
-	Res() = default;
+	inline Res() : _id(++_total){};
+
+protected:
+	inline static idt _total{0};
+	idt _id;
+	nat _name;
 };
 
-template <typename K, typename R>
+template <typename R>
 class ResContainer : public NoCopy {
 public:
 	using resptr = typename R::ptr;
-	using conmap = std::map<K, resptr>;
+	using resid = typename R::idt;
+	using resna = typename R::nat;
+	using keymap = std::map<resna, resid>;
+	using resmap = std::map<resid, resptr>;
 
-	inline void add(const K& key, const resptr& res) {
-		_con[key] = res;
+	inline const resid index(const resna& key) {
+		const auto& it = _kmap.find(key);
+		if (it == _kmap.end())
+			return 0;
+		else
+			return it->second;
 	}
 
-	inline void del(const K& key) {
-		_con.erase(key);
+	template <typename ...ARGS>
+	inline const resptr& create(ARGS... args) {
+		resptr r = R::create(args...);
+		if (!r)
+			return _empty;
+
+		return add(r);
 	}
 
-	inline const resptr& get(const K& key) {
-		auto it = _con.find(key);
-		if (it == _con.end())
+	inline const resptr& add(const resptr& res) {
+		const resid id = res->getID();
+		const resna na = res->getName();
+		if (!na.empty())
+			_kmap[na] = id;
+		auto ret = _rmap.insert(resmap::value_type(id, res));
+		return ret.first->second;
+	}
+
+	inline void del(const resid id) {
+		_rmap.erase(key);
+	}
+	inline void del(const resna& key) {
+		const resid id = index(key);
+		if (id)
+			del(it->second);
+	}
+
+	inline const resptr& get(const resid id) {
+		auto it = _rmap.find(id);
+		if (it == _rmap.end())
 			return _empty;
 		else
 			return it->second;
 	}
-
-	inline const resptr& req(const K& key) {
-		auto it = _con.find(key);
-		if (it == _con.end()) {
-			resptr r = R::create(key);
-			if (!r)
-				return _empty;
-
-			auto rit = _con.insert(conmap::value_type(key, r));
-			return rit.first->second;
-		}
+	inline const resptr& get(const resna& key) {
+		const resid id = index(key);
+		if (id)
+			return get(id);
 		else
-			return it->second;
+			return _empty;
 	}
 
-	inline conmap container() {
-		return _con;
+	template <typename ...ARGS>
+	inline const resptr& req(const resna& key, ARGS... args) {
+		const resid id = index(key);
+		if (id)
+			return get(id);
+		else
+			return create(key, args...);
+	}
+
+	inline resmap container() {
+		return _rmap;
 	}
 
 private:
 	inline static const resptr _empty{};
-	conmap _con;
+	keymap _kmap;
+	resmap _rmap;
 };
 
-template <typename K, typename R>
-using ResMgr = Singleton<ResContainer<K, R>>;
+template <typename R>
+using ResMgr = Singleton<ResContainer<R>>;
 
 namespace YAML {
 template<>

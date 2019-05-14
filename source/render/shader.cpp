@@ -1,4 +1,5 @@
 #include "shader.hpp"
+#include "render/texture.hpp"
 
 Shader::ptr Shader::create(const std::string& name) {
 	Shader::ptr shader = std::shared_ptr<Shader>(new Shader());
@@ -111,4 +112,30 @@ bool Shader::loadProgram() {
 bool Shader::useProgram() {
 	glUseProgram(_prog);
 	return true;
+}
+
+void Shader::setVars(const Attributes& attrs) {
+	GLint loc{0};
+	GLuint tex{0};
+	for (const auto& it: attrs) {
+		loc = getVar(it.first);
+		if (loc < 0)
+			continue;
+
+		if (it.second.type() == typeid(float)) {
+			glUniform1f(loc, std::any_cast<const float&>(it.second));
+		}
+		else if (it.second.type() == typeid(glm::vec3)) {
+			glUniform3fv(loc, 1, glm::value_ptr(std::any_cast<const glm::vec3&>(it.second)));
+		}
+		else if (it.second.type() == typeid(Texture::ptr)) {
+			glActiveTexture(GL_TEXTURE0 + tex);
+			glBindTexture(GL_TEXTURE_2D, std::any_cast<const Texture::ptr&>(it.second)->getTexture());
+			glUniform1i(loc, tex);
+			tex += 1;
+		}
+		else {
+			std::cout << "shader var unknow, name: " << it.first << ", type: " << it.second.type().name() << std::endl;
+		}
+	}
 }

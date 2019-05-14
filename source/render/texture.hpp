@@ -15,4 +15,4 @@ private:
 	int _w{0}, _h{0}, _n{0};
 };
 
-using TextureMgr = ResMgr<std::string, Texture>;
+using TextureMgr = ResMgr<Texture>;

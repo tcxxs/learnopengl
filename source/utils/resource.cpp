@@ -68,6 +68,6 @@ std::any Config::guess(const Config::node& doc) {
 			return {doc.as<glm::vec3>()};
 		}
 	}
-	else
-		return {};
+
+	return {};
 }

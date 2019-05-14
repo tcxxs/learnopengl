@@ -40,23 +40,18 @@ void Scene::addCamera(const Config::node& conf) {
 }
 
 void Scene::addModel(const Config::node& conf) {
-	const Model::ptr& model = ModelMgr::inst().req(conf["conf"].as<std::string>());
+	const ModelProto::ptr& proto = ModelProtoMgr::inst().req(conf["type"].as<std::string>());
+	if (!proto)
+		return;
+	const ModelInst::ptr& model = proto->instance(conf);
 	if (!model)
 		return;
-
-	glm::mat4 mat{1.0f};
-	mat = glm::translate(mat, conf["pos"].as<glm::vec3>());
-	const Config::node scale = conf["scale"];
-	if (scale.IsDefined()) {
-		mat = glm::scale(mat, glm::vec3(scale.as<float>()));
-	}
-	model->setMatrix(mat);
 	
-	_models[conf["name"].as<std::string>()] = model;
+	_models[conf["type"].as<std::string>()] = proto;
 }
 
 void Scene::addLight(const Config::node& conf) {
-	const Light::ptr& light = LightMgr::inst().req(conf["conf"].as<std::string>());
+	const Light::ptr& light = LightMgr::inst().req(conf["type"].as<std::string>());
 	light->setPos(conf["pos"].as<glm::vec3>());
 	
 	_lights[conf["name"].as<std::string>()] = light;
@@ -73,12 +68,12 @@ void Scene::draw() {
 	const glm::vec3& light_specular = _lights.begin()->second->attrs.getAttr<glm::vec3>("specular");
 
 	for (auto& it: _models) {
-		const Model::ptr& model = it.second;
-		model->attrs.setAttr("camera_pos", cam_pos);
-		model->attrs.setAttr("light.pos", light_pos);
-		model->attrs.setAttr("light.ambient", light_ambient);
-		model->attrs.setAttr("light.diffuse", light_diffuse);
-		model->attrs.setAttr("light.specular", light_specular);
-		model->draw(view, proj);
+		const ModelProto::ptr& proto = it.second;
+		proto->attrs.setAttr("camera_pos", cam_pos);
+		proto->attrs.setAttr("light.pos", light_pos);
+		proto->attrs.setAttr("light.ambient", light_ambient);
+		proto->attrs.setAttr("light.diffuse", light_diffuse);
+		proto->attrs.setAttr("light.specular", light_specular);
+		proto->draw(view, proj);
 	}
 }

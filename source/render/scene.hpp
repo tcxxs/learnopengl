@@ -27,8 +27,8 @@ public:
 private:
 	Config _conf;
 	Camera::ptr _cam;
-	std::map<std::string, Model::ptr> _models;
+	std::map<std::string, ModelProto::ptr> _models;
 	std::map<std::string, Light::ptr> _lights;
 };
 
-using SceneMgr = ResMgr<std::string, Scene>;
+using SceneMgr = ResMgr<Scene>;

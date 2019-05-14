@@ -7,7 +7,7 @@
 
 class Mesh: public Res<Mesh> {
 public:
-	static ptr create(const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds);
+	static ptr create(const std::string& name, const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds);
 	static ptr create(const std::string& name) { return {}; };
 	virtual ~Mesh();
 
@@ -19,4 +19,4 @@ private:
 	GLuint _ibo{0};
 };
 
-using MeshMgr = ResMgr<std::string, Mesh>;
+using MeshMgr = ResMgr<Mesh>;

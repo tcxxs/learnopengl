@@ -1,6 +1,6 @@
 #include "model.hpp"
 
-Mesh::ptr Mesh::create(const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds) {
+Mesh::ptr Mesh::create(const std::string& name, const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds) {
 	Mesh::ptr mesh = std::shared_ptr<Mesh>(new Mesh());
 
 	glGenBuffers(1, &mesh->_vbo);
@@ -17,6 +17,7 @@ Mesh::ptr Mesh::create(const std::vector<GLfloat>& verts, const std::vector<GLui
 	if (oglError())
 		return {};
 
+	mesh->setName(name);
 	return mesh;
 }
 

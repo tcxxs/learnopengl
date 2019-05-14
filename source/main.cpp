@@ -19,11 +19,8 @@ int main()
 	}
 	RenderMgr::inst().init();
 
-	Mesh::ptr cube = Mesh::create(CUBE_VERTEX, CUBE_INDEX);
-	MeshMgr::inst().add("cube", cube);
-
-	Scene::ptr scene = Scene::create("test");
-	SceneMgr::inst().add("test", scene);
+	MeshMgr::inst().create("cube", CUBE_VERTEX, CUBE_INDEX);
+	const Scene::ptr& scene = SceneMgr::inst().create("test");
 	scene->active();
 
 	EventMgr::inst().process();
