@@ -127,7 +127,6 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 	}
 	model->setMatrix(mat);
 	model->setName(conf["name"].as<std::string>());
-	model->_proto = proto;
 
 	return model;
 }
