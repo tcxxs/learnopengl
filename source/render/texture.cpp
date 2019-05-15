@@ -5,6 +5,7 @@
 
 Texture::ptr Texture::create(const std::string& name) {
 	Texture::ptr texture = std::shared_ptr<Texture>(new Texture());
+	texture->setName(name);
 
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "texture" / name;
 	stbi_set_flip_vertically_on_load(true);

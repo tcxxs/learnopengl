@@ -26,7 +26,6 @@ private:
 	bool _loadShader(int type, GLuint& shader);
 
 private:
-	std::string _name;
 	GLuint _prog{0};
 	std::map<std::string, GLuint> _vars;
 };

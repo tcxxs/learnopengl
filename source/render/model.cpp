@@ -2,6 +2,8 @@
 
 ModelProto::ptr ModelProto::create(const std::string& name) {
 	ModelProto::ptr model = ModelProto::ptr(new ModelProto());
+	model->setName(name);
+
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / (name + ".yml");
 	if (!model->_conf.load(path)) {
 		std::cout << "model config error, " << path << std::endl;
@@ -19,7 +21,6 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 	if (!model->initGL())
 		return {};
 
-	model->setName(name);
 	return model;
 }
 
@@ -112,7 +113,8 @@ void ModelProto::draw(const glm::mat4& view, const glm::mat4& proj) {
 
 ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::node& conf) {
 	ModelInst::ptr model = ModelInst::ptr(new ModelInst());
-	
+	model->setName(conf["name"].as<std::string>());
+
 	glm::mat4 mat{1.0f};
 	mat = glm::translate(mat, conf["pos"].as<glm::vec3>());
 	const Config::node scale = conf["scale"];
@@ -126,7 +128,6 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 		mat = glm::rotate(mat, glm::radians(rotate[2].as<float>()), glm::vec3(0.0, 0.0, 1.0));
 	}
 	model->setMatrix(mat);
-	model->setName(conf["name"].as<std::string>());
 
 	return model;
 }

@@ -13,7 +13,7 @@
 class ModelProto;
 class ModelInst : public ResInst<ModelProto, ModelInst> {
 public:
-	static ptr create(const std::shared_ptr<ModelProto>& proto, const Config::node& conf);
+	static ptr create(const proto_ptr& proto, const Config::node& conf);
 
 	inline void setMatrix(const glm::mat4& model) { _mat = model; }
 	void draw(const Shader::ptr& shader);

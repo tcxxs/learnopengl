@@ -20,7 +20,9 @@ public:
 	using idt = unsigned long long;
 	using nat = std::string;
 
-	virtual ~Res() = default;
+	inline virtual ~Res() {
+		_id = 0;
+	}
 
 	inline void setID(const idt id) { _id = id; }
 	inline const idt getID() const { return _id; }
@@ -50,6 +52,8 @@ public:
 		return inst;
 	}
 
+	inline proto_ptr& prototype() { return _proto; }
+
 protected:
 	proto_ptr _proto;
 };
@@ -61,10 +65,12 @@ public:
 
 	template <typename ...ARGS>
 	inline typename I::ptr instance(ARGS... args) {
-		I::ptr inst = I::create(shared_from_this(), args...);
+		I::ptr inst = ResInst<P, I>::create(shared_from_this(), args...);
 		_insts[inst->getID()] = inst;
 		return inst;
 	}
+
+	inline insmap& container() { return _insts; }
 
 protected:
 	insmap _insts;
@@ -138,9 +144,7 @@ public:
 			return create(key, args...);
 	}
 
-	inline resmap container() {
-		return _rmap;
-	}
+	inline resmap& container() { return _rmap; }
 
 private:
 	inline static const resptr _empty{};

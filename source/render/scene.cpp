@@ -2,6 +2,8 @@
 
 Scene::ptr Scene::create(const std::string& name) {
 	Scene::ptr scene = std::shared_ptr<Scene>(new Scene());
+	scene->setName(name);
+
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "scene" / (name + ".yml");
 	if (!scene->_conf.load(path)) {
 		std::cout << "scene config error, " << path << std::endl;
@@ -51,10 +53,14 @@ void Scene::addModel(const Config::node& conf) {
 }
 
 void Scene::addLight(const Config::node& conf) {
-	const Light::ptr& light = LightMgr::inst().req(conf["type"].as<std::string>());
-	light->setPos(conf["pos"].as<glm::vec3>());
+	const LightProto::ptr& proto = LightProtoMgr::inst().req(conf["type"].as<std::string>());
+	if (!proto)
+		return;
+	const LightInst::ptr& light = proto->instance(conf);
+	if (!light)
+		return;
 	
-	_lights[conf["name"].as<std::string>()] = light;
+	_lights[conf["type"].as<std::string>()] = proto;
 }
 
 void Scene::draw() {
@@ -62,10 +68,11 @@ void Scene::draw() {
 	const glm::mat4& view = _cam->getView();
 	const glm::mat4& proj = _cam->getProj();
 
-	const glm::vec3& light_pos = _lights.begin()->second->getPos();
-	const glm::vec3& light_ambient = _lights.begin()->second->attrs.getAttr<glm::vec3>("ambient");
-	const glm::vec3& light_diffuse = _lights.begin()->second->attrs.getAttr<glm::vec3>("diffuse");
-	const glm::vec3& light_specular = _lights.begin()->second->attrs.getAttr<glm::vec3>("specular");
+	const LightInst::ptr& light = _lights.begin()->second->container().begin()->second;
+	const glm::vec3& light_pos = light->getPos();
+	const glm::vec3& light_ambient = light->prototype()->attrs.getAttr<glm::vec3>("ambient");
+	const glm::vec3& light_diffuse = light->prototype()->attrs.getAttr<glm::vec3>("diffuse");
+	const glm::vec3& light_specular = light->prototype()->attrs.getAttr<glm::vec3>("specular");
 
 	for (auto& it: _models) {
 		const ModelProto::ptr& proto = it.second;

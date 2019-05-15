@@ -2,6 +2,7 @@
 
 Mesh::ptr Mesh::create(const std::string& name, const std::vector<GLfloat>& verts, const std::vector<GLuint>& inds) {
 	Mesh::ptr mesh = std::shared_ptr<Mesh>(new Mesh());
+	mesh->setName(name);
 
 	glGenBuffers(1, &mesh->_vbo);
 	glGenBuffers(1, &mesh->_ibo);
@@ -17,7 +18,6 @@ Mesh::ptr Mesh::create(const std::string& name, const std::vector<GLfloat>& vert
 	if (oglError())
 		return {};
 
-	mesh->setName(name);
 	return mesh;
 }
 

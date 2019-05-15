@@ -1,19 +1,25 @@
 #include "light.hpp"
 
-Light::ptr Light::create(const std::string& name) {
-	Light::ptr light = std::shared_ptr<Light>(new Light());
+LightProto::ptr LightProto::create(const std::string& name) {
+	LightProto::ptr proto = std::shared_ptr<LightProto>(new LightProto());
+	proto->setName(name);
+
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "light" / (name + ".yml");
-	if (!light->_conf.load(path)) {
-		std::cout << "light config error, " << path << std::endl;
+	if (!proto->_conf.load(path)) {
+		std::cout << "proto config error, " << path << std::endl;
 		return {};
 	}
 
-	if (!light->attrs.guessAttrs(light->_conf.root())) {
+	if (!proto->attrs.guessAttrs(proto->_conf.root())) {
 		return {};
 	}
 
-	return light;
+	return proto;
 }
 
-Light::~Light() {
+LightInst::ptr LightInst::create(const proto_ptr& proto, const Config::node& conf) {
+	LightInst::ptr light = std::shared_ptr<LightInst>(new LightInst());
+	light->setName(conf["name"].as<std::string>());
+	light->setPos(conf["pos"].as<glm::vec3>());
+	return light;
 }

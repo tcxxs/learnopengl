@@ -3,8 +3,8 @@
 
 Shader::ptr Shader::create(const std::string& name) {
 	Shader::ptr shader = std::shared_ptr<Shader>(new Shader());
+	shader->setName(name);
 
-	shader->_name = name;
 	if (!shader->loadProgram())
 		return {};
 
