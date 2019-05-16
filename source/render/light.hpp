@@ -15,9 +15,11 @@ public:
 
 	inline void setPos(const glm::vec3& pos) { _pos = pos; }
 	inline const glm::vec3& getPos() const { return _pos; }
+	inline void setDir(const glm::vec3& dir) { _dir = dir; }
+	inline const glm::vec3& getDir() const { return _dir; }
 
 private:
-	glm::vec3 _pos{0.0f};
+	glm::vec3 _pos{0.0f}, _dir{0.0f};
 };
 
 class LightProto: public ResProto<LightProto, LightInst> {

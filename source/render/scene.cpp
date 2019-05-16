@@ -64,23 +64,9 @@ void Scene::addLight(const Config::node& conf) {
 }
 
 void Scene::draw() {
-	const glm::vec3& cam_pos = _cam->getPos();
-	const glm::mat4& view = _cam->getView();
-	const glm::mat4& proj = _cam->getProj();
-
 	const LightInst::ptr& light = _lights.begin()->second->container().begin()->second;
-	const glm::vec3& light_pos = light->getPos();
-	const glm::vec3& light_ambient = light->prototype()->attrs.getAttr<glm::vec3>("ambient");
-	const glm::vec3& light_diffuse = light->prototype()->attrs.getAttr<glm::vec3>("diffuse");
-	const glm::vec3& light_specular = light->prototype()->attrs.getAttr<glm::vec3>("specular");
-
 	for (auto& it: _models) {
 		const ModelProto::ptr& proto = it.second;
-		proto->attrs.setAttr("camera_pos", cam_pos);
-		proto->attrs.setAttr("light.pos", light_pos);
-		proto->attrs.setAttr("light.ambient", light_ambient);
-		proto->attrs.setAttr("light.diffuse", light_diffuse);
-		proto->attrs.setAttr("light.specular", light_specular);
-		proto->draw(view, proj);
+		proto->draw(_cam, light);
 	}
 }

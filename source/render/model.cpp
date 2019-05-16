@@ -86,12 +86,8 @@ bool ModelProto::initGL() {
 	return true;
 }
 
-void ModelProto::draw(const glm::mat4& view, const glm::mat4& proj) {
+void ModelProto::draw(const Camera::ptr& cam, const LightInst::ptr& light) {
 	_shader->useProgram();
-	_shader->setVars(attrs);
-
-	glUniformMatrix4fv(_shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(view));
-	glUniformMatrix4fv(_shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
 	glBindVertexArray(_vao);
 	if (_lpos >= 0)
@@ -104,6 +100,17 @@ void ModelProto::draw(const glm::mat4& view, const glm::mat4& proj) {
 		glEnableVertexAttribArray(_luv);
 	}
 
+	glUniformMatrix4fv(_shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(cam->getView()));
+	glUniformMatrix4fv(_shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(cam->getProj()));
+	_shader->setVar("camera_pos", cam->getPos());
+
+	const LightProto::ptr& light_proto = light->prototype();
+	_shader->setVar("light.pos", light->getPos());
+	_shader->setVar("light.ambient", light_proto->attrs.getAttr<glm::vec3>("ambient"));
+	_shader->setVar("light.diffuse", light_proto->attrs.getAttr<glm::vec3>("diffuse"));
+	_shader->setVar("light.specular", light_proto->attrs.getAttr<glm::vec3>("specular"));
+
+	_shader->setVars(attrs);
 	for (auto& it: _insts) {
 		it.second->draw(_shader);
 	}

@@ -1,5 +1,4 @@
 #include "shader.hpp"
-#include "render/texture.hpp"
 
 Shader::ptr Shader::create(const std::string& name) {
 	Shader::ptr shader = std::shared_ptr<Shader>(new Shader());
@@ -111,7 +110,23 @@ bool Shader::loadProgram() {
 
 bool Shader::useProgram() {
 	glUseProgram(_prog);
+	_tex = 0;
 	return true;
+}
+
+void Shader::setVar(const GLuint& loc, const std::any& var) {
+	if (var.type() == typeid(float)) {
+		setVar(loc, std::any_cast<const float&>(var));
+	}
+	else if (var.type() == typeid(glm::vec3)) {
+		setVar(loc, std::any_cast<const glm::vec3&>(var));
+	}
+	else if (var.type() == typeid(Texture::ptr)) {
+		setVar(loc, std::any_cast<const Texture::ptr&>(var));
+	}
+	else {
+		std::cout << "shader var unknow, loc: " << loc << ", type: " << var.type().name() << std::endl;
+	}
 }
 
 void Shader::setVars(const Attributes& attrs) {

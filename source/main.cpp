@@ -20,7 +20,7 @@ int main()
 	RenderMgr::inst().init();
 
 	MeshMgr::inst().create("cube", CUBE_VERTEX, CUBE_INDEX);
-	const Scene::ptr& scene = SceneMgr::inst().create("test");
+	const Scene::ptr& scene = SceneMgr::inst().create("scene");
 	scene->active();
 
 	EventMgr::inst().process();

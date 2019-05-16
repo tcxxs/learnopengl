@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 #include "utils/utils.hpp"
 #include "utils/resource.hpp"
+#include "render/texture.hpp"
 
 class Shader: public Res<Shader> {
 public:
@@ -20,6 +21,27 @@ public:
 		else
 			return it->second;
 	}
+
+	template <typename V>
+	inline void setVar(const std::string& name, const V& var) {
+		const GLint loc = getVar(name);
+		if (loc < 0)
+			return;
+		setVar((GLuint)loc, var);
+	}
+	void setVar(const GLuint& loc, const std::any& var);
+	inline void setVar(const GLuint& loc, const float& var) {
+		glUniform1f(loc, var);
+	}
+	inline void setVar(const GLuint& loc, const glm::vec3& var) {
+		glUniform3fv(loc, 1, glm::value_ptr(var));
+	}
+	inline void setVar(const GLuint& loc, const Texture::ptr& var) {
+		glActiveTexture(GL_TEXTURE0 + _tex);
+		glBindTexture(GL_TEXTURE_2D, var->getTexture());
+		glUniform1i(loc, _tex);
+		_tex += 1;
+	}
 	void setVars(const Attributes& attrs);
 
 private:
@@ -27,6 +49,7 @@ private:
 
 private:
 	GLuint _prog{0};
+	int _tex{0};
 	std::map<std::string, GLuint> _vars;
 };
 

@@ -9,6 +9,8 @@
 #include "render/mesh.hpp"
 #include "render/shader.hpp"
 #include "render/texture.hpp"
+#include "render/camera.hpp"
+#include "render/light.hpp"
 
 class ModelProto;
 class ModelInst : public ResInst<ModelProto, ModelInst> {
@@ -30,7 +32,7 @@ public:
 	static ptr create(const std::string& name);
 	virtual ~ModelProto(); 
 
-	void draw(const glm::mat4& view, const glm::mat4& proj);
+	void draw(const Camera::ptr& cam, const LightInst::ptr& light);
 
 protected:
 	bool initShader();
