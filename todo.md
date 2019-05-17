@@ -1,2 +1,2 @@
-- light更新来控制pos、color
-- coord2euler ,yaw解决了，pitch应该也有问题
+- 设置shader的宏
+- model应该更加提纯shader设置器的概念

@@ -106,6 +106,7 @@ void ModelProto::draw(const Camera::ptr& cam, const LightInst::ptr& light) {
 
 	const LightProto::ptr& light_proto = light->prototype();
 	_shader->setVar("light.pos", light->getPos());
+	_shader->setVar("light.dir", light->getDir());
 	_shader->setVar("light.ambient", light_proto->attrs.getAttr<glm::vec3>("ambient"));
 	_shader->setVar("light.diffuse", light_proto->attrs.getAttr<glm::vec3>("diffuse"));
 	_shader->setVar("light.specular", light_proto->attrs.getAttr<glm::vec3>("specular"));

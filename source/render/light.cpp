@@ -20,6 +20,13 @@ LightProto::ptr LightProto::create(const std::string& name) {
 LightInst::ptr LightInst::create(const proto_ptr& proto, const Config::node& conf) {
 	LightInst::ptr light = std::shared_ptr<LightInst>(new LightInst());
 	light->setName(conf["name"].as<std::string>());
-	light->setPos(conf["pos"].as<glm::vec3>());
+	Config::node pos = conf["pos"];
+	if (pos.IsDefined()) {
+		light->setPos(pos.as<glm::vec3>());
+	}
+	Config::node dir = conf["dir"];
+	if (dir.IsDefined()) {
+		light->setDir(dir.as<glm::vec3>());
+	}
 	return light;
 }
