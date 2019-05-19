@@ -115,6 +115,15 @@ void ModelProto::draw(const Camera::ptr& cam, const LightInst::ptr& light) {
 		_shader->setVar("light.linear", light_proto->attrs.getAttr<float>("linear"));
 		_shader->setVar("light.quadratic", light_proto->attrs.getAttr<float>("quadratic"));
 	}
+	else if (light_type == "spot") {
+		_shader->setVar("light.pos", light->getPos());
+		_shader->setVar("light.dir", light->getDir());
+		_shader->setVar("light.inner", cos(glm::radians(light_proto->attrs.getAttr<float>("inner"))));
+		_shader->setVar("light.outter", cos(glm::radians(light_proto->attrs.getAttr<float>("outter"))));
+		_shader->setVar("light.constant", light_proto->attrs.getAttr<float>("constant"));
+		_shader->setVar("light.linear", light_proto->attrs.getAttr<float>("linear"));
+		_shader->setVar("light.quadratic", light_proto->attrs.getAttr<float>("quadratic"));
+	}
 	_shader->setVar("light.ambient", light_proto->attrs.getAttr<glm::vec3>("ambient"));
 	_shader->setVar("light.diffuse", light_proto->attrs.getAttr<glm::vec3>("diffuse"));
 	_shader->setVar("light.specular", light_proto->attrs.getAttr<glm::vec3>("specular"));
