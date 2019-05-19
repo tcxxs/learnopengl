@@ -1,6 +1,6 @@
 mesh: cube
 shader:
-  name: dir
+  name: point
   vars:
     material.diffuse: box.png
     material.specular: specular.png

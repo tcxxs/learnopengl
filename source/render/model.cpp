@@ -105,8 +105,16 @@ void ModelProto::draw(const Camera::ptr& cam, const LightInst::ptr& light) {
 	_shader->setVar("camera_pos", cam->getPos());
 
 	const LightProto::ptr& light_proto = light->prototype();
-	_shader->setVar("light.pos", light->getPos());
-	_shader->setVar("light.dir", light->getDir());
+	const std::string& light_type = light_proto->getName();
+	if (light_type == "dir") {
+		_shader->setVar("light.dir", light->getDir());
+	}
+	else if (light_type == "point") {
+		_shader->setVar("light.pos", light->getPos());
+		_shader->setVar("light.constant", light_proto->attrs.getAttr<float>("constant"));
+		_shader->setVar("light.linear", light_proto->attrs.getAttr<float>("linear"));
+		_shader->setVar("light.quadratic", light_proto->attrs.getAttr<float>("quadratic"));
+	}
 	_shader->setVar("light.ambient", light_proto->attrs.getAttr<glm::vec3>("ambient"));
 	_shader->setVar("light.diffuse", light_proto->attrs.getAttr<glm::vec3>("diffuse"));
 	_shader->setVar("light.specular", light_proto->attrs.getAttr<glm::vec3>("specular"));
