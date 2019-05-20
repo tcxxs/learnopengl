@@ -30,6 +30,9 @@ public:
 		setVar((GLuint)loc, var);
 	}
 	void setVar(const GLuint& loc, const std::any& var);
+	inline void setVar(const GLuint& loc, const int& var) {
+		glUniform1i(loc, var);
+	}
 	inline void setVar(const GLuint& loc, const float& var) {
 		glUniform1f(loc, var);
 	}
@@ -42,7 +45,11 @@ public:
 		glUniform1i(loc, _tex);
 		_tex += 1;
 	}
-	void setVars(const Attributes& attrs);
+	inline void setVars(const Attributes& attrs) {
+		for (const auto& it: attrs) {
+			setVar(it.first, it.second);
+		}
+	}
 
 private:
 	bool _loadShader(int type, GLuint& shader);

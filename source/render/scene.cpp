@@ -64,9 +64,8 @@ void Scene::addLight(const Config::node& conf) {
 }
 
 void Scene::draw() {
-	const LightInst::ptr& light = _lights.begin()->second->container().begin()->second;
 	for (auto& it: _models) {
 		const ModelProto::ptr& proto = it.second;
-		proto->draw(_cam, light);
+		proto->draw(_cam, _lights);
 	}
 }

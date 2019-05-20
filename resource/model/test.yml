@@ -1,6 +1,6 @@
 mesh: cube
 shader:
-  name: spot
+  name: phong
   vars:
     material.diffuse: box.png
     material.specular: specular.png

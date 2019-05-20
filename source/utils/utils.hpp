@@ -11,6 +11,14 @@
 void oglFeature();
 bool oglError();
 
+template <typename... Args>
+inline std::string string_format(const std::string& format, Args... args) {
+	size_t size = std::snprintf(nullptr, 0, format.c_str(), args...) + 1;
+	std::unique_ptr<char[]> buf(new char[size]);
+	std::snprintf(buf.get(), size, format.c_str(), args...);
+	return std::string(buf.get(), buf.get() + size - 1);
+}
+
 class Attributes {
 public:
 	using AttrMap = std::map<std::string, std::any>;

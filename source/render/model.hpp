@@ -32,7 +32,7 @@ public:
 	static ptr create(const std::string& name);
 	virtual ~ModelProto(); 
 
-	void draw(const Camera::ptr& cam, const LightInst::ptr& light);
+	void draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights);
 
 protected:
 	bool initShader();

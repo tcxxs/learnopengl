@@ -3,23 +3,28 @@ camera:
   pos: [0.0, 0.0, 2.0]
   target: [0.0, 0.0, -1.0]
 lights:
-  - name: test
+  - name: test1
     type: spot
     pos: [-0.7, 0.0, 0.3]
     dir: [0.0, 0.0, -1.0]
-    color: [1.0, 1.0, 1.0]
-  # - name: test
-  #   type: point
-  #   pos: [-0.7, 0.7, -0.1]
-  #   color: [1.0, 1.0, 1.0]
-  # - name: test
-  #   type: dir
-  #   dir: [1.2, -1.2, 0.5]
-  #   color: [1.0, 0.8, 0.8]
+  - name: test2
+    type: point
+    pos: [0.3, 0.3, 0.3]
+  - name: test3
+    type: dir
+    dir: [0.0, -1.0, 1.0]
 models:
-  - name: light
+  - name: light1
     type: light
     pos: [-0.7, 0.0, 0.3]
+    scale: 0.1
+  - name: light2
+    type: light
+    pos: [0.3, 0.3, 0.3]
+    scale: 0.1
+  - name: light3
+    type: light
+    pos: [0.0, 1.0, -1.0]
     scale: 0.1
   - name: test0
     type: test
