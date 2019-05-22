@@ -16,7 +16,9 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 	if (!model->_mesh)
 		return {};
 
-	if (!model->initShader())
+	if (!model->_loadAssimp())
+		return {};
+	if (!model->_initShader())
 		return {};
 
 	return model;
@@ -27,7 +29,38 @@ ModelProto::~ModelProto() {
 	_shader = nullptr;
 }
 
-bool ModelProto::initShader() {
+bool ModelProto::_loadAssimp() {
+	std::string name = _conf["file"].as<std::string>();
+	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / name;
+	const aiScene* scene = _imp.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs);
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+		std::cout << "model assimp error, " << import.GetErrorString() << std::endl;
+		return false;
+	}
+
+	if (!_loadNode(scene->mRootNode, scene))
+		return false;
+
+	return true;
+}
+
+bool ModelProto::_loadNode(const std::filesystem::path& path, aiNode *node, const aiScene *scene) {
+	for (auto i = 0; i < node->mNumMeshes; ++i) {
+		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		Mesh::ptr mesh = Mesh::create(path, mesh, scene);
+		if (!mesh)
+			return false;
+		_meshs.push_back(mesh);
+	}
+
+	for (auto i = 0; i < node->mNumChildren; ++i) {
+		if (!_loadNode(node->mChildren[i], scene))
+			return false;
+	}
+	return true;
+}
+
+bool ModelProto::_initShader() {
 	const std::string key = _conf["shader.name"].as<std::string, std::string>("");
 	_shader = ShaderMgr::inst().req(key);
 	if (!_shader) {
@@ -40,7 +73,7 @@ bool ModelProto::initShader() {
 		if (!attrs.guessAttrs(node))
 			return false;
 
-		for (auto& it: attrs) {
+		for (auto& it : attrs) {
 			if (it.second.type() == typeid(std::string)) {
 				const auto& tex = TextureMgr::inst().req(std::any_cast<std::string&>(it.second));
 				if (!tex)
@@ -55,11 +88,7 @@ bool ModelProto::initShader() {
 
 void ModelProto::draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights) {
 	_shader->useProgram();
-
-	glBindVertexArray(_vao);
-	glEnableVertexAttribArray(POS_LOC);
-	glEnableVertexAttribArray(UV_LOC);
-	glEnableVertexAttribArray(NORMAL_LOC);
+	_shader->setVars(attrs);
 
 	glUniformMatrix4fv(_shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(cam->getView()));
 	glUniformMatrix4fv(_shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(cam->getProj()));
@@ -67,10 +96,10 @@ void ModelProto::draw(const Camera::ptr& cam, const std::map<std::string, LightP
 
 	int dirs{0}, points{0}, spots{0};
 	std::string light;
-	for (const auto& it_proto: lights) {
+	for (const auto& it_proto : lights) {
 		const LightProto::ptr& light_proto = it_proto.second;
 		const std::string& light_type = light_proto->getName();
-		for (const auto& it_inst: light_proto->container()) {
+		for (const auto& it_inst : light_proto->container()) {
 			if (light_type == "dir") {
 				light = string_format("dirs[%d]", dirs++);
 				_shader->setVar(light + ".dir", it_inst.second->getDir());
@@ -107,11 +136,10 @@ void ModelProto::draw(const Camera::ptr& cam, const std::map<std::string, LightP
 	_shader->setVar("uses.points", points);
 	_shader->setVar("uses.spots", spots);
 
-	_shader->setVars(attrs);
-	for (auto& it: _insts) {
+	glBindVertexArray(_vao);
+	for (auto& it : _insts) {
 		it.second->draw(_shader);
 	}
-
 	glBindVertexArray(0);
 }
 
@@ -139,5 +167,7 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 void ModelInst::draw(const Shader::ptr& shader) {
 	shader->setVars(attrs);
 	glUniformMatrix4fv(shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(_mat));
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	for (auto& it : _meshs) {
+		it.draw();
+	}
 }

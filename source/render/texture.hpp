@@ -5,7 +5,11 @@
 
 class Texture: public Res<Texture> {
 public:
-	static ptr create(const std::string& name);
+	static ptr create(const std::string& name, const std::filesystem::path& path);
+	inline static ptr create(const std::string& name) {
+		std::filesystem::path path = std::filesystem::current_path() / "resource" / "texture" / name;
+		return create(name, path);
+	}
 	virtual ~Texture();
 
 	inline const GLuint getTexture() const { return _tex; }

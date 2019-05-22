@@ -4,6 +4,9 @@
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
+#include "assimp/Importer.hpp"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
 #include "utils/utils.hpp"
 #include "utils/resource.hpp"
 #include "render/mesh.hpp"
@@ -35,13 +38,16 @@ public:
 	void draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights);
 
 protected:
-	bool initShader();
+	bool _loadAssimp();
+	bool _loadNode(const std::filesystem::path& path, aiNode *node, const aiScene *scene);
+	bool _initShader();
 
 public:
 	Attributes attrs;
 private:
+	static Assimp::Importer _imp;
 	Config _conf;
-	Mesh::ptr _mesh;
+	std::vector<Mesh::ptr> _meshs;
 	Shader::ptr _shader;
 };
 
