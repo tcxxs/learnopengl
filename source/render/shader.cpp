@@ -68,6 +68,10 @@ bool Shader::loadProgram() {
 	}
 
 	_prog = glCreateProgram();
+	glBindAttribLocation(_prog, POS_LOC, POS_NAME);
+	glBindAttribLocation(_prog, UV_LOC, UV_NAME);
+	glBindAttribLocation(_prog, NORMAL_LOC, NORMAL_NAME);
+
 	glAttachShader(_prog, vs);
 	glAttachShader(_prog, fs);
 	glLinkProgram(_prog);
@@ -103,6 +107,19 @@ bool Shader::loadProgram() {
 		name.resize(namesize, 0);
 		glGetActiveUniform(_prog, (GLuint)i, namesize, &length, &size, &type, name.data());
 		_vars[name.c_str()] = i;
+	}
+
+	if (getVar(POS_NAME) != POS_LOC) {
+		std::cout << "load program, pos location error" << std::endl;
+		return false;
+	}
+	if (getVar(UV_NAME) != UV_LOC) {
+		std::cout << "load program, uv location error" << std::endl;
+		return false;
+	}
+	if (getVar(NORMAL_NAME) != NORMAL_LOC) {
+		std::cout << "load program, normal location error" << std::endl;
+		return false;
 	}
 
 	return true;

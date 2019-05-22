@@ -44,7 +44,6 @@ struct LightUse {
 };
 
 in vec3 fg_pos;
-in vec3 fg_color;
 in vec2 fg_uv;
 in vec3 fg_normal;
 

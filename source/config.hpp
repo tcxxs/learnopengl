@@ -14,6 +14,13 @@
 #define CAM_MOVE 1.0f
 #define CAM_ROTATE 0.0005f
 
+#define POS_LOC = 0
+#define UV_LOC = 1
+#define NORMAL_LOC = 2
+#define POS_NAME = 'vt_pos'
+#define UV_NAME = 'vt_uv'
+#define NORMAL_NAME = 'vt_normal'
+
 const static std::vector<GLfloat> CUBE_VERTEX = {
 //---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
 -0.5f, -0.5f, -0.5f,  1.0f, 0.5f, 0.3f, 0.0f, 0.0f, 0.0f,  0.0f, -1.0f,

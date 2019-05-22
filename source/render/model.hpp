@@ -36,7 +36,6 @@ public:
 
 protected:
 	bool initShader();
-	bool initGL();
 
 public:
 	Attributes attrs;
@@ -44,8 +43,6 @@ private:
 	Config _conf;
 	Mesh::ptr _mesh;
 	Shader::ptr _shader;
-	GLuint _vao{0};
-	GLint _lpos{-1}, _lcolor{-1}, _luv{-1}, _lnormal{-1};
 };
 
 using ModelProtoMgr = ResMgr<ModelProto>;

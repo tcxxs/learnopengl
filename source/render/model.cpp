@@ -18,8 +18,6 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 
 	if (!model->initShader())
 		return {};
-	if (!model->initGL())
-		return {};
 
 	return model;
 }
@@ -27,11 +25,6 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 ModelProto::~ModelProto() {
 	_mesh = nullptr;
 	_shader = nullptr;
-
-	if (_vao) {
-		glDeleteVertexArrays(1, &_vao);
-		_vao = 0;
-	}
 }
 
 bool ModelProto::initShader() {
@@ -41,11 +34,6 @@ bool ModelProto::initShader() {
 		std::cout << "model shader error, " << key << std::endl;
 		return false;
 	}
-
-	_lpos = _shader->getVar("vt_pos");
-	_lcolor = _shader->getVar("vt_color");
-	_luv = _shader->getVar("vt_uv");
-	_lnormal = _shader->getVar("vt_normal");
 
 	const auto node = _conf["shader.vars"];
 	if (node.IsDefined()) {
@@ -65,40 +53,13 @@ bool ModelProto::initShader() {
 	return true;
 }
 
-bool ModelProto::initGL() {
-	glGenVertexArrays(1, &_vao);
-	glBindVertexArray(_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, _mesh->getVBO());
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _mesh->getIBO());
-	if (_lpos >= 0)
-		glVertexAttribPointer(_lpos, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)0);
-	if (_lcolor >= 0)
-		glVertexAttribPointer(_lcolor, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-	if (_luv >= 0)
-		glVertexAttribPointer(_luv, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-	if (_lnormal >= 0)
-		glVertexAttribPointer(_lnormal, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(8 * sizeof(GLfloat)));
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	return true;
-}
-
 void ModelProto::draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights) {
 	_shader->useProgram();
 
 	glBindVertexArray(_vao);
-	if (_lpos >= 0)
-		glEnableVertexAttribArray(_lpos);
-	if (_lcolor >= 0)
-		glEnableVertexAttribArray(_lcolor);
-	if (_lnormal >= 0)
-		glEnableVertexAttribArray(_lnormal);
-	if (_luv >= 0) {
-		glEnableVertexAttribArray(_luv);
-	}
+	glEnableVertexAttribArray(POS_LOC);
+	glEnableVertexAttribArray(UV_LOC);
+	glEnableVertexAttribArray(NORMAL_LOC);
 
 	glUniformMatrix4fv(_shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(cam->getView()));
 	glUniformMatrix4fv(_shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(cam->getProj()));
