@@ -10,12 +10,6 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 		return {};
 	}
 
-	std::string key;
-	key = model->_conf["mesh"].as<std::string, std::string>("");
-	model->_mesh = MeshMgr::inst().req(key);
-	if (!model->_mesh)
-		return {};
-
 	if (!model->_loadAssimp())
 		return {};
 	if (!model->_initShader())
@@ -25,8 +19,6 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 }
 
 ModelProto::~ModelProto() {
-	_mesh = nullptr;
-	_shader = nullptr;
 }
 
 bool ModelProto::_loadAssimp() {
@@ -34,27 +26,27 @@ bool ModelProto::_loadAssimp() {
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / name;
 	const aiScene* scene = _imp.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_FlipUVs);
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-		std::cout << "model assimp error, " << import.GetErrorString() << std::endl;
+		std::cout << "model assimp error, " << _imp.GetErrorString() << std::endl;
 		return false;
 	}
 
-	if (!_loadNode(scene->mRootNode, scene))
+	if (!_loadNode(path, scene->mRootNode, scene))
 		return false;
 
 	return true;
 }
 
 bool ModelProto::_loadNode(const std::filesystem::path& path, aiNode *node, const aiScene *scene) {
-	for (auto i = 0; i < node->mNumMeshes; ++i) {
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		Mesh::ptr mesh = Mesh::create(path, mesh, scene);
+	for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
+		aiMesh* ms = scene->mMeshes[node->mMeshes[i]];
+		Mesh::ptr mesh = Mesh::create(path, ms, scene);
 		if (!mesh)
 			return false;
 		_meshs.push_back(mesh);
 	}
 
-	for (auto i = 0; i < node->mNumChildren; ++i) {
-		if (!_loadNode(node->mChildren[i], scene))
+	for (unsigned int i = 0; i < node->mNumChildren; ++i) {
+		if (!_loadNode(path, node->mChildren[i], scene))
 			return false;
 	}
 	return true;
@@ -136,11 +128,12 @@ void ModelProto::draw(const Camera::ptr& cam, const std::map<std::string, LightP
 	_shader->setVar("uses.points", points);
 	_shader->setVar("uses.spots", spots);
 
-	glBindVertexArray(_vao);
 	for (auto& it : _insts) {
 		it.second->draw(_shader);
+		for (auto& itm : _meshs) {
+			itm->draw();
+		}
 	}
-	glBindVertexArray(0);
 }
 
 ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::node& conf) {
@@ -167,7 +160,4 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 void ModelInst::draw(const Shader::ptr& shader) {
 	shader->setVars(attrs);
 	glUniformMatrix4fv(shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(_mat));
-	for (auto& it : _meshs) {
-		it.draw();
-	}
 }

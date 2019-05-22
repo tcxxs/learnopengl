@@ -2,35 +2,13 @@
 
 Mesh::ptr Mesh::create(const std::filesystem::path& path, const aiMesh* ms, const aiScene* scene) {
 	Mesh::ptr mesh = std::shared_ptr<Mesh>(new Mesh());
-	mesh->setName(name);
+	// mesh->setName(name);
 
-	if (!_loadVertex(ms))
+	if (!mesh->_loadVertex(ms))
 		return {};
-	if (!_loadMaterial(path, ms, scene))
+	if (!mesh->_loadMaterial(path, ms, scene))
 		return {};
-
-	glGenVertexArrays(1, &mesh->_vao);
-	glGenBuffers(1, &mesh->_vbo);
-	glGenBuffers(1, &mesh->_ibo);
-
-	glBindVertexArray(mesh->_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, mesh->_vbo);
-	glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(Vertex), verts.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->_ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(GLuint), inds.data(), GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(POS_LOC);
-	glVertexAttribPointer(POS_LOC, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
-	glEnableVertexAttribArray(UV_LOC);
-	glVertexAttribPointer(UV_LOC, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-	glEnableVertexAttribArray(NORMAL_LOC);
-	glVertexAttribPointer(NORMAL_LOC, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	if (oglError())
+	if (!mesh->_initGL())
 		return {};
 
 	return mesh;
@@ -62,7 +40,7 @@ bool Mesh::_loadVertex(const aiMesh* mesh) {
 	}
 
 	_verts.resize(mesh->mNumVertices, {glm::vec3(0.0f), glm::vec2(0.0f), glm::vec3(0.0f)});
-	for (auto i = 0; i < mesh->mNumVertices; ++i) {
+	for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
 		_verts[i].pos.x = mesh->mVertices[i].x;
 		_verts[i].pos.y = mesh->mVertices[i].y;
 		_verts[i].pos.z = mesh->mVertices[i].z;
@@ -73,7 +51,7 @@ bool Mesh::_loadVertex(const aiMesh* mesh) {
 		_verts[i].normal.z = mesh->mNormals[i].z;
 	}
 
-	for (auto i = 0; i < mesh->mNumFaces; ++i) {
+	for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
 		aiFace face = mesh->mFaces[i];
 		_inds.insert(_inds.end(), face.mIndices, face.mIndices + face.mNumIndices);
 	}
@@ -92,21 +70,51 @@ bool Mesh::_loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, 
 }
 
 bool Mesh::_loadTexture(const std::filesystem::path& path, const aiMaterial* mat, const aiTextureType type, const std::string& name) {
-	for (auto i = 0; i < mat->GetTextureCount(type); ++i) {
+	for (unsigned int i = 0; i < mat->GetTextureCount(type); ++i) {
 		aiString str;
 		mat->GetTexture(type, i, &str);
-		std::filesystem::path file = path / str.C_str();
+		std::filesystem::path file = path / str.C_Str();
 
 		Texture::ptr tex = TextureMgr::inst().req(file.string(), file);
 		if (!tex)
 			return false;
-		attrs.setVar(name, tex);
+		attrs.setAttr(name, tex);
 		break;
 	}
 
 	return true;
 }
 
+bool Mesh::_initGL() {
+	glGenVertexArrays(1, &_vao);
+	glGenBuffers(1, &_vbo);
+	glGenBuffers(1, &_ibo);
+
+	glBindVertexArray(_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+	glBufferData(GL_ARRAY_BUFFER, _verts.size() * sizeof(Vertex), _verts.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _inds.size() * sizeof(GLuint), _inds.data(), GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(POS_LOC);
+	glVertexAttribPointer(POS_LOC, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
+	glEnableVertexAttribArray(UV_LOC);
+	glVertexAttribPointer(UV_LOC, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+	glEnableVertexAttribArray(NORMAL_LOC);
+	glVertexAttribPointer(NORMAL_LOC, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	if (oglError())
+		return false;
+
+	return true;
+}
+
 void Mesh::draw() {
-	glDrawElements(GL_TRIANGLES, _inds.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(_vao);
+	glDrawElements(GL_TRIANGLES, (GLsizei)_inds.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 }

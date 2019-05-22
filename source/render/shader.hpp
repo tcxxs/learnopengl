@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glad/glad.h"
+#include "config.hpp"
 #include "utils/utils.hpp"
 #include "utils/resource.hpp"
 #include "render/texture.hpp"

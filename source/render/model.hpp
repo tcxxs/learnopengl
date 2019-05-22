@@ -45,7 +45,7 @@ protected:
 public:
 	Attributes attrs;
 private:
-	static Assimp::Importer _imp;
+	inline static Assimp::Importer _imp;
 	Config _conf;
 	std::vector<Mesh::ptr> _meshs;
 	Shader::ptr _shader;

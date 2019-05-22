@@ -28,6 +28,7 @@ protected:
 	bool _loadVertex(const aiMesh* mesh);
 	bool _loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene *scene);
 	bool _loadTexture(const std::filesystem::path& path, const aiMaterial *mat, const aiTextureType type, const std::string& name);
+	bool _initGL();
 
 public:
 	Attributes attrs;
@@ -36,5 +37,3 @@ private:
 	std::vector<GLuint> _inds;
 	GLuint _vao{0}, _vbo{0}, _ibo{0};
 };
-
-using MeshMgr = ResMgr<Mesh>;
