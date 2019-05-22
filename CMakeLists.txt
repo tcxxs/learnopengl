@@ -19,6 +19,7 @@ set(libs
     ${CMAKE_SOURCE_DIR}/contrib/lib/glfw3.lib
     ${CMAKE_SOURCE_DIR}/contrib/lib/libyaml-cppmd.lib
     glad_lib
+    ${CMAKE_SOURCE_DIR}/contrib/lib/assimp-vc140-mt.lib
 )
 
 # main
