@@ -68,12 +68,11 @@ bool Shader::loadProgram() {
 	}
 
 	_prog = glCreateProgram();
+	glAttachShader(_prog, vs);
+	glAttachShader(_prog, fs);
 	glBindAttribLocation(_prog, POS_LOC, POS_NAME);
 	glBindAttribLocation(_prog, UV_LOC, UV_NAME);
 	glBindAttribLocation(_prog, NORMAL_LOC, NORMAL_NAME);
-
-	glAttachShader(_prog, vs);
-	glAttachShader(_prog, fs);
 	glLinkProgram(_prog);
 
 	GLint success;
@@ -98,7 +97,7 @@ bool Shader::loadProgram() {
 		name.clear();
 		name.resize(namesize, 0);
 		glGetActiveAttrib(_prog, (GLuint)i, namesize, &length, &size, &type, name.data());
-		_vars[name.c_str()] = i;
+		_vars[name.c_str()] = glGetAttribLocation(_prog, name.data());
 	}
 
 	glGetProgramiv(_prog, GL_ACTIVE_UNIFORMS, &count);

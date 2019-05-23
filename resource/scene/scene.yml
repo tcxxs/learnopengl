@@ -15,64 +15,19 @@ lights:
     dir: [0.0, -1.0, 1.0]
 models:
   - name: light1
-    type: light
+    type: lamp
     pos: [-0.7, 0.0, 0.3]
     scale: 0.1
-  - name: light2
-    type: light
-    pos: [0.3, 0.3, 0.3]
-    scale: 0.1
-  - name: light3
-    type: light
-    pos: [0.0, 1.0, -1.0]
-    scale: 0.1
-  - name: test0
-    type: test
-    pos: [-0.43, 0.43, -0.87]
-    scale: 0.5
-    rotate: [163.0, 34.0, 167.0]
-  - name: test1
-    type: test
-    pos: [-1.19, -0.18, -7.48]
-    scale: 0.7
-    rotate: [112.0, 150.0, 46.0]
-  - name: test2
-    type: test
-    pos: [0.74, -0.83, -0.89]
-    scale: 0.8
-    rotate: [228.0, 167.0, 242.0]
-  - name: test3
-    type: test
-    pos: [-1.90, 0.63, -4.40]
-    scale: 0.6
-    rotate: [26.0, 286.0, 339.0]
-  - name: test4
-    type: test
-    pos: [-0.02, -0.05, -7.22]
-    scale: 0.5
-    rotate: [121.0, 143.0, 256.0]
-  - name: test5
-    type: test
-    pos: [-1.15, -0.78, -1.32]
-    scale: 0.8
-    rotate: [226.0, 337.0, 94.0]
-  - name: test6
-    type: test
-    pos: [1.10, 0.17, -7.37]
-    scale: 0.5
-    rotate: [264.0, 282.0, 190.0]
-  - name: test7
-    type: test
-    pos: [1.12, 0.60, -2.16]
-    scale: 0.4
-    rotate: [177.0, 7.0, 231.0]
-  - name: test8
-    type: test
-    pos: [-1.39, -0.64, -2.05]
-    scale: 0.8
-    rotate: [16.0, 164.0, 265.0]
-  - name: test9
-    type: test
-    pos: [1.12, -0.76, -0.84]
-    scale: 0.7
-    rotate: [22.0, 19.0, 37.0]
+  # - name: light2
+  #   type: light
+  #   pos: [0.3, 0.3, 0.3]
+  #   scale: 0.1
+  # - name: light3
+  #   type: light
+  #   pos: [0.0, 1.0, -1.0]
+  #   scale: 0.1
+  - name: nanosuit
+    type: nanosuit
+    pos: [0.0, 0.0, 0.0]
+    scale: 0.05
+    rotate: [0.0, 0.0, 0.0]

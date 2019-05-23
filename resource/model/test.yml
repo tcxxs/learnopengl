@@ -1,8 +1,0 @@
-file: test
-mesh: cube
-shader:
-  name: phong
-  vars:
-    material.diffuse: box.png
-    material.specular: specular.png
-    material.shininess: 32.0

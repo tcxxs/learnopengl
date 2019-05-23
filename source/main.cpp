@@ -12,9 +12,8 @@
 #include "render/model.hpp"
 #include "render/scene.hpp"
 
-int main()
-{
-    if (!EventMgr::inst().init(FPS)) {
+int main() {
+	if (!EventMgr::inst().init(FPS)) {
 		return -1;
 	}
 	RenderMgr::inst().init();
