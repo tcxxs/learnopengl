@@ -1,6 +1,6 @@
 camera:
   fov: 45.0
-  pos: [0.0, 0.0, 2.0]
+  pos: [0.0, 1.0, 2.0]
   target: [0.0, 0.0, -1.0]
 lights:
   - name: test1
@@ -14,18 +14,22 @@ lights:
     type: dir
     dir: [0.0, -1.0, 1.0]
 models:
+  - name: land
+    type: land
+    pos: [0.0, -0.1, 0.0]
+    scale: 5.0
   - name: light1
     type: lamp
     pos: [-0.7, 0.0, 0.3]
-    scale: 0.1
-  # - name: light2
-  #   type: light
-  #   pos: [0.3, 0.3, 0.3]
-  #   scale: 0.1
-  # - name: light3
-  #   type: light
-  #   pos: [0.0, 1.0, -1.0]
-  #   scale: 0.1
+    scale: 0.01
+  - name: light2
+    type: lamp
+    pos: [0.3, 0.3, 0.3]
+    scale: 0.01
+  - name: light3
+    type: lamp
+    pos: [0.0, 1.0, -1.0]
+    scale: 0.01
   - name: nanosuit
     type: nanosuit
     pos: [0.0, 0.0, 0.0]

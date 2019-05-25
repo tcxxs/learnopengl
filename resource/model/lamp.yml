@@ -1,4 +1,4 @@
-file: lamp/cube.blend
+file: lamp/lamp.obj
 shader:
   name: color
   vars:
