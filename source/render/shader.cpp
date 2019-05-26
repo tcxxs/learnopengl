@@ -1,10 +1,10 @@
 #include "shader.hpp"
 
-Shader::ptr Shader::create(const std::string& name) {
-	Shader::ptr shader = std::shared_ptr<Shader>(new Shader());
+ShaderProto::ptr ShaderProto::create(const std::string& name) {
+	ShaderProto::ptr shader = std::shared_ptr<ShaderProto>(new ShaderProto());
 	shader->setName(name);
 
-	if (!shader->loadProgram())
+	if (!shader->_loadProgram())
 		return {};
 
 	if (oglError())
@@ -13,25 +13,25 @@ Shader::ptr Shader::create(const std::string& name) {
 	return shader;
 }
 
-Shader::~Shader() {
+ShaderProto::~ShaderProto() {
 	if (_prog) {
 		glDeleteProgram(_prog);
 		_prog = 0;
 	}
 }
 
-bool Shader::_loadShader(int type, GLuint& shader) {
-	std::filesystem::path path = std::filesystem::current_path()/"resource"/"shader";
-	switch(type) {
-		case GL_VERTEX_SHADER:
-			path /= _name + ".vs";
-			break;
-		case GL_FRAGMENT_SHADER:
-			path /= _name + ".fs";
-			break;
-		default:
-			std::cout << "load shader, unknow type" << type << std::endl;
-			return false;
+bool ShaderProto::_loadShader(int type, GLuint& shader) {
+	std::filesystem::path path = std::filesystem::current_path() / "resource" / "shader";
+	switch (type) {
+	case GL_VERTEX_SHADER:
+		path /= _name + ".vs";
+		break;
+	case GL_FRAGMENT_SHADER:
+		path /= _name + ".fs";
+		break;
+	default:
+		std::cout << "load shader, unknow type" << type << std::endl;
+		return false;
 	}
 
 	std::string content;
@@ -47,18 +47,18 @@ bool Shader::_loadShader(int type, GLuint& shader) {
 	GLint success;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
-	if (!success)
-	{
+	if (!success) {
 		GLchar infoLog[512];
 		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		std::cout << "load shader, compile fail: \n" << infoLog << std::endl;
+		std::cout << "load shader, compile fail: \n"
+		          << infoLog << std::endl;
 		return false;
 	}
 
 	return true;
 }
 
-bool Shader::loadProgram() {
+bool ShaderProto::_loadProgram() {
 	GLuint vs, fs;
 	if (!_loadShader(GL_VERTEX_SHADER, vs)) {
 		return false;
@@ -77,11 +77,11 @@ bool Shader::loadProgram() {
 
 	GLint success;
 	glGetProgramiv(_prog, GL_LINK_STATUS, &success);
-	if (!success)
-	{
+	if (!success) {
 		GLchar infoLog[512];
 		glGetProgramInfoLog(_prog, 512, NULL, infoLog);
-		std::cout << "load program, link fail: \n" << infoLog << std::endl;
+		std::cout << "load program, link fail: \n"
+		          << infoLog << std::endl;
 		return false;
 	}
 
@@ -124,13 +124,12 @@ bool Shader::loadProgram() {
 	return true;
 }
 
-bool Shader::useProgram() {
+void ShaderProto::useProgram() {
 	glUseProgram(_prog);
 	_tex = 0;
-	return true;
 }
 
-void Shader::setVar(const GLuint& loc, const std::any& var) {
+void ShaderProto::setVar(const GLuint& loc, const std::any& var) {
 	if (var.type() == typeid(int)) {
 		setVar(loc, std::any_cast<const int&>(var));
 	}
@@ -146,4 +145,9 @@ void Shader::setVar(const GLuint& loc, const std::any& var) {
 	else {
 		std::cout << "shader var unknow, loc: " << loc << ", type: " << var.type().name() << std::endl;
 	}
+}
+
+ShaderInst::ptr ShaderInst::create(const ShaderProto::ptr& proto) {
+	ShaderInst::ptr shader = std::shared_ptr<ShaderInst>(new ShaderInst());
+	return shader;
 }

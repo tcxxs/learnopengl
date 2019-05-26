@@ -1,5 +1,8 @@
 file: nanosuit/nanosuit.obj
-shader:
-  name: phong
-  vars:
-    material.shininess: 32.0
+materials:
+  - name: phong
+    vars:
+      material.shininess: 32.0
+  - name: color
+    vars:
+      uf_color: [1.0, 0.5, 0.5]

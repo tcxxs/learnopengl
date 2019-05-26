@@ -17,19 +17,45 @@ struct Vertex {
 	glm::vec3 normal;
 };
 
-class Mesh : public Res<Mesh> {
+class MeshProto;
+class MeshInst: public ResInst<MeshProto, MeshInst> {
+public:
+	static ptr create(const proto_ptr& proto, const std::string& shader);
+
+	inline void draw(const Camera::ptr& cam,
+	                 const std::map<std::string, LightProto::ptr>& lights,
+	                 const glm::mat4& model,
+	                 const Attributes& mattrs);
+
+private:
+	ShaderInst::ptr _shader;
+};
+
+class MeshProto: public ResProto<MeshProto, MeshInst> {
 public:
 	static ptr create(const Config& conf, const aiMesh* ms, const aiScene* scene);
-	virtual ~Mesh();
+	virtual ~MeshProto();
 
 	inline const GLuint getVAO() const { return _vao; }
 	inline const GLuint getVBO() const { return _vbo; }
 	inline const GLuint getIBO() const { return _ibo; }
 
+	inline const ShaderInst::ptr& getShader(const std::string& name) const {
+		const auto& it = _shaders.find(name);
+		if (it == _shaders.end())
+			return ShaderInst::empty;
+		else
+			return it->second;
+	}
+	inline const ShaderInst::ptr& getShaderDefault() const {
+		return _shaders.begin()->second;
+	}
+
 	void draw(const Camera::ptr& cam,
 	          const std::map<std::string, LightProto::ptr>& lights,
 	          const glm::mat4& model,
-	          const Attributes& mattrs);
+	          const Attributes& mattrs,
+	          const ShaderInst::ptr& shader);
 
 protected:
 	bool _loadVertex(const aiMesh* mesh);
@@ -45,5 +71,12 @@ private:
 	std::vector<Vertex> _verts;
 	std::vector<GLuint> _inds;
 	GLuint _vao{0}, _vbo{0}, _ibo{0};
-	Shader::ptr _shader;
+	std::map<std::string, ShaderInst::ptr> _shaders;
 };
+
+inline void MeshInst::draw(const Camera::ptr& cam,
+                           const std::map<std::string, LightProto::ptr>& lights,
+                           const glm::mat4& model,
+                           const Attributes& mattrs) {
+	_proto->draw(cam, lights, model, mattrs, _shader);
+}

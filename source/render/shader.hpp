@@ -6,14 +6,29 @@
 #include "utils/resource.hpp"
 #include "render/texture.hpp"
 
-class Shader: public Res<Shader> {
+class ShaderProto;
+class ShaderInst: public ResInst<ShaderProto, ShaderInst> {
+public:
+	static ptr create(const proto_ptr& proto);
+
+	inline void useProgram();
+
+	inline const GLint getVar(const std::string& name) const;
+	template <typename V>
+	inline void setVar(const std::string& name, const V& var);
+	inline void setVars(const Attributes& vars);
+
+public:
+	Attributes attrs;
+};
+
+class ShaderProto: public ResProto<ShaderProto, ShaderInst> {
 public:
 	static ptr create(const std::string& name);
 
-	virtual ~Shader();
+	virtual ~ShaderProto();
 
-	bool loadProgram();
-	bool useProgram();
+	void useProgram();
 
 	inline const GLint getVar(const std::string& name) const {
 		auto it = _vars.find(name);
@@ -47,13 +62,14 @@ public:
 		_tex += 1;
 	}
 	inline void setVars(const Attributes& attrs) {
-		for (const auto& it: attrs) {
+		for (const auto& it : attrs) {
 			setVar(it.first, it.second);
 		}
 	}
 
 private:
 	bool _loadShader(int type, GLuint& shader);
+	bool _loadProgram();
 
 private:
 	GLuint _prog{0};
@@ -61,4 +77,20 @@ private:
 	std::map<std::string, GLuint> _vars;
 };
 
-using ShaderMgr = ResMgr<Shader>;
+using ShaderProtoMgr = ResMgr<ShaderProto>;
+
+inline void ShaderInst::useProgram() {
+	_proto->useProgram();
+	setVars(attrs);
+}
+
+inline const GLint ShaderInst::getVar(const std::string& name) const {
+	return _proto->getVar(name);
+}
+template <typename V>
+inline void ShaderInst::setVar(const std::string& name, const V& var) {
+	_proto->setVar(name, var);
+}
+inline void ShaderInst::setVars(const Attributes& vars) {
+	_proto->setVars(vars);
+}

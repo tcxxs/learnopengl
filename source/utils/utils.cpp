@@ -19,7 +19,7 @@ bool oglError() {
 	return ret;
 }
 
-bool Attributes::guessAttrs(const Config::node& doc) {
+bool Attributes::updateConf(const Config::node& doc) {
 	if (!doc.IsMap()) {
 		return false;
 	}

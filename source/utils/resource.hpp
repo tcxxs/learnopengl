@@ -33,6 +33,8 @@ protected:
 	inline Res() : _id(++_total){};
 	inline Res(const std::string& name) : Res(), _name(name){};
 
+public:
+	inline static ptr empty{};
 protected:
 	inline static idt _total{0};
 	idt _id;
@@ -42,7 +44,7 @@ protected:
 template <typename P, typename I>
 class ResInst : public Res<I> {
 public:
-	using proto_ptr = std::shared_ptr<P>;
+	using proto_ptr = typename Res<P>::ptr;
 	using inst_ptr = typename Res<I>::ptr;
 
 	template <typename ...ARGS>
@@ -97,7 +99,7 @@ public:
 	inline const resptr& create(ARGS... args) {
 		resptr r = R::create(args...);
 		if (!r)
-			return _empty;
+			return R::empty;
 
 		return add(r);
 	}
@@ -123,7 +125,7 @@ public:
 	inline const resptr& get(const resid id) {
 		auto it = _rmap.find(id);
 		if (it == _rmap.end())
-			return _empty;
+			return R::empty;
 		else
 			return it->second;
 	}
@@ -132,7 +134,7 @@ public:
 		if (id)
 			return get(id);
 		else
-			return _empty;
+			return R::empty;
 	}
 
 	template <typename... ARGS>
@@ -147,7 +149,6 @@ public:
 	inline resmap& container() { return _rmap; }
 
 private:
-	inline static const resptr _empty{};
 	keymap _kmap;
 	resmap _rmap;
 };
@@ -193,7 +194,8 @@ public:
 		return visit(_doc, path);
 	}
 
+public:
+	inline static node empty{};
 private:
-	inline static node _empty{};
 	node _doc;
 };

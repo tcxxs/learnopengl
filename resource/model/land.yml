@@ -1,5 +1,5 @@
 file: land/land.obj
-shader:
-  name: color
-  vars:
-    uf_color: [0.3, 0.3, 0.3]
+materials:
+  - name: color
+    vars:
+      uf_color: [0.2, 0.2, 0.2]

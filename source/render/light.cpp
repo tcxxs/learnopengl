@@ -10,7 +10,7 @@ LightProto::ptr LightProto::create(const std::string& name) {
 		return {};
 	}
 
-	if (!proto->attrs.guessAttrs(proto->_conf.root())) {
+	if (!proto->attrs.updateConf(proto->_conf.root())) {
 		return {};
 	}
 

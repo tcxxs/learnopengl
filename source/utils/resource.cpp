@@ -35,7 +35,7 @@ const Config::node Config::visit(const Config::node& doc, const std::string& pat
 			start = pos + 1;
 		}
 		if (!node.IsDefined())
-			return Config::_empty;
+			return Config::empty;
 	}
 
 	return node;

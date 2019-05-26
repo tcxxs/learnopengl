@@ -20,20 +20,31 @@ class ModelInst : public ResInst<ModelProto, ModelInst> {
 public:
 	static ptr create(const proto_ptr& proto, const Config::node& conf);
 
+	void draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights);
+
 	inline const glm::mat4& getMatrix() const { return _mat; }
 	inline void setMatrix(const glm::mat4& model) { _mat = model; }
+
+	inline bool changeShader(const std::string& name) {
+	}
 
 public:
 	Attributes attrs;
 private:
 	glm::mat4 _mat{1.0f};
+	std::vector<MeshInst::ptr> _meshs;
 };
 
 class ModelProto : public ResProto<ModelProto, ModelInst> {
 public:
+	using meshvec = std::vector<MeshProto::ptr>;
+
 	static ptr create(const std::string& name);
 
 	void draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights);
+	inline const meshvec& getMeshs() const {
+		return _meshs;
+	}
 
 protected:
 	bool _loadAssimp();
@@ -42,7 +53,7 @@ protected:
 private:
 	inline static Assimp::Importer _imp;
 	Config _conf;
-	std::vector<Mesh::ptr> _meshs;
+	meshvec _meshs;
 };
 
 using ModelProtoMgr = ResMgr<ModelProto>;

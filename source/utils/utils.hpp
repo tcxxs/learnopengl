@@ -49,7 +49,12 @@ public:
 			return std::any_cast<V&>(*it);
 	}
 
-	bool guessAttrs(const Config::node& doc);
+	inline void updateAttrs(const Attributes& attrs) {
+		for (const auto& it: attrs) {
+			_attrs[it.first] = it.second;
+		}
+	}
+	bool updateConf(const Config::node& doc);
 
 private:
 	AttrMap _attrs;

@@ -31,10 +31,10 @@ bool ModelProto::_loadAssimp() {
 	return true;
 }
 
-bool ModelProto::_loadNode(aiNode *node, const aiScene *scene) {
+bool ModelProto::_loadNode(aiNode* node, const aiScene* scene) {
 	for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
 		aiMesh* ms = scene->mMeshes[node->mMeshes[i]];
-		Mesh::ptr mesh = Mesh::create(_conf, ms, scene);
+		MeshProto::ptr mesh = MeshProto::create(_conf, ms, scene);
 		if (!mesh)
 			return false;
 		_meshs.push_back(mesh);
@@ -49,11 +49,7 @@ bool ModelProto::_loadNode(aiNode *node, const aiScene *scene) {
 
 void ModelProto::draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights) {
 	for (auto& it : _insts) {
-		const glm::mat4& model = it.second->getMatrix();
-		const Attributes& attrs = it.second->attrs;
-		for (auto& itm : _meshs) {
-			itm->draw(cam, lights, model, attrs);
-		}
+		it.second->draw(cam, lights);
 	}
 }
 
@@ -75,5 +71,19 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 	}
 	model->setMatrix(mat);
 
+	const std::string shader = conf["shader"].as<std::string>("");
+	for (const auto& it : proto->getMeshs()) {
+		MeshInst::ptr mesh = it->instance(shader);
+		if (!mesh)
+			return {};
+		model->_meshs.push_back(mesh);
+	}
+
 	return model;
+}
+
+void ModelInst::draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights) {
+	for (auto& it: _meshs) {
+		it->draw(cam, lights, _mat, attrs);
+	}
 }
