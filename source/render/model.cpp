@@ -58,16 +58,16 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 	model->setName(conf["name"].as<std::string>());
 
 	glm::mat4 mat{1.0f};
-	mat = glm::translate(mat, conf["pos"].as<glm::vec3>());
+	glm::vec3 pos = conf["pos"].as<glm::vec3>();
+	mat = glm::translate(mat, pos);
 	const Config::node scale = conf["scale"];
 	if (scale.IsDefined()) {
 		mat = glm::scale(mat, glm::vec3(scale.as<float>()));
 	}
-	const Config::node rotate = conf["rotate"];
-	if (rotate.IsDefined()) {
-		mat = glm::rotate(mat, glm::radians(rotate[0].as<float>()), glm::vec3(0.0, 1.0, 0.0));
-		mat = glm::rotate(mat, glm::radians(rotate[1].as<float>()), glm::vec3(1.0, 0.0, 0.0));
-		mat = glm::rotate(mat, glm::radians(rotate[2].as<float>()), glm::vec3(0.0, 0.0, 1.0));
+	const Config::node dir = conf["dir"];
+	if (dir.IsDefined()) {
+		glm::mat4 rot = glm::lookAt(pos, pos + dir.as<glm::vec3>(), glm::vec3(0, 1, 0));
+		mat = mat * rot;
 	}
 	model->setMatrix(mat);
 

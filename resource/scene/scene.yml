@@ -5,7 +5,7 @@ camera:
 lights:
   - name: test1
     type: spot
-    pos: [-0.7, 0.0, 0.3]
+    pos: [-0.2, 0.3, 0.5]
     dir: [0.0, 0.0, -1.0]
   - name: test2
     type: point
@@ -20,15 +20,17 @@ models:
     scale: 5.0
   - name: light1
     type: lamp
-    pos: [-0.7, 0.0, 0.3]
+    pos: [-0.2, 0.3, 0.5]
+    dir: [0.0, 0.0, -1.0]
     scale: 0.01
   - name: light2
-    type: lamp
+    type: sun
     pos: [0.3, 0.3, 0.3]
     scale: 0.01
   - name: light3
     type: lamp
     pos: [0.0, 1.0, -1.0]
+    dir: [0.0, -1.0, 1.0]
     scale: 0.01
   - name: nanosuit
     type: nanosuit

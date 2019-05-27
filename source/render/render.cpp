@@ -5,6 +5,7 @@ void Render::init() {
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
+	glEnable(GL_BLEND);
 
 	oglFeature();
 }
