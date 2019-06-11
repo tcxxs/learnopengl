@@ -14,13 +14,14 @@
 #include "render/texture.hpp"
 #include "render/camera.hpp"
 #include "render/light.hpp"
+#include "render/command.hpp"
 
 class ModelProto;
-class ModelInst : public ResInst<ModelProto, ModelInst> {
+class ModelInst: public ResInst<ModelProto, ModelInst> {
 public:
 	static ptr create(const proto_ptr& proto, const Config::node& conf);
 
-	void draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights);
+	void draw(CommandQueue& cmds);
 
 	inline const glm::mat4& getMatrix() const { return _mat; }
 	inline void setMatrix(const glm::mat4& model) { _mat = model; }
@@ -30,25 +31,23 @@ public:
 
 public:
 	Attributes attrs;
+
 private:
 	glm::mat4 _mat{1.0f};
 	std::vector<MeshInst::ptr> _meshs;
 };
 
-class ModelProto : public ResProto<ModelProto, ModelInst> {
+class ModelProto: public ResProto<ModelProto, ModelInst> {
 public:
 	using meshvec = std::vector<MeshProto::ptr>;
 
 	static ptr create(const std::string& name);
 
-	void draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights);
-	inline const meshvec& getMeshs() const {
-		return _meshs;
-	}
+	inline const meshvec& getMeshs() const { return _meshs; }
 
 protected:
 	bool _loadAssimp();
-	bool _loadNode(aiNode *node, const aiScene *scene);
+	bool _loadNode(aiNode* node, const aiScene* scene);
 
 private:
 	inline static Assimp::Importer _imp;

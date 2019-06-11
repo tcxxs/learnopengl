@@ -7,9 +7,10 @@
 #include "utils/pattern.hpp"
 #include "utils/utils.hpp"
 #include "utils/resource.hpp"
-#include "render/shader.hpp"
+#include "render/material.hpp"
 #include "render/camera.hpp"
 #include "render/light.hpp"
+#include "render/command.hpp"
 
 struct Vertex {
 	glm::vec3 pos;
@@ -22,13 +23,12 @@ class MeshInst: public ResInst<MeshProto, MeshInst> {
 public:
 	static ptr create(const proto_ptr& proto, const std::string& shader);
 
-	inline void draw(const Camera::ptr& cam,
-	                 const std::map<std::string, LightProto::ptr>& lights,
+	inline void draw(CommandQueue& cmds,
 	                 const glm::mat4& model,
 	                 const Attributes& mattrs);
 
 private:
-	ShaderInst::ptr _shader;
+	Material::ptr _material;
 };
 
 class MeshProto: public ResProto<MeshProto, MeshInst> {
@@ -40,22 +40,21 @@ public:
 	inline const GLuint getVBO() const { return _vbo; }
 	inline const GLuint getIBO() const { return _ibo; }
 
-	inline const ShaderInst::ptr& getShader(const std::string& name) const {
-		const auto& it = _shaders.find(name);
-		if (it == _shaders.end())
-			return ShaderInst::empty;
+	inline const Material::ptr& getMaterial(const std::string& name) const {
+		const auto& it = _materials.find(name);
+		if (it == _materials.end())
+			return Material::empty;
 		else
 			return it->second;
 	}
-	inline const ShaderInst::ptr& getShaderDefault() const {
-		return _shaders.begin()->second;
+	inline const Material::ptr& getMaterialDefault() const {
+		return _materials.begin()->second;
 	}
 
-	void draw(const Camera::ptr& cam,
-	          const std::map<std::string, LightProto::ptr>& lights,
+	void draw(CommandQueue& cmds,
 	          const glm::mat4& model,
 	          const Attributes& mattrs,
-	          const ShaderInst::ptr& shader);
+	          const Material::ptr& mate);
 
 protected:
 	bool _loadVertex(const aiMesh* mesh);
@@ -71,12 +70,11 @@ private:
 	std::vector<Vertex> _verts;
 	std::vector<GLuint> _inds;
 	GLuint _vao{0}, _vbo{0}, _ibo{0};
-	std::map<std::string, ShaderInst::ptr> _shaders;
+	std::map<std::string, Material::ptr> _materials;
 };
 
-inline void MeshInst::draw(const Camera::ptr& cam,
-                           const std::map<std::string, LightProto::ptr>& lights,
+inline void MeshInst::draw(CommandQueue& cmds,
                            const glm::mat4& model,
                            const Attributes& mattrs) {
-	_proto->draw(cam, lights, model, mattrs, _shader);
+	_proto->draw(cmds, model, mattrs, _material);
 }

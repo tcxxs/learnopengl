@@ -47,12 +47,6 @@ bool ModelProto::_loadNode(aiNode* node, const aiScene* scene) {
 	return true;
 }
 
-void ModelProto::draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights) {
-	for (auto& it : _insts) {
-		it.second->draw(cam, lights);
-	}
-}
-
 ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::node& conf) {
 	ModelInst::ptr model = ModelInst::ptr(new ModelInst());
 	model->setName(conf["name"].as<std::string>());
@@ -82,8 +76,8 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 	return model;
 }
 
-void ModelInst::draw(const Camera::ptr& cam, const std::map<std::string, LightProto::ptr>& lights) {
+void ModelInst::draw(CommandQueue& cmds) {
 	for (auto& it: _meshs) {
-		it->draw(cam, lights, _mat, attrs);
+		it->draw(cmds, _mat, attrs);
 	}
 }

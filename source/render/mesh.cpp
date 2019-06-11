@@ -118,105 +118,37 @@ bool MeshProto::_initGL() {
 
 bool MeshProto::_initShader(const Config::node& conf) {
 	for (const auto it : conf) {
-		const std::string key = it["name"].as<std::string>();
-		const ShaderProto::ptr& proto = ShaderProtoMgr::inst().req(key);
-		const ShaderInst::ptr& shader = proto->instance();
-		if (!shader) {
-			std::cout << "model shader error, " << key << std::endl;
-			return false;
-		}
-
-		const auto node = it["vars"];
-		if (node.IsDefined()) {
-			if (!shader->attrs.updateConf(node))
-				return false;
-			for (auto& it : shader->attrs) {
-				if (it.second.type() == typeid(std::string)) {
-					const auto& tex = TextureMgr::inst().req(std::any_cast<std::string&>(it.second));
-					if (!tex)
-						return false;
-					it.second = tex;
-				}
-			}
-		}
-
-		_shaders[proto->getName()] = shader;
+		const std::string key = it.as<std::string>();
+		Material::ptr mate = MaterialMgr::inst().req(key, conf);
+		_materials[key] = mate;
 	}
 
 	return true;
 }
 
-void MeshProto::draw(const Camera::ptr& cam,
-                     const std::map<std::string, LightProto::ptr>& lights,
+void MeshProto::draw(CommandQueue& cmds,
                      const glm::mat4& model,
                      const Attributes& mattrs,
-                     const ShaderInst::ptr& shader) {
-	shader->useProgram();
-	shader->setVars(attrs);
-	shader->setVars(mattrs);
-
-	glUniformMatrix4fv(shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(cam->getView()));
-	glUniformMatrix4fv(shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(cam->getProj()));
-	glUniformMatrix4fv(shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(model));
-	shader->setVar("camera_pos", cam->getPos());
-
-	int dirs{0}, points{0}, spots{0};
-	std::string light;
-	for (const auto& it_proto : lights) {
-		const LightProto::ptr& light_proto = it_proto.second;
-		const std::string& light_type = light_proto->getName();
-		for (const auto& it_inst : light_proto->container()) {
-			if (light_type == "dir") {
-				light = string_format("dirs[%d]", dirs++);
-				shader->setVar(light + ".dir", it_inst.second->getDir());
-				shader->setVar(light + ".ambient", light_proto->attrs.getAttr<glm::vec3>("ambient"));
-				shader->setVar(light + ".diffuse", light_proto->attrs.getAttr<glm::vec3>("diffuse"));
-				shader->setVar(light + ".specular", light_proto->attrs.getAttr<glm::vec3>("specular"));
-			}
-			else if (light_type == "point") {
-				light = string_format("points[%d]", points++);
-				shader->setVar(light + ".pos", it_inst.second->getPos());
-				shader->setVar(light + ".ambient", light_proto->attrs.getAttr<glm::vec3>("ambient"));
-				shader->setVar(light + ".diffuse", light_proto->attrs.getAttr<glm::vec3>("diffuse"));
-				shader->setVar(light + ".specular", light_proto->attrs.getAttr<glm::vec3>("specular"));
-				shader->setVar(light + ".constant", light_proto->attrs.getAttr<float>("constant"));
-				shader->setVar(light + ".linear", light_proto->attrs.getAttr<float>("linear"));
-				shader->setVar(light + ".quadratic", light_proto->attrs.getAttr<float>("quadratic"));
-			}
-			else if (light_type == "spot") {
-				light = string_format("spots[%d]", spots++);
-				shader->setVar(light + ".pos", it_inst.second->getPos());
-				shader->setVar(light + ".dir", it_inst.second->getDir());
-				shader->setVar(light + ".ambient", light_proto->attrs.getAttr<glm::vec3>("ambient"));
-				shader->setVar(light + ".diffuse", light_proto->attrs.getAttr<glm::vec3>("diffuse"));
-				shader->setVar(light + ".specular", light_proto->attrs.getAttr<glm::vec3>("specular"));
-				shader->setVar(light + ".constant", light_proto->attrs.getAttr<float>("constant"));
-				shader->setVar(light + ".linear", light_proto->attrs.getAttr<float>("linear"));
-				shader->setVar(light + ".quadratic", light_proto->attrs.getAttr<float>("quadratic"));
-				shader->setVar(light + ".inner", cos(glm::radians(light_proto->attrs.getAttr<float>("inner"))));
-				shader->setVar(light + ".outter", cos(glm::radians(light_proto->attrs.getAttr<float>("outter"))));
-			}
-		}
-	}
-	shader->setVar("uses.dirs", dirs);
-	shader->setVar("uses.points", points);
-	shader->setVar("uses.spots", spots);
-
-	glBindVertexArray(_vao);
-	glDrawElements(GL_TRIANGLES, (GLsizei)_inds.size(), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+                     const Material::ptr& mate) {
+	Command& cmd = cmds.emplace_back();
+	cmd.vao = _vao;
+	cmd.ibosize = (GLsizei)_inds.size();
+	cmd.model = model;
+	cmd.material = mate;
+	cmd.attrs.updateAttrs(attrs);
+	cmd.attrs.updateAttrs(mattrs);
 }
 
-MeshInst::ptr MeshInst::create(const MeshProto::ptr& proto, const std::string& shader) {
+MeshInst::ptr MeshInst::create(const MeshProto::ptr& proto, const std::string& mate) {
 	MeshInst::ptr mesh = std::shared_ptr<MeshInst>(new MeshInst());
 
-	if (shader.empty()) {
-		mesh->_shader = proto->getShaderDefault();
+	if (mate.empty()) {
+		mesh->_material = proto->getMaterialDefault();
 	}
 	else {
-		mesh->_shader = proto->getShader(shader);
-		if (!mesh->_shader) {
-			std::cout << "mesh instance, not found shader, " << shader << std::endl;
+		mesh->_material = proto->getMaterial(mate);
+		if (!mesh->_material) {
+			std::cout << "mesh instance, not found material, " << mate << std::endl;
 			return {};
 		}
 	}
