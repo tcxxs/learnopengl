@@ -1,7 +1,7 @@
 #include "shader.hpp"
 
-ShaderProto::ptr ShaderProto::create(const std::string& name) {
-	ShaderProto::ptr shader = std::shared_ptr<ShaderProto>(new ShaderProto());
+Shader::ptr Shader::create(const std::string& name) {
+	Shader::ptr shader = std::shared_ptr<Shader>(new Shader());
 	shader->setName(name);
 
 	if (!shader->_loadProgram())
@@ -13,14 +13,14 @@ ShaderProto::ptr ShaderProto::create(const std::string& name) {
 	return shader;
 }
 
-ShaderProto::~ShaderProto() {
+Shader::~Shader() {
 	if (_prog) {
 		glDeleteProgram(_prog);
 		_prog = 0;
 	}
 }
 
-bool ShaderProto::_loadShader(int type, GLuint& shader) {
+bool Shader::_loadShader(int type, GLuint& shader) {
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "shader";
 	switch (type) {
 	case GL_VERTEX_SHADER:
@@ -58,7 +58,7 @@ bool ShaderProto::_loadShader(int type, GLuint& shader) {
 	return true;
 }
 
-bool ShaderProto::_loadProgram() {
+bool Shader::_loadProgram() {
 	GLuint vs, fs;
 	if (!_loadShader(GL_VERTEX_SHADER, vs)) {
 		return false;
@@ -124,12 +124,12 @@ bool ShaderProto::_loadProgram() {
 	return true;
 }
 
-void ShaderProto::useProgram() {
+void Shader::use() {
 	glUseProgram(_prog);
 	_tex = 0;
 }
 
-void ShaderProto::setVar(const GLuint& loc, const std::any& var) {
+void Shader::setVar(const GLuint& loc, const std::any& var) {
 	if (var.type() == typeid(int)) {
 		setVar(loc, std::any_cast<const int&>(var));
 	}
@@ -145,9 +145,4 @@ void ShaderProto::setVar(const GLuint& loc, const std::any& var) {
 	else {
 		std::cout << "shader var unknow, loc: " << loc << ", type: " << var.type().name() << std::endl;
 	}
-}
-
-ShaderInst::ptr ShaderInst::create(const ShaderProto::ptr& proto) {
-	ShaderInst::ptr shader = std::shared_ptr<ShaderInst>(new ShaderInst());
-	return shader;
 }
