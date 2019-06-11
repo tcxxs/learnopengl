@@ -1,5 +1,2 @@
 file: sun/sun.obj
-materials:
-  - name: color
-    vars:
-      uf_color: [1.0, 1.0, 1.0]
+materials: [white]

@@ -1,0 +1,12 @@
+phong:
+  shader: phong
+  vars:
+    material.shininess: 32.0
+white:
+  shader: color
+  vars:
+    uf_color: [1.0, 1.0, 1.0]
+grey:
+  shader: color
+  vars:
+    uf_color: [0.2, 0.2, 0.2]
