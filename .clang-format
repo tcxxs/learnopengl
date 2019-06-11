@@ -11,3 +11,5 @@ BraceWrapping:
     BeforeElse: true
 ColumnLimit: 0
 SpaceBeforeInheritanceColon: false
+SpaceBeforeCtorInitializerColon: false
+SpaceBeforeRangeBasedForLoopColon: false
