@@ -21,7 +21,7 @@ struct Vertex {
 class MeshProto;
 class MeshInst: public ResInst<MeshProto, MeshInst> {
 public:
-	static ptr create(const proto_ptr& proto, const std::string& shader);
+	static ptr create(const proto_ptr& proto, const std::string& mate);
 
 	inline void draw(CommandQueue& cmds,
 	                 const glm::mat4& model,

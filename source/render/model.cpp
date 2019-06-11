@@ -65,9 +65,9 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 	}
 	model->setMatrix(mat);
 
-	const std::string shader = conf["shader"].as<std::string>("");
+	const std::string material = conf["material"].as<std::string>("");
 	for (const auto& it : proto->getMeshs()) {
-		MeshInst::ptr mesh = it->instance(shader);
+		MeshInst::ptr mesh = it->instance(material);
 		if (!mesh)
 			return {};
 		model->_meshs.push_back(mesh);

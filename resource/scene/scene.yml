@@ -37,7 +37,7 @@ models:
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
     rotate: [0.0, 0.0, 0.0]
-    shader: phong
+    material: phong
 pass:
   - name: draw
     shader:

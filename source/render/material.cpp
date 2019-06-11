@@ -5,7 +5,7 @@ Material::ptr Material::create(const std::string& name, const Config::node& conf
 	Material::ptr mate = std::shared_ptr<Material>(new Material());
 	mate->setName(name);
 
-	mate->_shader = ShaderMgr::inst().req(name);
+	mate->_shader = ShaderMgr::inst().req(conf["shader"].as<std::string>());
 	if (!mate->_shader) {
 		std::cout << "material shader error, " << name << std::endl;
 		return {};
@@ -29,7 +29,7 @@ Material::ptr Material::create(const std::string& name, const Config::node& conf
 }
 
 bool Material::use() {
-	_shader->setVars(attrs);
 	_shader->use();
+	_shader->setVars(attrs);
 	return true;
 }

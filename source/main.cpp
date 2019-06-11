@@ -16,7 +16,9 @@ int main() {
 	if (!EventMgr::inst().init(FPS)) {
 		return -1;
 	}
-	RenderMgr::inst().init();
+	if (!RenderMgr::inst().init()) {
+		return -1;
+	}
 
 	const Scene::ptr& scene = SceneMgr::inst().create("scene");
 	scene->active();

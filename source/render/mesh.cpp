@@ -117,9 +117,11 @@ bool MeshProto::_initGL() {
 }
 
 bool MeshProto::_initShader(const Config::node& conf) {
-	for (const auto it : conf) {
+	for (const auto it: conf) {
 		const std::string key = it.as<std::string>();
-		Material::ptr mate = MaterialMgr::inst().req(key, conf);
+		Material::ptr mate = MaterialMgr::inst().get(key);
+		if (!mate)
+			return false;
 		_materials[key] = mate;
 	}
 

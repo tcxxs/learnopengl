@@ -16,8 +16,10 @@
 
 class Render: public NoCopy {
 public:
-	void init();
+	bool init();
     void onRender();
+private:
+	bool _initMaterials();
 };
 
 using RenderMgr = Singleton<Render>;
