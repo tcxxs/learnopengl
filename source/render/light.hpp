@@ -30,7 +30,7 @@ public:
 public:
 	Attributes attrs;
 private:
-	Config _conf;
+	inline static Config _confs;
 };
 
 using LightProtoMgr = ResMgr<LightProto>;

@@ -1,7 +1,18 @@
 #include "material.hpp"
 #include "render/shader.hpp"
 
-Material::ptr Material::create(const std::string& name, const Config::node& conf) {
+Material::ptr Material::create(const std::string& name) {
+	if (_confs.root().IsNull()) {
+		std::filesystem::path path = std::filesystem::current_path() / "resource" / "materials.yml";
+		if (!_confs.load(path)) {
+			std::cout << "materials config error";
+			return {};
+		}
+	}
+	Config::node conf = _confs[name];
+	if (!conf.IsDefined())
+		return {};
+	
 	Material::ptr mate = std::shared_ptr<Material>(new Material());
 	mate->setName(name);
 

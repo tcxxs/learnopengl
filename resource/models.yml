@@ -1,0 +1,12 @@
+lamp:
+  file: lamp/lamp.obj
+  materials: [white]
+land:
+  file: land/land.obj
+  materials: [grey]
+sun:
+  file: sun/sun.obj
+  materials: [white]
+nanosuit:
+  file: nanosuit/nanosuit.obj
+  materials: [phong, white]

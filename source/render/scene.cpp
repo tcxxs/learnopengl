@@ -5,27 +5,28 @@ Scene::ptr Scene::create(const std::string& name) {
 	Scene::ptr scene = std::shared_ptr<Scene>(new Scene());
 	scene->setName(name);
 
+	Config conf;
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "scene" / (name + ".yml");
-	if (!scene->_conf.load(path)) {
+	if (!conf.load(path)) {
 		std::cout << "scene config error, " << path << std::endl;
 		return {};
 	}
 
-	scene->addCamera(scene->_conf["camera"]);
+	scene->addCamera(conf["camera"]);
 
-	const auto lights = scene->_conf["lights"];
+	const auto lights = conf["lights"];
 	if (lights.IsDefined()) {
 		for (const auto& it: lights) {
 			scene->addLight(it);
 		}
 	}
 
-	const auto models = scene->_conf["models"];
+	const auto models = conf["models"];
 	for (const auto& it: models) {
 		scene->addModel(it);
 	}
 
-	const auto pass = scene->_conf["pass"];
+	const auto pass = conf["pass"];
 	for (const auto& it: pass) {
 		//scene->addPass(it);
 	}

@@ -46,12 +46,12 @@ public:
 	inline const meshvec& getMeshs() const { return _meshs; }
 
 protected:
-	bool _loadAssimp();
-	bool _loadNode(aiNode* node, const aiScene* scene);
+	bool _loadAssimp(const Config::node& conf);
+	bool _loadNode(const Config::node& conf, aiNode* node, const aiScene* scene);
 
 private:
+	inline static Config _confs;
 	inline static Assimp::Importer _imp;
-	Config _conf;
 	meshvec _meshs;
 };
 

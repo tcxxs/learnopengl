@@ -29,7 +29,6 @@ public:
 	inline static ptr current{};
 
 private:
-	Config _conf;
 	Camera::ptr _cam;
 	std::vector<LightInst::ptr> _lights;
 	std::vector<ModelInst::ptr> _models;

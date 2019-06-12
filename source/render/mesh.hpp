@@ -33,7 +33,7 @@ private:
 
 class MeshProto: public ResProto<MeshProto, MeshInst> {
 public:
-	static ptr create(const Config& conf, const aiMesh* ms, const aiScene* scene);
+	static ptr create(const Config::node& conf, const aiMesh* ms, const aiScene* scene);
 	virtual ~MeshProto();
 
 	inline const GLuint getVAO() const { return _vao; }
@@ -61,7 +61,7 @@ protected:
 	bool _loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene* scene);
 	bool _loadTexture(const std::filesystem::path& path, const aiMaterial* mat, const aiTextureType type, const std::string& name);
 	bool _initGL();
-	bool _initShader(const Config::node& conf);
+	bool _initMaterial(const Config::node& conf);
 
 public:
 	Attributes attrs;

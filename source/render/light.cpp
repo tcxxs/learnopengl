@@ -1,16 +1,21 @@
 #include "light.hpp"
 
 LightProto::ptr LightProto::create(const std::string& name) {
+	if (_confs.root().IsNull()) {
+		std::filesystem::path path = std::filesystem::current_path() / "resource" / "lights.yml";
+		if (!_confs.load(path)) {
+			std::cout << "lights config error";
+			return {};
+		}
+	}
+	Config::node conf = _confs[name];
+	if (!conf.IsDefined())
+		return {};
+
 	LightProto::ptr proto = std::shared_ptr<LightProto>(new LightProto());
 	proto->setName(name);
 
-	std::filesystem::path path = std::filesystem::current_path() / "resource" / "light" / (name + ".yml");
-	if (!proto->_conf.load(path)) {
-		std::cout << "proto config error, " << path << std::endl;
-		return {};
-	}
-
-	if (!proto->attrs.updateConf(proto->_conf.root())) {
+	if (!proto->attrs.updateConf(conf)) {
 		return {};
 	}
 

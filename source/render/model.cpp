@@ -1,23 +1,28 @@
 #include "model.hpp"
 
 ModelProto::ptr ModelProto::create(const std::string& name) {
+	if (_confs.root().IsNull()) {
+		std::filesystem::path path = std::filesystem::current_path() / "resource" / "models.yml";
+		if (!_confs.load(path)) {
+			std::cout << "models config error";
+			return {};
+		}
+	}
+	Config::node conf = _confs[name];
+	if (!conf.IsDefined())
+		return {};
+
 	ModelProto::ptr model = ModelProto::ptr(new ModelProto());
 	model->setName(name);
 
-	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / (name + ".yml");
-	if (!model->_conf.load(path)) {
-		std::cout << "model config error, " << path << std::endl;
-		return {};
-	}
-
-	if (!model->_loadAssimp())
+	if (!model->_loadAssimp(conf))
 		return {};
 
 	return model;
 }
 
-bool ModelProto::_loadAssimp() {
-	std::string name = _conf["file"].as<std::string>();
+bool ModelProto::_loadAssimp(const Config::node& conf) {
+	std::string name = conf["file"].as<std::string>();
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / name;
 	const aiScene* scene = _imp.ReadFile(path.string(), aiProcess_Triangulate);
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
@@ -25,23 +30,23 @@ bool ModelProto::_loadAssimp() {
 		return false;
 	}
 
-	if (!_loadNode(scene->mRootNode, scene))
+	if (!_loadNode(conf, scene->mRootNode, scene))
 		return false;
 
 	return true;
 }
 
-bool ModelProto::_loadNode(aiNode* node, const aiScene* scene) {
+bool ModelProto::_loadNode(const Config::node& conf, aiNode* node, const aiScene* scene) {
 	for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
 		aiMesh* ms = scene->mMeshes[node->mMeshes[i]];
-		MeshProto::ptr mesh = MeshProto::create(_conf, ms, scene);
+		MeshProto::ptr mesh = MeshProto::create(conf, ms, scene);
 		if (!mesh)
 			return false;
 		_meshs.push_back(mesh);
 	}
 
 	for (unsigned int i = 0; i < node->mNumChildren; ++i) {
-		if (!_loadNode(node->mChildren[i], scene))
+		if (!_loadNode(conf, node->mChildren[i], scene))
 			return false;
 	}
 	return true;

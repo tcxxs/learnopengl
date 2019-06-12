@@ -1,6 +1,6 @@
 #include "model.hpp"
 
-MeshProto::ptr MeshProto::create(const Config& conf, const aiMesh* ms, const aiScene* scene) {
+MeshProto::ptr MeshProto::create(const Config::node& conf, const aiMesh* ms, const aiScene* scene) {
 	MeshProto::ptr mesh = std::shared_ptr<MeshProto>(new MeshProto());
 	// mesh->setName(name);
 
@@ -11,7 +11,7 @@ MeshProto::ptr MeshProto::create(const Config& conf, const aiMesh* ms, const aiS
 		return {};
 	if (!mesh->_initGL())
 		return {};
-	if (!mesh->_initShader(conf["materials"]))
+	if (!mesh->_initMaterial(conf["materials"]))
 		return {};
 
 	return mesh;
@@ -116,10 +116,10 @@ bool MeshProto::_initGL() {
 	return true;
 }
 
-bool MeshProto::_initShader(const Config::node& conf) {
+bool MeshProto::_initMaterial(const Config::node& conf) {
 	for (const auto it: conf) {
 		const std::string key = it.as<std::string>();
-		Material::ptr mate = MaterialMgr::inst().get(key);
+		Material::ptr mate = MaterialMgr::inst().req(key);
 		if (!mate)
 			return false;
 		_materials[key] = mate;
