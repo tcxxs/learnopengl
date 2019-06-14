@@ -4,7 +4,7 @@
 #include "config.hpp"
 #include "utils/resource.hpp"
 
-class Frame : public Res<Frame> {
+class Frame: public Res<Frame> {
 public:
 	static ptr create();
 
@@ -14,7 +14,10 @@ public:
 	bool attachDepthStencil();
 	bool attachRenderBuffer();
 
-	bool use();
+	GLuint getTexture() const { return _tex; }
+
+	bool useBegin();
+	inline void useEnd() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 private:
 	GLuint _fbo{0};

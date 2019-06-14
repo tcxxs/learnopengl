@@ -29,6 +29,9 @@ public:
 		setVar((GLuint)loc, var);
 	}
 	void setVar(const GLuint& loc, const std::any& var);
+	inline void setVar(const GLuint& loc, const GLuint& var) {
+		glUniform1i(loc, var);
+	}
 	inline void setVar(const GLuint& loc, const int& var) {
 		glUniform1i(loc, var);
 	}

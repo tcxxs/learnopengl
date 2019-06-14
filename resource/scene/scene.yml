@@ -40,5 +40,12 @@ models:
     material: phong
 pass:
   - name: draw
-    shader:
+    post:
+    in:
+    out: draw
+    state: [clear, depth]
+  - name: grey
+    post: grey
+    in: [draw]
     out:
+    state: [clear]

@@ -21,6 +21,8 @@ int main() {
 	}
 
 	const Scene::ptr& scene = SceneMgr::inst().create("scene");
+	if (!scene)
+		return -1;
 	scene->active();
 
 	EventMgr::inst().process();

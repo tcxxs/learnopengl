@@ -17,18 +17,21 @@ Scene::ptr Scene::create(const std::string& name) {
 	const auto lights = conf["lights"];
 	if (lights.IsDefined()) {
 		for (const auto& it: lights) {
-			scene->addLight(it);
+			if (!scene->addLight(it))
+				return {};
 		}
 	}
 
 	const auto models = conf["models"];
 	for (const auto& it: models) {
-		scene->addModel(it);
+		if (!scene->addModel(it))
+			return {};
 	}
 
 	const auto pass = conf["pass"];
 	for (const auto& it: pass) {
-		//scene->addPass(it);
+		if (!scene->addPass(it))
+			return {};
 	}
 
 	return scene;
@@ -45,51 +48,92 @@ void Scene::addCamera(const Config::node& conf) {
 	_cam->lookAt(pos, tar);
 }
 
-void Scene::addLight(const Config::node& conf) {
+bool Scene::addLight(const Config::node& conf) {
 	const LightProto::ptr& proto = LightProtoMgr::inst().req(conf["type"].as<std::string>());
 	if (!proto)
-		return;
+		return false;
 	const LightInst::ptr& light = proto->instance(conf);
 	if (!light)
-		return;
+		return false;
 
 	_lights.push_back(light);
+	return true;
 }
 
-void Scene::addModel(const Config::node& conf) {
+bool Scene::addModel(const Config::node& conf) {
 	const ModelProto::ptr& proto = ModelProtoMgr::inst().req(conf["type"].as<std::string>());
 	if (!proto)
-		return;
+		return false;
 	const ModelInst::ptr& model = proto->instance(conf);
 	if (!model)
-		return;
+		return false;
 
 	_models.push_back(model);
+	return true;
 }
 
-void Scene::addPass(const Config::node& conf) {
-	conf["name"].as<std::string>();
-	const std::string& in = conf["in"].as<std::string>();
-	if (!in.empty()) {
+bool Scene::addPass(const Config::node& conf) {
+	Pass& pass = _pass.emplace_back();
 
-		Frame::ptr outf = Frame::create();
-		outf->attachTexture();
-		_frames[in] = outf;
-		
-	}
-	const std::string& out = conf["out"].as<std::string>();
-	if (!out.empty()) {
-		Frame::ptr outf = Frame::create();
-		outf->attachTexture();
-		_frames[out] = outf;
-	}
-	const std::string& modelsk = conf["models"].as<std::string>();
-	if (!modelsk.empty()) {
+	pass.name = conf["name"].as<std::string>();
+	if (!conf["post"].IsNull()) {
+		pass.post = PostMgr::inst().req(conf["post"].as<std::string>());
+		if (!pass.post)
+			return false;
 	}
 
+	if (!conf["in"].IsNull()) {
+		for (auto& it: conf["in"]) {
+			auto find = _frames.find(it.as<std::string>());
+			if (find == _frames.end()) {
+				std::cout << "pass input not found, " << it.as<std::string>();
+				return false;
+			}
+			pass.ins.push_back(find->second);
+		}
+	}
+	if (!conf["out"].IsNull()) {
+		Frame::ptr frame = Frame::create();
+		frame->attachTexture();
+		_frames[conf["out"].as<std::string>()] = frame;
+		pass.out = frame;
+	}
+	for (const auto& it: conf["state"]) {
+		pass.states.insert(it.as<std::string>());
+	}
+
+	return true;
 }
 
 void Scene::draw() {
+	for (const auto& it: _pass) {
+		glViewport(0, 0, WIDTH, HEIGHT);
+		it.states.count("depth") ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+		glEnable(GL_STENCIL_TEST);
+		glEnable(GL_BLEND);
+		glEnable(GL_CULL_FACE);
+
+		if (it.out) {
+			it.out->useBegin();
+		}
+		if (it.states.count("clear")) {
+			glClearColor(BG_COLOR);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		}
+
+		if (it.post) {
+			drawPost(it);
+		}
+		else {
+			drawScene(it);
+		}
+		if (it.out) {
+			it.out->useEnd();
+		}
+	}
+}
+
+void Scene::drawScene(const Pass& pass) {
 	CommandQueue cmds;
 	for (auto& it: _models) {
 		it->draw(cmds);
@@ -153,4 +197,8 @@ void Scene::drawCommand(const Command& cmd) {
 	glBindVertexArray(cmd.vao);
 	glDrawElements(GL_TRIANGLES, cmd.ibosize, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+}
+
+void Scene::drawPost(const Pass& pass) {
+	pass.post->draw(pass.ins);
 }

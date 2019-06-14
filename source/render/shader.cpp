@@ -50,7 +50,8 @@ bool Shader::_loadShader(int type, GLuint& shader) {
 	if (!success) {
 		GLchar infoLog[512];
 		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		std::cout << "load shader, compile fail: \n"
+		std::cout << "load shader: " << _name
+		          << ", compile fail: \n"
 		          << infoLog << std::endl;
 		return false;
 	}
@@ -108,15 +109,19 @@ bool Shader::_loadProgram() {
 		_vars[name.c_str()] = i;
 	}
 
-	if (getVar(POS_NAME) != POS_LOC) {
+	GLint loc;
+	loc = getVar(POS_NAME);
+	if (loc >= 0 && loc != POS_LOC) {
 		std::cout << "load program, pos location error" << std::endl;
 		return false;
 	}
-	if (getVar(UV_NAME) != UV_LOC) {
+	loc = getVar(UV_NAME);
+	if (loc >= 0 && loc != UV_LOC) {
 		std::cout << "load program, uv location error" << std::endl;
 		return false;
 	}
-	if (getVar(NORMAL_NAME) != NORMAL_LOC) {
+	loc = getVar(NORMAL_NAME);
+	if (loc >= 0 && loc != NORMAL_LOC) {
 		std::cout << "load program, normal location error" << std::endl;
 		return false;
 	}

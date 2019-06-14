@@ -11,7 +11,6 @@ class LightProto;
 class LightInst: public ResInst<LightProto, LightInst> {
 public:
 	static ptr create(const proto_ptr& proto, const Config::node& conf);
-	virtual ~LightInst() = default;
 
 	inline void setPos(const glm::vec3& pos) { _pos = pos; }
 	inline const glm::vec3& getPos() const { return _pos; }
@@ -25,7 +24,6 @@ private:
 class LightProto: public ResProto<LightProto, LightInst> {
 public:
 	static ptr create(const std::string& name);
-	virtual ~LightProto() = default;
 
 public:
 	Attributes attrs;

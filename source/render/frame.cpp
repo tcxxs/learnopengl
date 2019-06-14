@@ -72,7 +72,7 @@ bool Frame::attachRenderBuffer() {
 	return oglError();
 }
 
-bool Frame::use() {
+bool Frame::useBegin() {
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {

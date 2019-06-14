@@ -20,3 +20,12 @@
 #define POS_NAME "vt_pos"
 #define UV_NAME "vt_uv"
 #define NORMAL_NAME "vt_normal"
+
+// x, y, uv
+#define POST_VERTEX           \
+	-1.0f, 1.0f, 0.0f, 1.0f,  \
+	-1.0f, -1.0f, 0.0f, 0.0f, \
+	1.0f, -1.0f, 1.0f, 0.0f,  \
+	-1.0f, 1.0f, 0.0f, 1.0f,  \
+	1.0f, -1.0f, 1.0f, 0.0f,  \
+	1.0f, 1.0f, 1.0f, 1.0f
