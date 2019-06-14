@@ -95,6 +95,7 @@ bool Scene::addPass(const Config::node& conf) {
 	if (!conf["out"].IsNull()) {
 		Frame::ptr frame = Frame::create();
 		frame->attachTexture();
+		frame->attachDepthStencil();
 		_frames[conf["out"].as<std::string>()] = frame;
 		pass.out = frame;
 	}
