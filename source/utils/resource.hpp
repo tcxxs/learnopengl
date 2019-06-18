@@ -156,6 +156,7 @@ private:
 template <typename R>
 using ResMgr = Singleton<ResContainer<R>>;
 
+using strcube = std::array<std::string, 6>;
 namespace YAML {
 template <>
 struct convert<glm::vec3> {
@@ -175,6 +176,26 @@ struct convert<glm::vec3> {
 		rhs.x = node[0].as<float>();
 		rhs.y = node[1].as<float>();
 		rhs.z = node[2].as<float>();
+		return true;
+	}
+};
+
+template <>
+struct convert<strcube> {
+	static Node encode(const strcube& rhs) {
+		Node node;
+		for (const auto& it: rhs)
+			node.push_back(it);
+		return node;
+	}
+
+	static bool decode(const Node& node, strcube& rhs) {
+		if (!node.IsSequence() || node.size() != 6) {
+			return false;
+		}
+
+		for (int i = 0; i < 6; ++i)
+			rhs[i] = node[i].as<std::string>();
 		return true;
 	}
 };

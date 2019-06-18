@@ -43,7 +43,7 @@ public:
 	}
 	inline void setVar(const GLuint& loc, const Texture::ptr& var) {
 		glActiveTexture(GL_TEXTURE0 + _tex);
-		glBindTexture(GL_TEXTURE_2D, var->getTexture());
+		glBindTexture(var->getType(), var->getTexture());
 		glUniform1i(loc, _tex);
 		_tex += 1;
 	}

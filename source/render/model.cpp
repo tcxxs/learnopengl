@@ -15,8 +15,14 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 	ModelProto::ptr model = ModelProto::ptr(new ModelProto());
 	model->setName(name);
 
-	if (!model->_loadAssimp(conf))
-		return {};
+	if (conf["file"].IsScalar()) {
+		if (!model->_loadAssimp(conf))
+			return {};
+	}
+	else {
+		if (!model->_loadVertex(conf))
+			return {};
+	}
 
 	return model;
 }
@@ -49,6 +55,14 @@ bool ModelProto::_loadNode(const Config::node& conf, aiNode* node, const aiScene
 		if (!_loadNode(conf, node->mChildren[i], scene))
 			return false;
 	}
+	return true;
+}
+
+bool ModelProto::_loadVertex(const Config::node& conf) {
+	MeshProto::ptr mesh = MeshProto::create(conf);
+	if (!mesh)
+		return false;
+	_meshs.push_back(mesh);
 	return true;
 }
 

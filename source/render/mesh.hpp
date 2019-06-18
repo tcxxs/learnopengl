@@ -12,12 +12,6 @@
 #include "render/light.hpp"
 #include "render/command.hpp"
 
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec2 uv;
-	glm::vec3 normal;
-};
-
 class MeshProto;
 class MeshInst: public ResInst<MeshProto, MeshInst> {
 public:
@@ -33,6 +27,7 @@ private:
 
 class MeshProto: public ResProto<MeshProto, MeshInst> {
 public:
+	static ptr create(const Config::node& conf);
 	static ptr create(const Config::node& conf, const aiMesh* ms, const aiScene* scene);
 	virtual ~MeshProto();
 
@@ -57,6 +52,7 @@ public:
 	          const Material::ptr& mate);
 
 protected:
+	bool _loadRaw(const Config::node& conf);
 	bool _loadVertex(const aiMesh* mesh);
 	bool _loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene* scene);
 	bool _loadTexture(const std::filesystem::path& path, const aiMaterial* mat, const aiTextureType type, const std::string& name);
@@ -67,7 +63,8 @@ public:
 	Attributes attrs;
 
 private:
-	std::vector<Vertex> _verts;
+	std::vector<float> _verts;
+	unsigned int _count{0}, _pos{0}, _uv{0}, _normal{0};
 	std::vector<GLuint> _inds;
 	GLuint _vao{0}, _vbo{0}, _ibo{0};
 	std::map<std::string, Material::ptr> _materials;

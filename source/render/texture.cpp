@@ -26,6 +26,38 @@ Texture::ptr Texture::create(const std::string& name, const std::filesystem::pat
 
 	stbi_image_free(data);
 	
+	texture->_type = GL_TEXTURE_2D;
+	return texture;
+}
+
+Res<Texture>::ptr Texture::create(const strcube& cube) {
+	Texture::ptr texture = std::shared_ptr<Texture>(new Texture());
+
+	glGenTextures(1, &texture->_tex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture->_tex);
+
+	std::filesystem::path path;
+	int w, h, n;
+	//stbi_set_flip_vertically_on_load(true);
+	for (int i = 0; i < 6; ++i) {
+		path = std::filesystem::current_path() / "resource" / "texture" / cube[i];
+		unsigned char* data = stbi_load(path.string().c_str(), &w, &h, &n, 4);
+		if (!data) {
+			std::cout << "stb image: " << path.string() << ", error: " << stbi_failure_reason() << std::endl;
+			return {};
+		}
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	texture->_type = GL_TEXTURE_CUBE_MAP;
 	return texture;
 }
 

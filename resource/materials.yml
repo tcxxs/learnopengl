@@ -10,3 +10,14 @@ grey:
   shader: color
   vars:
     uf_color: [0.2, 0.2, 0.2]
+sky:
+  shader: sky
+  vars:
+    uf_cube: [
+      desertsky_rt.tga,
+      desertsky_lf.tga,
+      desertsky_up.tga,
+      desertsky_dn.tga,
+      desertsky_ft.tga,
+      desertsky_bk.tga
+    ]

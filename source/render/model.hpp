@@ -48,6 +48,7 @@ public:
 protected:
 	bool _loadAssimp(const Config::node& conf);
 	bool _loadNode(const Config::node& conf, aiNode* node, const aiScene* scene);
+	bool _loadVertex(const Config::node& conf);
 
 private:
 	inline static Config _confs;

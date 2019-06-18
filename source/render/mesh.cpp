@@ -1,5 +1,18 @@
 #include "model.hpp"
 
+MeshProto::ptr MeshProto::create(const Config::node& conf) {
+	MeshProto::ptr mesh = std::shared_ptr<MeshProto>(new MeshProto());
+
+	if (!mesh->_loadRaw(conf["file"]))
+		return {};
+	if (!mesh->_initGL())
+		return {};
+	if (!mesh->_initMaterial(conf["materials"]))
+		return {};
+
+	return mesh;
+}
+
 MeshProto::ptr MeshProto::create(const Config::node& conf, const aiMesh* ms, const aiScene* scene) {
 	MeshProto::ptr mesh = std::shared_ptr<MeshProto>(new MeshProto());
 	// mesh->setName(name);
@@ -32,26 +45,48 @@ MeshProto::~MeshProto() {
 	}
 }
 
-bool MeshProto::_loadVertex(const aiMesh* mesh) {
-	if (!mesh->mTextureCoords[0]) {
-		std::cout << "mesh create, no texture uv" << std::endl;
-		return false;
-	}
-	if (!mesh->mNormals) {
-		std::cout << "mesh create, no normal" << std::endl;
-		return false;
+bool MeshProto::_loadRaw(const Config::node& conf) {
+	_pos = conf["layout"][0].as<unsigned int>(0);
+	_uv = conf["layout"][1].as<unsigned int>(0);
+	_normal = conf["layout"][2].as<unsigned int>(0);
+
+	Config::node verts = conf["vertex"];
+	_count = verts.size() / (_pos + _uv + _normal);
+	_verts.resize(verts.size(), 0.0f);
+	int i = 0;
+	for (const auto& it: conf["vertex"]) {
+		_verts[i] = it.as<float>();
+		++i;
 	}
 
-	_verts.resize(mesh->mNumVertices, {glm::vec3(0.0f), glm::vec2(0.0f), glm::vec3(0.0f)});
-	for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
-		_verts[i].pos.x = mesh->mVertices[i].x;
-		_verts[i].pos.y = mesh->mVertices[i].y;
-		_verts[i].pos.z = mesh->mVertices[i].z;
-		_verts[i].uv.x = mesh->mTextureCoords[0][i].x;
-		_verts[i].uv.y = mesh->mTextureCoords[0][i].y;
-		_verts[i].normal.x = mesh->mNormals[i].x;
-		_verts[i].normal.y = mesh->mNormals[i].y;
-		_verts[i].normal.z = mesh->mNormals[i].z;
+	return true;
+}
+
+bool MeshProto::_loadVertex(const aiMesh* mesh) {
+	_count = mesh->mNumVertices;
+	_pos = 3;
+	if (mesh->mTextureCoords[0]) {
+		_uv = 2;
+	}
+	if (mesh->mNormals) {
+		_normal = 3;
+	}
+
+	int layout = (_pos + _uv + _normal);
+	_verts.resize(_count * layout, 0.0f);
+	for (unsigned int i = 0; i < _count; ++i) {
+		_verts[(i * layout)] = mesh->mVertices[i].x;
+		_verts[(i * layout) + 1] = mesh->mVertices[i].y;
+		_verts[(i * layout) + 2] = mesh->mVertices[i].z;
+		if (_uv > 0) {
+			_verts[(i * layout) + _pos] = mesh->mTextureCoords[0][i].x;
+			_verts[(i * layout) + _pos + 1] = mesh->mTextureCoords[0][i].y;
+		}
+		if (_normal > 0) {
+			_verts[(i * layout) + _pos + _uv] = mesh->mNormals[i].x;
+			_verts[(i * layout) + _pos + _uv + 1] = mesh->mNormals[i].y;
+			_verts[(i * layout) + _pos + _uv + 2] = mesh->mNormals[i].z;
+		}
 	}
 
 	for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
@@ -95,16 +130,20 @@ bool MeshProto::_initGL() {
 
 	glBindVertexArray(_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	glBufferData(GL_ARRAY_BUFFER, _verts.size() * sizeof(Vertex), _verts.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, _verts.size() * sizeof(float), _verts.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _inds.size() * sizeof(GLuint), _inds.data(), GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(POS_LOC);
-	glVertexAttribPointer(POS_LOC, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
-	glEnableVertexAttribArray(UV_LOC);
-	glVertexAttribPointer(UV_LOC, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
-	glEnableVertexAttribArray(NORMAL_LOC);
-	glVertexAttribPointer(NORMAL_LOC, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+	glVertexAttribPointer(POS_LOC, _pos, GL_FLOAT, GL_FALSE, (_pos + _uv + _normal) * sizeof(float), (void*)0);
+	if (_uv > 0) {
+		glEnableVertexAttribArray(UV_LOC);
+		glVertexAttribPointer(UV_LOC, _uv, GL_FLOAT, GL_FALSE, (_pos + _uv + _normal) * sizeof(float), (void*)(_pos * sizeof(float)));
+	}
+	if (_normal > 0) {
+		glEnableVertexAttribArray(NORMAL_LOC);
+		glVertexAttribPointer(NORMAL_LOC, _normal, GL_FLOAT, GL_FALSE, (_pos + _uv + _normal) * sizeof(float), (void*)((_pos + _uv) * sizeof(float)));
+	}
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -135,6 +174,7 @@ void MeshProto::draw(CommandQueue& cmds,
 	Command& cmd = cmds.emplace_back();
 	cmd.vao = _vao;
 	cmd.ibosize = (GLsizei)_inds.size();
+	cmd.arrsize = (GLsizei)_count;
 	cmd.model = model;
 	cmd.material = mate;
 	cmd.attrs.updateAttrs(attrs);

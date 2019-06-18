@@ -196,7 +196,10 @@ void Scene::drawCommand(const Command& cmd) {
 	shader->setVar("uses.spots", spots);
 
 	glBindVertexArray(cmd.vao);
-	glDrawElements(GL_TRIANGLES, cmd.ibosize, GL_UNSIGNED_INT, 0);
+	if (cmd.ibosize > 0)
+		glDrawElements(GL_TRIANGLES, cmd.ibosize, GL_UNSIGNED_INT, 0);
+	else
+		glDrawArrays(GL_TRIANGLES, 0, cmd.arrsize);
 	glBindVertexArray(0);
 }
 

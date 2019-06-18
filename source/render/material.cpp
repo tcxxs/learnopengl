@@ -33,6 +33,12 @@ Material::ptr Material::create(const std::string& name) {
 					return {};
 				it.second = tex;
 			}
+			else if (it.second.type() == typeid(strcube)) {
+				const auto& tex = TextureMgr::inst().create(std::any_cast<strcube&>(it.second));
+				if (!tex)
+					return {};
+				it.second = tex;
+			}
 		}
 	}
 

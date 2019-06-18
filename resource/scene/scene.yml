@@ -14,6 +14,10 @@ lights:
     type: dir
     dir: [0.0, -1.0, 1.0]
 models:
+  - name: sky
+    type: sky
+    pos: [0.0, 0.0, 0.0]
+    scale: 50.0
   - name: land
     type: land
     pos: [0.0, -0.1, 0.0]
@@ -42,10 +46,10 @@ pass:
   - name: draw
     post:
     in:
-    out: draw
-    state: [clear, depth]
-  - name: grey
-    post: grey
-    in: [draw]
     out:
-    state: [clear]
+    state: [clear, depth]
+  # - name: grey
+  #   post: grey
+  #   in: [draw]
+  #   out:
+  #   state: [clear]

@@ -8,6 +8,7 @@
 struct Command {
 	GLuint vao{0};
 	GLsizei ibosize{0};
+	GLsizei arrsize{0};
 	glm::mat4 model;
 	Material::ptr material;
 	Attributes attrs;

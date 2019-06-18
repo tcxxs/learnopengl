@@ -67,6 +67,9 @@ std::any Config::guess(const Config::node& doc) {
 		if (doc.size() == 3) {
 			return {doc.as<glm::vec3>()};
 		}
+		else if (doc.size() == 6) {
+			return {doc.as<strcube>()};
+		}
 	}
 
 	return {};
