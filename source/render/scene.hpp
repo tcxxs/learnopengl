@@ -13,6 +13,7 @@
 struct Pass 
 {
 	std::string name;
+	std::set<Shader::ptr> shaders;
 	Post::ptr post;
 	std::vector<Frame::ptr> ins;
 	Frame::ptr out;

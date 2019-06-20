@@ -43,11 +43,18 @@ models:
     rotate: [0.0, 0.0, 0.0]
     material: phong
 pass:
-  - name: draw
+  - name: sky
+    shader: [sky]
     post:
     in:
     out:
-    state: [clear, depth]
+    state: [clear]
+  - name: draw
+    shader:
+    post:
+    in:
+    out:
+    state: [depth]
   # - name: grey
   #   post: grey
   #   in: [draw]

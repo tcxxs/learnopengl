@@ -14,12 +14,12 @@ sky:
   shader: sky
   vars:
     uf_cube: [
-      desertsky_ft.tga,
-      desertsky_bk.tga,
-      desertsky_up.tga,
-      desertsky_dn.tga,
-      desertsky_rt.tga,
-      desertsky_lf.tga
+      sorbin/sorbin_ft.tga,
+      sorbin/sorbin_bk.tga,
+      sorbin/sorbin_up.tga,
+      sorbin/sorbin_dn.tga,
+      sorbin/sorbin_rt.tga,
+      sorbin/sorbin_lf.tga
     ]
     # uf_cube: [
     #   skybox/right.jpg,

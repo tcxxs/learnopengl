@@ -76,6 +76,14 @@ bool Scene::addPass(const Config::node& conf) {
 	Pass& pass = _pass.emplace_back();
 
 	pass.name = conf["name"].as<std::string>();
+	if (!conf["shader"].IsNull()) {
+		for (auto& it: conf["shader"]) {
+			Shader::ptr shader = ShaderMgr::inst().req(it.as<std::string>());
+			if (!shader)
+				return false;
+			pass.shaders.insert(shader);
+		}
+	}
 	if (!conf["post"].IsNull()) {
 		pass.post = PostMgr::inst().req(conf["post"].as<std::string>());
 		if (!pass.post)
@@ -141,7 +149,8 @@ void Scene::drawScene(const Pass& pass) {
 	}
 
 	for (auto& it: cmds) {
-		drawCommand(it);
+		if (pass.shaders.empty() || pass.shaders.count(it.material->getShader()) > 0)
+			drawCommand(it);
 	}
 }
 
