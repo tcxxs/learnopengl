@@ -14,10 +14,18 @@ sky:
   shader: sky
   vars:
     uf_cube: [
-      desertsky_rt.tga,
-      desertsky_lf.tga,
+      desertsky_ft.tga,
+      desertsky_bk.tga,
       desertsky_up.tga,
       desertsky_dn.tga,
-      desertsky_ft.tga,
-      desertsky_bk.tga
+      desertsky_rt.tga,
+      desertsky_lf.tga
     ]
+    # uf_cube: [
+    #   skybox/right.jpg,
+    #   skybox/left.jpg,
+    #   skybox/top.jpg,
+    #   skybox/bottom.jpg,
+    #   skybox/front.jpg,
+    #   skybox/back.jpg
+    # ]

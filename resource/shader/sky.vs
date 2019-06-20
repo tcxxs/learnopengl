@@ -9,6 +9,6 @@ out vec3 fg_pos;
 
 void main()
 {
-    gl_Position = proj * view * model * vec4(vt_pos.x, vt_pos.y, vt_pos.z, 1.0);
-    fg_pos = vec3(model * vec4(vt_pos, 1.0));
+    gl_Position = proj * view * model * vec4(vt_pos, 1.0);
+    fg_pos = vt_pos;
 }

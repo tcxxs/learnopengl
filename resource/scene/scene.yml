@@ -5,11 +5,11 @@ camera:
 lights:
   - name: test1
     type: spot
-    pos: [-0.2, 0.3, 0.5]
+    pos: [-0.1, 0.3, 0.5]
     dir: [0.0, 0.0, -1.0]
   - name: test2
     type: point
-    pos: [0.3, 0.3, 0.3]
+    pos: [0.1, 0.6, 0.2]
   - name: test3
     type: dir
     dir: [0.0, -1.0, 1.0]
@@ -18,18 +18,18 @@ models:
     type: sky
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
-  - name: land
-    type: land
-    pos: [0.0, -0.1, 0.0]
-    scale: 5.0
+  # - name: land
+  #   type: land
+  #   pos: [0.0, -0.1, 0.0]
+  #   scale: 5.0
   - name: light1
     type: lamp
-    pos: [-0.2, 0.3, 0.5]
+    pos: [-0.1, 0.3, 0.5]
     dir: [0.0, 0.0, -1.0]
     scale: 0.01
   - name: light2
     type: sun
-    pos: [0.3, 0.3, 0.3]
+    pos: [0.1, 0.6, 0.2]
     scale: 0.01
   - name: light3
     type: lamp
