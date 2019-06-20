@@ -76,8 +76,8 @@ bool Scene::addPass(const Config::node& conf) {
 	Pass& pass = _pass.emplace_back();
 
 	pass.name = conf["name"].as<std::string>();
-	if (!conf["shader"].IsNull()) {
-		for (auto& it: conf["shader"]) {
+	if (!conf["shaders"].IsNull()) {
+		for (auto& it: conf["shaders"]) {
 			Shader::ptr shader = ShaderMgr::inst().req(it.as<std::string>());
 			if (!shader)
 				return false;
@@ -107,8 +107,41 @@ bool Scene::addPass(const Config::node& conf) {
 		_frames[conf["out"].as<std::string>()] = frame;
 		pass.out = frame;
 	}
-	for (const auto& it: conf["state"]) {
-		pass.states.insert(it.as<std::string>());
+	for (const auto& it: conf["states"]) {
+		const std::string& key = it.first.Scalar();
+		if (key == "clear") {
+			GLbitfield flags = 0;
+			for (const auto& ita: it.second) {
+				const std::string& arg = ita.Scalar();
+				if (arg == "color")
+					flags |= GL_COLOR_BUFFER_BIT;
+				else if (arg == "depth")
+					flags |= GL_DEPTH_BUFFER_BIT;
+				else if (arg == "stencil")
+					flags |= GL_STENCIL_BUFFER_BIT;
+			}
+
+			pass.states.emplace_back([flags] {
+				if (flags & GL_COLOR_BUFFER_BIT) {
+					glClearColor(BG_COLOR);
+				}
+				glClear(flags);
+			});
+		}
+		else if (key == "depth") {
+			bool enable = it.second[0].as<bool>();
+			GLenum flag = GL_LESS;
+			const std::string& arg = it.second[1].as<std::string>();
+			if (arg == "less")
+				flag = GL_LESS;
+			else if (arg == "lesseq")
+				flag = GL_LEQUAL;
+
+			pass.states.emplace_back([enable, flag] {
+				enable ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+				glDepthFunc(flag);
+			});
+		}
 	}
 
 	return true;
@@ -117,7 +150,6 @@ bool Scene::addPass(const Config::node& conf) {
 void Scene::draw() {
 	for (const auto& it: _pass) {
 		glViewport(0, 0, WIDTH, HEIGHT);
-		it.states.count("depth") ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
@@ -125,10 +157,8 @@ void Scene::draw() {
 		if (it.out) {
 			it.out->useBegin();
 		}
-		if (it.states.count("clear")) {
-			glClearColor(BG_COLOR);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		}
+		for (const auto& st: it.states)
+			st();
 
 		if (it.post) {
 			drawPost(it);

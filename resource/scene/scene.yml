@@ -44,17 +44,20 @@ models:
     material: phong
 pass:
   - name: sky
-    shader: [sky]
+    shaders: [sky]
     post:
     in:
     out:
-    state: [clear]
+    states:
+      clear: [color, depth, stencil]
+      depth: [false, less]
   - name: draw
-    shader:
+    shaders: [phong, color]
     post:
     in:
     out:
-    state: [depth]
+    states:
+      depth: [true, lesseq]
   # - name: grey
   #   post: grey
   #   in: [draw]

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include "glad/glad.h"
 #include "utils/utils.hpp"
 #include "utils/resource.hpp"
@@ -12,12 +13,14 @@
 
 struct Pass 
 {
+	using statefunc = std::function<void()>;
+
 	std::string name;
 	std::set<Shader::ptr> shaders;
 	Post::ptr post;
 	std::vector<Frame::ptr> ins;
 	Frame::ptr out;
-	std::set<std::string> states;
+	std::vector<statefunc> states;
 };
 
 class Scene: public Res<Scene> {
