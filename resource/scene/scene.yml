@@ -43,16 +43,16 @@ models:
     rotate: [0.0, 0.0, 0.0]
     material: phong
 pass:
-  - name: sky
-    shaders: [sky]
+  - name: draw
+    shaders: [phong, color]
     post:
     in:
     out:
     states:
       clear: [color, depth, stencil]
-      depth: [false, less]
-  - name: draw
-    shaders: [phong, color]
+      depth: [true, less]
+  - name: sky
+    shaders: [sky]
     post:
     in:
     out:
