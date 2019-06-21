@@ -29,3 +29,14 @@ sky:
     #   skybox/front.jpg,
     #   skybox/back.jpg
     # ]
+reflect:
+  shader: reflect
+  vars:
+    uf_cube: [
+      sorbin/sorbin_ft.tga,
+      sorbin/sorbin_bk.tga,
+      sorbin/sorbin_up.tga,
+      sorbin/sorbin_dn.tga,
+      sorbin/sorbin_rt.tga,
+      sorbin/sorbin_lf.tga
+    ]

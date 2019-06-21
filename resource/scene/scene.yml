@@ -22,6 +22,10 @@ models:
   #   type: land
   #   pos: [0.0, -0.1, 0.0]
   #   scale: 5.0
+  - name: cube
+    type: cube
+    pos: [0.5, 0.0, 0.0]
+    scale: 0.5
   - name: light1
     type: lamp
     pos: [-0.1, 0.3, 0.5]
@@ -44,7 +48,7 @@ models:
     material: phong
 pass:
   - name: draw
-    shaders: [phong, color]
+    shaders: [phong, color, reflect]
     post:
     in:
     out:
