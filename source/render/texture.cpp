@@ -38,7 +38,7 @@ Res<Texture>::ptr Texture::create(const strcube& cube) {
 
 	std::filesystem::path path;
 	int w, h, n;
-	//stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(false); // cubemap使用左手系
 	for (int i = 0; i < 6; ++i) {
 		path = std::filesystem::current_path() / "resource" / "texture" / cube[i];
 		unsigned char* data = stbi_load(path.string().c_str(), &w, &h, &n, 4);
