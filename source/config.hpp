@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <map>
+#include <string>
+#include "glad/glad.h"
 
 #define PI 3.1415926535897f
 
@@ -17,15 +20,24 @@
 #define POS_LOC 0
 #define UV_LOC 1
 #define NORMAL_LOC 2
-#define POS_NAME "vt_pos"
-#define UV_NAME "vt_uv"
-#define NORMAL_NAME "vt_normal"
+#define POS_NAME "pos"
+#define UV_NAME "uv"
+#define NORMAL_NAME "normal"
 
 // x, y, uv
-#define POST_VERTEX           \
-	-1.0f, 1.0f, 0.0f, 1.0f,  \
-	-1.0f, -1.0f, 0.0f, 0.0f, \
-	1.0f, -1.0f, 1.0f, 0.0f,  \
-	-1.0f, 1.0f, 0.0f, 1.0f,  \
-	1.0f, -1.0f, 1.0f, 0.0f,  \
-	1.0f, 1.0f, 1.0f, 1.0f
+#define POST_VERTEX               \
+	-1.0f, 1.0f, 0.0f, 1.0f,      \
+	    -1.0f, -1.0f, 0.0f, 0.0f, \
+	    1.0f, -1.0f, 1.0f, 0.0f,  \
+	    -1.0f, 1.0f, 0.0f, 1.0f,  \
+	    1.0f, -1.0f, 1.0f, 0.0f,  \
+	    1.0f, 1.0f, 1.0f, 1.0f
+
+#define UNIFORM_MATVP "MatrixVP"
+#define UNIFORM_SCENE "Scene"
+#define UNIFORM_LIGHTS "Lights"
+
+#define LIGHT_MAX 10
+#define LIGHT_DIR 1
+#define LIGHT_POINT 2
+#define LIGHT_SPOT 3

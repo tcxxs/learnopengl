@@ -1,10 +1,13 @@
 #include "shader.hpp"
+#include "render/uniform.hpp"
 
 Shader::ptr Shader::create(const std::string& name) {
 	Shader::ptr shader = std::shared_ptr<Shader>(new Shader());
 	shader->setName(name);
 
 	if (!shader->_loadProgram())
+		return {};
+	if (!shader->_loadInterface())
 		return {};
 
 	if (oglError())
@@ -89,24 +92,74 @@ bool Shader::_loadProgram() {
 	glDeleteShader(vs);
 	glDeleteShader(fs);
 
-	std::string name;
-	GLenum type{0};
-	GLint count{0}, size{0};
-	GLsizei namesize{20}, length{0};
-	glGetProgramiv(_prog, GL_ACTIVE_ATTRIBUTES, &count);
-	for (auto i = 0; i < count; i++) {
-		name.clear();
-		name.resize(namesize, 0);
-		glGetActiveAttrib(_prog, (GLuint)i, namesize, &length, &size, &type, name.data());
-		_vars[name.c_str()] = glGetAttribLocation(_prog, name.data());
+	return true;
+}
+
+bool Shader::_loadInterface() {
+	GLint resources;
+	const GLenum props_total[1] = {GL_NUM_ACTIVE_VARIABLES};
+	const GLenum props_vars[1] = {GL_ACTIVE_VARIABLES};
+	std::string name(50, '\0');
+
+	const GLenum props_input[] = {GL_LOCATION};
+	GLint values_input[1];
+	glGetProgramInterfaceiv(_prog, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &resources);
+	for (int i = 0; i < resources; ++i) {
+		glGetProgramResourceiv(_prog, GL_PROGRAM_INPUT, i, 1, props_input, 1, NULL, values_input);
+		if (values_input[0] < 0)
+			continue;
+
+		glGetProgramResourceName(_prog, GL_PROGRAM_INPUT, i, (GLsizei)name.capacity(), NULL, name.data());
+		_vars.emplace(name.c_str(), values_input[0]);
 	}
 
-	glGetProgramiv(_prog, GL_ACTIVE_UNIFORMS, &count);
-	for (auto i = 0; i < count; i++) {
-		name.clear();
-		name.resize(namesize, 0);
-		glGetActiveUniform(_prog, (GLuint)i, namesize, &length, &size, &type, name.data());
-		_vars[name.c_str()] = i;
+	const GLenum props_uniform[] = {GL_LOCATION};
+	GLint values_uniform[1];
+	glGetProgramInterfaceiv(_prog, GL_UNIFORM, GL_ACTIVE_RESOURCES, &resources);
+	for (int i = 0; i < resources; ++i) {
+		glGetProgramResourceiv(_prog, GL_UNIFORM, i, 1, props_uniform, 1, NULL, values_uniform);
+		if (values_uniform[0] < 0)
+			continue;
+
+		glGetProgramResourceName(_prog, GL_UNIFORM, i, (GLsizei)name.capacity(), NULL, name.data());
+		_vars.emplace(name.c_str(), values_uniform[0]);
+	}
+
+	const GLenum props_block[]{GL_NUM_ACTIVE_VARIABLES}, props_active[]{GL_BUFFER_DATA_SIZE, GL_ACTIVE_VARIABLES}, props_var[]{GL_OFFSET};
+	GLint values_block[1], values_var[1];
+	GLuint bind{0};
+	glGetProgramInterfaceiv(_prog, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &resources);
+	for (int i = 0; i < resources; ++i) {
+		glGetProgramResourceiv(_prog, GL_UNIFORM_BLOCK, i, 1, props_block, 1, NULL, values_block);
+		glGetProgramResourceName(_prog, GL_UNIFORM_BLOCK, i, (GLsizei)name.capacity(), NULL, name.data());
+		glUniformBlockBinding(_prog, i, bind);
+		_vars.emplace(name.c_str(), bind);
+		++bind;
+
+		std::string uname, vname;
+		size_t pos;
+		pos = name.find('[');
+		if (pos == std::string::npos)
+			uname = name.c_str();
+		else
+			uname = name.substr(0, pos);
+		if (UniformProtoMgr::inst().get(uname))
+			continue;
+
+		std::vector<GLint> values_active(values_block[0] + 1);
+		std::map<std::string, GLint> vars;
+		glGetProgramResourceiv(_prog, GL_UNIFORM_BLOCK, i, 2, props_active, values_block[0] + 1, NULL, values_active.data());
+		for (int j = 0; j < values_block[0]; ++j) {
+			glGetProgramResourceiv(_prog, GL_UNIFORM, values_active[j + 1], 1, props_var, 1, NULL, values_var);
+			glGetProgramResourceName(_prog, GL_UNIFORM, values_active[j + 1], (GLsizei)name.capacity(), NULL, name.data());
+			pos = name.find(uname + '.');
+			if (pos == 0)
+				vname = name.substr(uname.size() + 1).c_str();
+			else
+				vname = name.c_str();
+			vars.emplace(vname, values_var[0]);
+		}
+		UniformProtoMgr::inst().req(uname, values_active[0], vars);
 	}
 
 	GLint loc;

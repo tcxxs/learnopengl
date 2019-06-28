@@ -1,0 +1,18 @@
+MatrixVP:
+  view: mat4
+  proj: mat4
+Scene:
+  camera: vec3
+  lights: int
+Lights:
+  light.type: int
+  light.pos: vec3
+  light.dir: vec3
+  light.ambient: vec3
+  light.diffuse: vec3
+  light.specular: vec3
+  light.constant: float
+  light.linear: float
+  light.quadratic: float
+  light.inner: float
+  light.outter: float

@@ -10,6 +10,7 @@
 #include "render/frame.hpp"
 #include "render/shader.hpp"
 #include "render/post.hpp"
+#include "render/uniform.hpp"
 
 struct Pass 
 {
@@ -33,6 +34,7 @@ public:
 	bool addLight(const Config::node& conf);
 	bool addModel(const Config::node& conf);
 	bool addPass(const Config::node& conf);
+	bool addUniform(const std::string& name, int count = 1);
 
 	inline void active() {
 		Scene::current = shared_from_this();
@@ -51,6 +53,7 @@ private:
 	std::vector<ModelInst::ptr> _models;
 	std::vector<Pass> _pass;
 	std::map<std::string, Frame::ptr> _frames;
+	std::map<std::string, UniformInst::ptr> _uniforms;
 };
 
 using SceneMgr = ResMgr<Scene>;

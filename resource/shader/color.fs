@@ -4,17 +4,18 @@ struct Material {
     sampler2D diffuse;
 };
 
-in vec3 fg_pos;
-in vec2 fg_uv;
-in vec3 fg_normal;
-
 uniform vec3 uf_color;
 uniform Material material;
 
+in VertexAttrs {
+    vec3 pos;
+    vec2 uv;
+    vec3 normal;
+}vertex;
 out vec4 FragColor;
 
 void main()
 {
-    vec3 diffuse_color = texture(material.diffuse, fg_uv).rgb;
+    vec3 diffuse_color = texture(material.diffuse, vertex.uv).rgb;
     FragColor = vec4(diffuse_color * uf_color, 1.0);
 } 

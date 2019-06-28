@@ -25,10 +25,13 @@ class LightProto: public ResProto<LightProto, LightInst> {
 public:
 	static ptr create(const std::string& name);
 
+	inline const int getType() const { return _type; }
+
 public:
 	Attributes attrs;
 private:
 	inline static Config _confs;
+	int _type{0};
 };
 
 using LightProtoMgr = ResMgr<LightProto>;

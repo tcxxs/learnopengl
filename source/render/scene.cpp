@@ -34,6 +34,13 @@ Scene::ptr Scene::create(const std::string& name) {
 			return {};
 	}
 
+	if (!scene->addUniform(UNIFORM_MATVP))
+		return {};
+	if (!scene->addUniform(UNIFORM_SCENE))
+		return {};
+	if (!scene->addUniform(UNIFORM_LIGHTS, LIGHT_MAX))
+		return {};
+
 	return scene;
 }
 
@@ -147,6 +154,23 @@ bool Scene::addPass(const Config::node& conf) {
 	return true;
 }
 
+bool Scene::addUniform(const std::string& name, int count) {
+	const UniformProto::ptr& proto = UniformProtoMgr::inst().get(name);
+	if (!proto)
+		return false;
+
+	std::string uname{name};
+	for (int i = 0; i < count; ++i) {
+		if (count > 1)
+			uname = name + string_format("[%d]", i);
+		UniformInst::ptr uniform = proto->instance();
+		if (!uniform)
+			return false;
+		_uniforms.emplace(uname, uniform);
+	}
+	return true;
+}
+
 void Scene::draw() {
 	for (const auto& it: _pass) {
 		glViewport(0, 0, WIDTH, HEIGHT);
@@ -173,6 +197,52 @@ void Scene::draw() {
 }
 
 void Scene::drawScene(const Pass& pass) {
+	UniformInst::ptr& matvp = _uniforms[UNIFORM_MATVP];
+	matvp->setVar("view", _cam->getView());
+	matvp->setVar("proj", _cam->getProj());
+
+	for (int i = 0; i < _lights.size(); ++i) {
+		UniformInst::ptr& uniform = _uniforms[string_format(UNIFORM_LIGHTS "[%d]", i)];
+		const LightInst::ptr& light = _lights[i];
+		const LightProto::ptr& proto = light->prototype();
+		const int type = proto->getType();
+
+		uniform->setVar("light.type", type);
+		switch (proto->getType()) {
+		case LIGHT_DIR:
+			uniform->setVar("light.dir", light->getDir());
+			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
+			uniform->setVar("light.diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
+			uniform->setVar("light.specular", proto->attrs.getAttr<glm::vec3>("specular"));
+			break;
+		case LIGHT_POINT:
+			uniform->setVar("light.pos", light->getPos());
+			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
+			uniform->setVar("light.diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
+			uniform->setVar("light.specular", proto->attrs.getAttr<glm::vec3>("specular"));
+			uniform->setVar("light.constant", proto->attrs.getAttr<float>("constant"));
+			uniform->setVar("light.linear", proto->attrs.getAttr<float>("linear"));
+			uniform->setVar("light.quadratic", proto->attrs.getAttr<float>("quadratic"));
+			break;
+		case LIGHT_SPOT:
+			uniform->setVar("light.pos", light->getPos());
+			uniform->setVar("light.dir", light->getDir());
+			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
+			uniform->setVar("light.diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
+			uniform->setVar("light.specular", proto->attrs.getAttr<glm::vec3>("specular"));
+			uniform->setVar("light.constant", proto->attrs.getAttr<float>("constant"));
+			uniform->setVar("light.linear", proto->attrs.getAttr<float>("linear"));
+			uniform->setVar("light.quadratic", proto->attrs.getAttr<float>("quadratic"));
+			uniform->setVar("light.inner", cos(glm::radians(proto->attrs.getAttr<float>("inner"))));
+			uniform->setVar("light.outter", cos(glm::radians(proto->attrs.getAttr<float>("outter"))));
+			break;
+		}
+	}
+
+	UniformInst::ptr& scene = _uniforms[UNIFORM_SCENE];
+	scene->setVar("camera", _cam->getPos());
+	scene->setVar("lights", (int)_lights.size());
+
 	CommandQueue cmds;
 	for (auto& it: _models) {
 		it->draw(cmds);
@@ -188,51 +258,22 @@ void Scene::drawCommand(const Command& cmd) {
 	cmd.material->use();
 	const Shader::ptr& shader = cmd.material->getShader();
 	shader->setVars(cmd.attrs);
-
-	glUniformMatrix4fv(shader->getVar("view"), 1, GL_FALSE, glm::value_ptr(_cam->getView()));
-	glUniformMatrix4fv(shader->getVar("proj"), 1, GL_FALSE, glm::value_ptr(_cam->getProj()));
 	glUniformMatrix4fv(shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(cmd.model));
-	shader->setVar("camera_pos", _cam->getPos());
 
-	int dirs{0}, points{0}, spots{0};
+	GLint point;
+	point = shader->getVar(UNIFORM_MATVP);
+	if (point >= 0)
+		_uniforms[UNIFORM_MATVP]->bind(point);
+	point = shader->getVar(UNIFORM_SCENE);
+	if (point >= 0)
+		_uniforms[UNIFORM_SCENE]->bind(point);
 	std::string light;
-	for (const auto& it: _lights) {
-		const LightProto::ptr proto = it->prototype();
-		const std::string& light_type = proto->getName();
-		if (light_type == "dir") {
-			light = string_format("dirs[%d]", dirs++);
-			shader->setVar(light + ".dir", it->getDir());
-			shader->setVar(light + ".ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
-			shader->setVar(light + ".diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
-			shader->setVar(light + ".specular", proto->attrs.getAttr<glm::vec3>("specular"));
-		}
-		else if (light_type == "point") {
-			light = string_format("points[%d]", points++);
-			shader->setVar(light + ".pos", it->getPos());
-			shader->setVar(light + ".ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
-			shader->setVar(light + ".diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
-			shader->setVar(light + ".specular", proto->attrs.getAttr<glm::vec3>("specular"));
-			shader->setVar(light + ".constant", proto->attrs.getAttr<float>("constant"));
-			shader->setVar(light + ".linear", proto->attrs.getAttr<float>("linear"));
-			shader->setVar(light + ".quadratic", proto->attrs.getAttr<float>("quadratic"));
-		}
-		else if (light_type == "spot") {
-			light = string_format("spots[%d]", spots++);
-			shader->setVar(light + ".pos", it->getPos());
-			shader->setVar(light + ".dir", it->getDir());
-			shader->setVar(light + ".ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
-			shader->setVar(light + ".diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
-			shader->setVar(light + ".specular", proto->attrs.getAttr<glm::vec3>("specular"));
-			shader->setVar(light + ".constant", proto->attrs.getAttr<float>("constant"));
-			shader->setVar(light + ".linear", proto->attrs.getAttr<float>("linear"));
-			shader->setVar(light + ".quadratic", proto->attrs.getAttr<float>("quadratic"));
-			shader->setVar(light + ".inner", cos(glm::radians(proto->attrs.getAttr<float>("inner"))));
-			shader->setVar(light + ".outter", cos(glm::radians(proto->attrs.getAttr<float>("outter"))));
-		}
+	for (int i = 0; i < _lights.size(); ++i) {
+		light = string_format(UNIFORM_LIGHTS "[%d]", i);
+		point = shader->getVar(light);
+		if (point >= 0)
+			_uniforms[light]->bind(point);
 	}
-	shader->setVar("uses.dirs", dirs);
-	shader->setVar("uses.points", points);
-	shader->setVar("uses.spots", spots);
 
 	glBindVertexArray(cmd.vao);
 	if (cmd.ibosize > 0)

@@ -51,7 +51,7 @@ bool MeshProto::_loadRaw(const Config::node& conf) {
 	_normal = conf["layout"][2].as<unsigned int>(0);
 
 	Config::node verts = conf["vertex"];
-	_count = verts.size() / (_pos + _uv + _normal);
+	_count = (unsigned int)verts.size() / (_pos + _uv + _normal);
 	_verts.resize(verts.size(), 0.0f);
 	int i = 0;
 	for (const auto& it: conf["vertex"]) {

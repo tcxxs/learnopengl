@@ -15,6 +15,7 @@ LightProto::ptr LightProto::create(const std::string& name) {
 	LightProto::ptr proto = std::shared_ptr<LightProto>(new LightProto());
 	proto->setName(name);
 
+	proto->_type = conf["type"].as<int>();
 	if (!proto->attrs.updateConf(conf)) {
 		return {};
 	}
