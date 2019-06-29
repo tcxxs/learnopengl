@@ -23,18 +23,11 @@ Shader::~Shader() {
 	}
 }
 
-bool Shader::_loadShader(int type, GLuint& shader) {
-	std::filesystem::path path = std::filesystem::current_path() / "resource" / "shader";
-	switch (type) {
-	case GL_VERTEX_SHADER:
-		path /= _name + ".vs";
-		break;
-	case GL_FRAGMENT_SHADER:
-		path /= _name + ".fs";
-		break;
-	default:
-		std::cout << "load shader, unknow type" << type << std::endl;
-		return false;
+bool Shader::_loadShader(const std::string& ext, int type, GLuint& shader) {
+	std::filesystem::path path = std::filesystem::current_path() / "resource" / "shader" / (_name + ext);
+	if (!std::filesystem::exists(path)) {
+		shader = 0;
+		return true;
 	}
 
 	std::string content;
@@ -63,16 +56,21 @@ bool Shader::_loadShader(int type, GLuint& shader) {
 }
 
 bool Shader::_loadProgram() {
-	GLuint vs, fs;
-	if (!_loadShader(GL_VERTEX_SHADER, vs)) {
+	GLuint vs{0}, gs{0}, fs{0};
+	if (!_loadShader(".vs", GL_VERTEX_SHADER, vs)) {
 		return false;
 	}
-	if (!_loadShader(GL_FRAGMENT_SHADER, fs)) {
+	if (!_loadShader(".gs", GL_GEOMETRY_SHADER, gs)) {
+		return false;
+	}
+	if (!_loadShader(".fs", GL_FRAGMENT_SHADER, fs)) {
 		return false;
 	}
 
 	_prog = glCreateProgram();
 	glAttachShader(_prog, vs);
+	if (gs)
+		glAttachShader(_prog, gs);
 	glAttachShader(_prog, fs);
 	glBindAttribLocation(_prog, POS_LOC, POS_NAME);
 	glBindAttribLocation(_prog, UV_LOC, UV_NAME);
@@ -90,6 +88,8 @@ bool Shader::_loadProgram() {
 	}
 
 	glDeleteShader(vs);
+	if (gs)
+		glDeleteShader(gs);
 	glDeleteShader(fs);
 
 	return true;

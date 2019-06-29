@@ -46,6 +46,12 @@ models:
     scale: 0.05
     rotate: [0.0, 0.0, 0.0]
     material: phong
+  # - name: nanosuit_debug
+  #   type: nanosuit
+  #   pos: [0.0, 0.0, 0.0]
+  #   scale: 0.05
+  #   rotate: [0.0, 0.0, 0.0]
+  #   material: phong_debug
 pass:
   - name: draw
     shaders: [phong, color, reflect]
@@ -55,6 +61,12 @@ pass:
     states:
       clear: [color, depth, stencil]
       depth: [true, less]
+  # - name: debug
+  #   shaders: [phong_debug]
+  #   post:
+  #   in:
+  #   out:
+  #   states:
   - name: sky
     shaders: [sky]
     post:

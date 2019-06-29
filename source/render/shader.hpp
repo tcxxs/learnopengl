@@ -54,7 +54,7 @@ public:
 	}
 
 private:
-	bool _loadShader(int type, GLuint& shader);
+	bool _loadShader(const std::string& ext, int type, GLuint& shader);
 	bool _loadProgram();
 	bool _loadInterface();
 

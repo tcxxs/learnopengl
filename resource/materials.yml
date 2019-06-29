@@ -2,6 +2,10 @@ phong:
   shader: phong
   vars:
     material.shininess: 32.0
+phong_debug:
+  shader: phong_debug
+  vars:
+    material.shininess: 32.0
 white:
   shader: color
   vars:
