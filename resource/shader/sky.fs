@@ -1,12 +1,13 @@
 #version 460 core
 
-in vec3 fg_pos;
-
 uniform samplerCube uf_cube;
 
+in VertexAttrs {
+    vec3 pos;
+}vertex;
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = texture(uf_cube, fg_pos);
+    FragColor = texture(uf_cube, vertex.pos);
 } 
