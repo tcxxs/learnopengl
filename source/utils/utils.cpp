@@ -1,19 +1,21 @@
 #include "utils.hpp"
 
 void oglFeature() {
-	int nrAttributes;
-	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-	std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes
-	          << std::endl;
+	int val;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &val);
+	std::cout << "GL_MAX_VERTEX_ATTRIBS: " << val << std::endl;
+	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &val);
+	std::cout << "GL_MAX_VERTEX_UNIFORM_COMPONENTS: " << val << std::endl;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIB_BINDINGS, &val);
+	std::cout << "GL_MAX_VERTEX_ATTRIB_BINDINGS: " << val << std::endl;
 }
 
 bool oglError() {
 	bool ret = false;
 	GLenum err;
-	while((err = glGetError()) != GL_NO_ERROR)
-	{
+	while ((err = glGetError()) != GL_NO_ERROR) {
 		ret = true;
-		std::cout << "opengl error: " << err <<std::endl;
+		std::cout << "opengl error: " << err << std::endl;
 	}
 
 	return ret;

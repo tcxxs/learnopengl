@@ -33,6 +33,9 @@
 	    1.0f, -1.0f, 1.0f, 0.0f,  \
 	    1.0f, 1.0f, 1.0f, 1.0f
 
+#define VERTEX_BASE "Vertex"
+#define VERTEX_INSTANCE "Instance"
+
 #define UNIFORM_MATVP "MatrixVP"
 #define UNIFORM_SCENE "Scene"
 #define UNIFORM_LIGHTS "Lights"

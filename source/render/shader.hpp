@@ -5,6 +5,7 @@
 #include "utils/utils.hpp"
 #include "utils/resource.hpp"
 #include "render/texture.hpp"
+#include "render/vertex.hpp"
 
 class Shader: public Res<Shader> {
 public:
@@ -41,6 +42,9 @@ public:
 	inline void setVar(const GLuint& loc, const glm::vec3& var) {
 		glUniform3fv(loc, 1, glm::value_ptr(var));
 	}
+	inline void setVar(const GLuint& loc, const glm::mat4& var) {
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(var));
+	}
 	inline void setVar(const GLuint& loc, const Texture::ptr& var) {
 		glActiveTexture(GL_TEXTURE0 + _tex);
 		glBindTexture(var->getType(), var->getTexture());
@@ -53,15 +57,26 @@ public:
 		}
 	}
 
+	inline const VertexInst::ptr& getVert(const std::string& name) const {
+		const auto& it = _verts.find(name);
+		if (it == _verts.end())
+			return VertexInst::empty;
+		else
+			return it->second;
+	}
+	bool bindVertex(const std::string& name, const GLuint vao, const GLuint vbo);
+
 private:
 	bool _loadShader(const std::string& ext, int type, GLuint& shader);
 	bool _loadProgram();
-	bool _loadInterface();
+	bool _loadVertex();
+	bool _loadUniform();
 
 private:
 	GLuint _prog{0};
 	int _tex{0};
 	std::map<std::string, GLuint> _vars;
+	std::map<std::string, VertexInst::ptr> _verts;
 };
 
 using ShaderMgr = ResMgr<Shader>;

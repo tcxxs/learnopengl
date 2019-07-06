@@ -15,13 +15,16 @@
 class MeshProto;
 class MeshInst: public ResInst<MeshProto, MeshInst> {
 public:
-	static ptr create(const proto_ptr& proto, const std::string& mate);
+	static ptr create(const proto_ptr& proto);
+	virtual ~MeshInst();
 
-	inline void draw(CommandQueue& cmds,
-	                 const glm::mat4& model,
-	                 const Attributes& mattrs);
+	inline const GLuint getVAO() const { return _vao; }
+
+	bool changeMaterial(const std::string& mate);
+	int draw(CommandQueue& cmds);
 
 private:
+	GLuint _vao{0}, _ins{0};
 	Material::ptr _material;
 };
 
@@ -31,9 +34,10 @@ public:
 	static ptr create(const Config::node& conf, const aiMesh* ms, const aiScene* scene);
 	virtual ~MeshProto();
 
-	inline const GLuint getVAO() const { return _vao; }
 	inline const GLuint getVBO() const { return _vbo; }
 	inline const GLuint getIBO() const { return _ibo; }
+	inline const int getVerts() const { return _vsize; }
+	inline const int getInds() const { return _isize; }
 
 	inline const Material::ptr& getMaterial(const std::string& name) const {
 		const auto& it = _materials.find(name);
@@ -46,32 +50,19 @@ public:
 		return _materials.begin()->second;
 	}
 
-	void draw(CommandQueue& cmds,
-	          const glm::mat4& model,
-	          const Attributes& mattrs,
-	          const Material::ptr& mate);
-
 protected:
 	bool _loadRaw(const Config::node& conf);
 	bool _loadVertex(const aiMesh* mesh);
 	bool _loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene* scene);
 	bool _loadTexture(const std::filesystem::path& path, const aiMaterial* mat, const aiTextureType type, const std::string& name);
-	bool _initGL();
 	bool _initMaterial(const Config::node& conf);
 
 public:
 	Attributes attrs;
 
 private:
-	std::vector<float> _verts;
-	unsigned int _count{0}, _pos{0}, _uv{0}, _normal{0};
-	std::vector<GLuint> _inds;
-	GLuint _vao{0}, _vbo{0}, _ibo{0};
+	int _pos{0}, _uv{0}, _normal{0};
+	int _vsize{0}, _isize{0};
+	GLuint _vbo{0}, _ibo{0};
 	std::map<std::string, Material::ptr> _materials;
 };
-
-inline void MeshInst::draw(CommandQueue& cmds,
-                           const glm::mat4& model,
-                           const Attributes& mattrs) {
-	_proto->draw(cmds, model, mattrs, _material);
-}

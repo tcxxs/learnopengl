@@ -20,20 +20,21 @@ class ModelProto;
 class ModelInst: public ResInst<ModelProto, ModelInst> {
 public:
 	static ptr create(const proto_ptr& proto, const Config::node& conf);
+	virtual ~ModelInst();
 
-	void draw(CommandQueue& cmds);
+	int draw(CommandQueue& cmds);
 
-	inline const glm::mat4& getMatrix() const { return _mat; }
-	inline void setMatrix(const glm::mat4& model) { _mat = model; }
-
-	inline bool changeShader(const std::string& name) {
-	}
+	inline bool changeShader(const std::string& name) {}
+private:
+	void _addInstance(const Config::node& conf);
+	bool _initInstance();
 
 public:
 	Attributes attrs;
 
 private:
-	glm::mat4 _mat{1.0f};
+	GLuint _vbo{0};
+	std::vector<glm::mat4> _mats;
 	std::vector<MeshInst::ptr> _meshs;
 };
 

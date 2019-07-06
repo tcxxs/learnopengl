@@ -7,7 +7,9 @@ Shader::ptr Shader::create(const std::string& name) {
 
 	if (!shader->_loadProgram())
 		return {};
-	if (!shader->_loadInterface())
+	if (!shader->_loadVertex())
+		return {};
+	if (!shader->_loadUniform())
 		return {};
 
 	if (oglError())
@@ -95,23 +97,53 @@ bool Shader::_loadProgram() {
 	return true;
 }
 
-bool Shader::_loadInterface() {
-	GLint resources;
-	const GLenum props_total[1] = {GL_NUM_ACTIVE_VARIABLES};
-	const GLenum props_vars[1] = {GL_ACTIVE_VARIABLES};
-	std::string name(50, '\0');
+bool Shader::_loadVertex() {
+	const auto& vertall = VertexProtoMgr::inst().container();
+	VertexInst::ptr vertfind;
 
-	const GLenum props_input[] = {GL_LOCATION};
-	GLint values_input[1];
+	GLint resources;
+	std::string name(50, 0);
+	const GLenum props[] = {GL_LOCATION, GL_TYPE};
+	GLint values[2];
 	glGetProgramInterfaceiv(_prog, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &resources);
 	for (int i = 0; i < resources; ++i) {
-		glGetProgramResourceiv(_prog, GL_PROGRAM_INPUT, i, 1, props_input, 1, NULL, values_input);
-		if (values_input[0] < 0)
+		glGetProgramResourceiv(_prog, GL_PROGRAM_INPUT, i, 2, props, 2, NULL, values);
+		if (values[0] < 0)
 			continue;
 
 		glGetProgramResourceName(_prog, GL_PROGRAM_INPUT, i, (GLsizei)name.capacity(), NULL, name.data());
-		_vars.emplace(name.c_str(), values_input[0]);
+
+		vertfind = nullptr;
+		for (const auto& it: _verts) {
+			const VertexProto::attrinfo& type = it.second->prototype()->findInfo(name.c_str());
+			if (std::get<0>(std::get<0>(type)) > 0) {
+				vertfind = it.second;
+				break;
+			}
+		}
+		if (!vertfind) {
+			for (const auto& it: vertall) {
+				const VertexProto::attrinfo& type = it.second->findInfo(name.c_str());
+				if (std::get<0>(std::get<0>(type)) > 0) {
+					vertfind = it.second->instance();
+					_verts[it.second->getName()] = vertfind;
+					break;
+				}
+			}
+		}
+		if (!vertfind) {
+			std::cout << "shader vertex attribute not define: " << name.c_str() << std::endl;
+			return false;
+		}
+		vertfind->setAttr(name.c_str(), values[0], values[1]);
 	}
+
+	return true;
+}
+
+bool Shader::_loadUniform() {
+	GLint resources;
+	std::string name(50, '\0');
 
 	const GLenum props_uniform[] = {GL_LOCATION};
 	GLint values_uniform[1];
@@ -162,23 +194,6 @@ bool Shader::_loadInterface() {
 		UniformProtoMgr::inst().req(uname, values_active[0], vars);
 	}
 
-	GLint loc;
-	loc = getVar(POS_NAME);
-	if (loc >= 0 && loc != POS_LOC) {
-		std::cout << "load program, pos location error" << std::endl;
-		return false;
-	}
-	loc = getVar(UV_NAME);
-	if (loc >= 0 && loc != UV_LOC) {
-		std::cout << "load program, uv location error" << std::endl;
-		return false;
-	}
-	loc = getVar(NORMAL_NAME);
-	if (loc >= 0 && loc != NORMAL_LOC) {
-		std::cout << "load program, normal location error" << std::endl;
-		return false;
-	}
-
 	return true;
 }
 
@@ -203,4 +218,14 @@ void Shader::setVar(const GLuint& loc, const std::any& var) {
 	else {
 		std::cout << "shader var unknow, loc: " << loc << ", type: " << var.type().name() << std::endl;
 	}
+}
+
+bool Shader::bindVertex(const std::string& name, const GLuint vao, const GLuint vbo) {
+	const auto& it = _verts.find(name);
+	if (it == _verts.end()) {
+		std::cout << "shader, bind vertex, not found, " << name << std::endl;
+		return false;
+	}
+
+	return it->second->bindBuffer(vao, vbo);
 }

@@ -70,7 +70,40 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 	ModelInst::ptr model = ModelInst::ptr(new ModelInst());
 	model->setName(conf["name"].as<std::string>());
 
-	glm::mat4 mat{1.0f};
+	const Config::node ins = conf["instance"];
+	if (ins.IsDefined()) {
+		for (const auto& it: ins) {
+			model->_addInstance(it);
+		}
+		if (!model->_initInstance())
+			return {};
+	}
+	else {
+		model->_addInstance(conf);
+	}
+
+	const std::string material = conf["material"].as<std::string>("");
+	for (const auto& it: proto->getMeshs()) {
+		MeshInst::ptr mesh = it->instance();
+		if (!mesh)
+			return {};
+		if (!mesh->changeMaterial(material))
+			return {};
+		model->_meshs.push_back(mesh);
+	}
+
+	return model;
+}
+
+ModelInst::~ModelInst() {
+	if (_vbo) {
+		glDeleteBuffers(1, &_vbo);
+		_vbo = 0;
+	}
+}
+
+void ModelInst::_addInstance(const Config::node& conf) {
+	glm::mat4& mat = _mats.emplace_back(1.0f);
 	glm::vec3 pos = conf["pos"].as<glm::vec3>();
 	mat = glm::translate(mat, pos);
 	const Config::node scale = conf["scale"];
@@ -82,21 +115,42 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 		glm::mat4 rot = glm::lookAt(pos, pos + dir.as<glm::vec3>(), glm::vec3(0, 1, 0));
 		mat = mat * rot;
 	}
-	model->setMatrix(mat);
-
-	const std::string material = conf["material"].as<std::string>("");
-	for (const auto& it : proto->getMeshs()) {
-		MeshInst::ptr mesh = it->instance(material);
-		if (!mesh)
-			return {};
-		model->_meshs.push_back(mesh);
-	}
-
-	return model;
 }
 
-void ModelInst::draw(CommandQueue& cmds) {
-	for (auto& it: _meshs) {
-		it->draw(cmds, _mat, attrs);
+bool ModelInst::_initInstance() {
+	size_t size = sizeof(glm::mat4);
+	glCreateBuffers(1, &_vbo);
+	glNamedBufferStorage(_vbo, _mats.size() * size, NULL, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+
+	void* data = glMapNamedBuffer(_vbo, GL_WRITE_ONLY);
+	for (int i = 0; i < _mats.size(); ++i) {
+		memcpy((char*)data + i * size, glm::value_ptr(_mats[i]), size);
 	}
+	glUnmapNamedBuffer(_vbo);
+
+	return true;
+}
+
+int ModelInst::draw(CommandQueue& cmds) {
+	int total{0};
+	int n;
+	for (auto& it: _meshs) {
+		n = it->draw(cmds);
+		if (n < 0)
+			return -1;
+		total += n;
+
+		Command& cmd = cmds.back();
+		if (_vbo) {
+			if (!cmd.material->getShader()->bindVertex(VERTEX_INSTANCE, it->getVAO(), _vbo))
+				return -1;
+			cmd.ins = _mats.size();
+		}
+		else {
+			cmd.model = _mats[0];
+		}
+		cmd.attrs.updateAttrs(attrs);
+	}
+	
+	return total;
 }

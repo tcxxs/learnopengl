@@ -5,8 +5,6 @@ MeshProto::ptr MeshProto::create(const Config::node& conf) {
 
 	if (!mesh->_loadRaw(conf["file"]))
 		return {};
-	if (!mesh->_initGL())
-		return {};
 	if (!mesh->_initMaterial(conf["materials"]))
 		return {};
 
@@ -22,8 +20,6 @@ MeshProto::ptr MeshProto::create(const Config::node& conf, const aiMesh* ms, con
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / conf["file"].as<std::string>();
 	if (!mesh->_loadMaterial(path.parent_path(), ms, scene))
 		return {};
-	if (!mesh->_initGL())
-		return {};
 	if (!mesh->_initMaterial(conf["materials"]))
 		return {};
 
@@ -31,10 +27,6 @@ MeshProto::ptr MeshProto::create(const Config::node& conf, const aiMesh* ms, con
 }
 
 MeshProto::~MeshProto() {
-	if (_vao) {
-		glDeleteVertexArrays(1, &_vao);
-		_vao = 0;
-	}
 	if (_vbo) {
 		glDeleteBuffers(1, &_vbo);
 		_vbo = 0;
@@ -49,21 +41,35 @@ bool MeshProto::_loadRaw(const Config::node& conf) {
 	_pos = conf["layout"][0].as<unsigned int>(0);
 	_uv = conf["layout"][1].as<unsigned int>(0);
 	_normal = conf["layout"][2].as<unsigned int>(0);
+	int layout = _pos + _uv + _normal;
 
-	Config::node verts = conf["vertex"];
-	_count = (unsigned int)verts.size() / (_pos + _uv + _normal);
-	_verts.resize(verts.size(), 0.0f);
-	int i = 0;
-	for (const auto& it: conf["vertex"]) {
-		_verts[i] = it.as<float>();
-		++i;
+	Config::node vconf = conf["vertex"];
+	_vsize = (unsigned int)vconf.size() / layout;
+	std::vector<VertexBase> verts(_vsize);
+	for (int i = 0; i < _vsize; ++i) {
+		if (_pos > 0) {
+			verts[i].pos[0] = vconf[i * layout].as<float>();
+			verts[i].pos[1] = vconf[i * layout + 1].as<float>();
+			verts[i].pos[2] = vconf[i * layout + 2].as<float>();
+		}
+		if (_uv > 0) {
+			verts[i].uv[0] = vconf[i * layout + _pos].as<float>();
+			verts[i].uv[1] = vconf[i * layout + _pos + 1].as<float>();
+		}
+		if (_normal > 0) {
+			verts[i].normal[0] = vconf[i * layout + _pos + _uv].as<float>();
+			verts[i].normal[1] = vconf[i * layout + _pos + _uv + 1].as<float>();
+			verts[i].normal[2] = vconf[i * layout + _pos + _uv + 2].as<float>();
+		}
 	}
+
+	glCreateBuffers(1, &_vbo);
+	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexInstance), verts.data(), GL_DYNAMIC_STORAGE_BIT);
 
 	return true;
 }
 
 bool MeshProto::_loadVertex(const aiMesh* mesh) {
-	_count = mesh->mNumVertices;
 	_pos = 3;
 	if (mesh->mTextureCoords[0]) {
 		_uv = 2;
@@ -71,29 +77,37 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 	if (mesh->mNormals) {
 		_normal = 3;
 	}
-
 	int layout = (_pos + _uv + _normal);
-	_verts.resize(_count * layout, 0.0f);
-	for (unsigned int i = 0; i < _count; ++i) {
-		_verts[(i * layout)] = mesh->mVertices[i].x;
-		_verts[(i * layout) + 1] = mesh->mVertices[i].y;
-		_verts[(i * layout) + 2] = mesh->mVertices[i].z;
+
+	_vsize = mesh->mNumVertices;
+	std::vector<VertexBase> verts(_vsize);
+	for (int i = 0; i < _vsize; ++i) {
+		verts[i].pos[0] = mesh->mVertices[i].x;
+		verts[i].pos[1] = mesh->mVertices[i].y;
+		verts[i].pos[2] = mesh->mVertices[i].z;
 		if (_uv > 0) {
-			_verts[(i * layout) + _pos] = mesh->mTextureCoords[0][i].x;
-			_verts[(i * layout) + _pos + 1] = mesh->mTextureCoords[0][i].y;
+			verts[i].uv[0] = mesh->mTextureCoords[0][i].x;
+			verts[i].uv[1] = mesh->mTextureCoords[0][i].y;
 		}
 		if (_normal > 0) {
-			_verts[(i * layout) + _pos + _uv] = mesh->mNormals[i].x;
-			_verts[(i * layout) + _pos + _uv + 1] = mesh->mNormals[i].y;
-			_verts[(i * layout) + _pos + _uv + 2] = mesh->mNormals[i].z;
+			verts[i].normal[0] = mesh->mNormals[i].x;
+			verts[i].normal[1] = mesh->mNormals[i].y;
+			verts[i].normal[2] = mesh->mNormals[i].z;
 		}
 	}
 
-	for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
-		aiFace face = mesh->mFaces[i];
-		_inds.insert(_inds.end(), face.mIndices, face.mIndices + face.mNumIndices);
-	}
+	glCreateBuffers(1, &_vbo);
+	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexInstance), verts.data(), GL_DYNAMIC_STORAGE_BIT);
 
+	std::vector<GLuint> inds;
+	for (int i = 0; i < mesh->mNumFaces; ++i) {
+		aiFace face = mesh->mFaces[i];
+		inds.insert(inds.end(), face.mIndices, face.mIndices + face.mNumIndices);
+	}
+	_isize = inds.size();
+	glCreateBuffers(1, &_ibo);
+	glNamedBufferStorage(_ibo, inds.size() * sizeof(GLuint), inds.data(), GL_DYNAMIC_STORAGE_BIT);
+	
 	return true;
 }
 
@@ -123,38 +137,6 @@ bool MeshProto::_loadTexture(const std::filesystem::path& path, const aiMaterial
 	return true;
 }
 
-bool MeshProto::_initGL() {
-	glGenVertexArrays(1, &_vao);
-	glGenBuffers(1, &_vbo);
-	glGenBuffers(1, &_ibo);
-
-	glBindVertexArray(_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	glBufferData(GL_ARRAY_BUFFER, _verts.size() * sizeof(float), _verts.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _inds.size() * sizeof(GLuint), _inds.data(), GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(POS_LOC);
-	glVertexAttribPointer(POS_LOC, _pos, GL_FLOAT, GL_FALSE, (_pos + _uv + _normal) * sizeof(float), (void*)0);
-	if (_uv > 0) {
-		glEnableVertexAttribArray(UV_LOC);
-		glVertexAttribPointer(UV_LOC, _uv, GL_FLOAT, GL_FALSE, (_pos + _uv + _normal) * sizeof(float), (void*)(_pos * sizeof(float)));
-	}
-	if (_normal > 0) {
-		glEnableVertexAttribArray(NORMAL_LOC);
-		glVertexAttribPointer(NORMAL_LOC, _normal, GL_FLOAT, GL_FALSE, (_pos + _uv + _normal) * sizeof(float), (void*)((_pos + _uv) * sizeof(float)));
-	}
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	if (oglError())
-		return false;
-
-	return true;
-}
-
 bool MeshProto::_initMaterial(const Config::node& conf) {
 	for (const auto it: conf) {
 		const std::string key = it.as<std::string>();
@@ -167,32 +149,50 @@ bool MeshProto::_initMaterial(const Config::node& conf) {
 	return true;
 }
 
-void MeshProto::draw(CommandQueue& cmds,
-                     const glm::mat4& model,
-                     const Attributes& mattrs,
-                     const Material::ptr& mate) {
-	Command& cmd = cmds.emplace_back();
-	cmd.vao = _vao;
-	cmd.ibosize = (GLsizei)_inds.size();
-	cmd.arrsize = (GLsizei)_count;
-	cmd.model = model;
-	cmd.material = mate;
-	cmd.attrs.updateAttrs(attrs);
-	cmd.attrs.updateAttrs(mattrs);
-}
-
-MeshInst::ptr MeshInst::create(const MeshProto::ptr& proto, const std::string& mate) {
+MeshInst::ptr MeshInst::create(const MeshProto::ptr& proto) {
 	MeshInst::ptr mesh = std::shared_ptr<MeshInst>(new MeshInst());
 
+	return mesh;
+}
+
+ MeshInst::~MeshInst() {
+	 if (_vao) {
+		 glDeleteVertexArrays(1, &_vao);
+		 _vao = 0;
+	 }
+}
+
+bool MeshInst::changeMaterial(const std::string& mate) {
 	if (mate.empty()) {
-		mesh->_material = proto->getMaterialDefault();
+		_material = _proto->getMaterialDefault();
 	}
 	else {
-		mesh->_material = proto->getMaterial(mate);
-		if (!mesh->_material) {
+		_material = _proto->getMaterial(mate);
+		if (!_material) {
 			std::cout << "mesh instance, not found material, " << mate << std::endl;
-			return {};
+			return false;
 		}
 	}
-	return mesh;
+
+	if (_vao) {
+		glDeleteVertexArrays(1, &_vao);
+		_vao = 0;
+	}
+	glCreateVertexArrays(1, &_vao);
+	if (!_material->getShader()->bindVertex(VERTEX_BASE, _vao, _proto->getVBO())) {
+		std::cout << "mesh change material, bind vertex base, " << mate << std::endl;
+		return false;
+	}
+	glVertexArrayElementBuffer(_vao, _proto->getIBO());
+	return true;
+}
+
+int MeshInst::draw(CommandQueue& cmds) {
+	Command& cmd = cmds.emplace_back();
+	cmd.vao = _vao;
+	cmd.inds = _proto->getInds();
+	cmd.verts = _proto->getVerts();
+	cmd.material = _material;
+	cmd.attrs.updateAttrs(_proto->attrs);
+	return 1;
 }

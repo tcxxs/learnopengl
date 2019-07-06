@@ -245,7 +245,9 @@ void Scene::drawScene(const Pass& pass) {
 
 	CommandQueue cmds;
 	for (auto& it: _models) {
-		it->draw(cmds);
+		if (it->draw(cmds) < 0) {
+			continue;
+		}
 	}
 
 	for (auto& it: cmds) {
@@ -257,8 +259,11 @@ void Scene::drawScene(const Pass& pass) {
 void Scene::drawCommand(const Command& cmd) {
 	cmd.material->use();
 	const Shader::ptr& shader = cmd.material->getShader();
+	
 	shader->setVars(cmd.attrs);
-	glUniformMatrix4fv(shader->getVar("model"), 1, GL_FALSE, glm::value_ptr(cmd.model));
+	if (!cmd.ins) {
+		shader->setVar("model", cmd.model);
+	}
 
 	GLint point;
 	point = shader->getVar(UNIFORM_MATVP);
@@ -276,10 +281,16 @@ void Scene::drawCommand(const Command& cmd) {
 	}
 
 	glBindVertexArray(cmd.vao);
-	if (cmd.ibosize > 0)
-		glDrawElements(GL_TRIANGLES, cmd.ibosize, GL_UNSIGNED_INT, 0);
-	else
-		glDrawArrays(GL_TRIANGLES, 0, cmd.arrsize);
+	if (cmd.inds > 0)
+		if (cmd.ins)
+			glDrawElementsInstanced(GL_TRIANGLES, cmd.inds, GL_UNSIGNED_INT, 0, cmd.ins);
+		else
+			glDrawElements(GL_TRIANGLES, cmd.inds, GL_UNSIGNED_INT, 0);
+	else 
+		if (cmd.ins)
+			glDrawArraysInstanced(GL_TRIANGLES, 0, cmd.verts, cmd.ins);
+		else
+			glDrawArrays(GL_TRIANGLES, 0, cmd.verts);
 	glBindVertexArray(0);
 }
 

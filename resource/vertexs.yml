@@ -1,0 +1,10 @@
+Vertex:
+  divisor: 0
+  vars:
+    pos: vec3
+    uv: vec2
+    normal: vec3
+Instance:
+  divisor: 1
+  vars:
+    model: mat4
