@@ -100,11 +100,11 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexInstance), verts.data(), GL_DYNAMIC_STORAGE_BIT);
 
 	std::vector<GLuint> inds;
-	for (int i = 0; i < mesh->mNumFaces; ++i) {
+	for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
 		aiFace face = mesh->mFaces[i];
 		inds.insert(inds.end(), face.mIndices, face.mIndices + face.mNumIndices);
 	}
-	_isize = inds.size();
+	_isize = (int)inds.size();
 	glCreateBuffers(1, &_ibo);
 	glNamedBufferStorage(_ibo, inds.size() * sizeof(GLuint), inds.data(), GL_DYNAMIC_STORAGE_BIT);
 	

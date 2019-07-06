@@ -67,7 +67,7 @@ models:
   #   material: phong_debug
 pass:
   - name: draw
-    shaders: [phong, color, reflect]
+    shaders: [phong, color, reflect, phong_ins]
     post:
     in:
     out:

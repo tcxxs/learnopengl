@@ -42,6 +42,7 @@ private:
 	inline static std::map<std::string, GLint> _typenames{
 	    {"int", GL_INT},
 	    {"float", GL_FLOAT},
+	    {"vec2", GL_FLOAT_VEC2},
 	    {"vec3", GL_FLOAT_VEC3},
 	    {"mat4", GL_FLOAT_MAT4},
 	};
@@ -49,6 +50,7 @@ private:
 		// 类型： C++类型，GL类型，元素类型，元素大小，x行，y列
 	    {GL_INT, {typeid(int).hash_code(), GL_INT, GL_INT, (int)sizeof(int), 1, 1}},
 	    {GL_FLOAT, {typeid(float).hash_code(), GL_FLOAT, GL_FLOAT, (int)sizeof(float), 1, 1}},
+	    {GL_FLOAT_VEC2, {typeid(glm::vec2).hash_code(), GL_FLOAT_VEC2, GL_FLOAT, (int)sizeof(float), 1, 2}},
 	    {GL_FLOAT_VEC3, {typeid(glm::vec3).hash_code(), GL_FLOAT_VEC3, GL_FLOAT, (int)sizeof(float), 1, 3}},
 	    {GL_FLOAT_MAT4, {typeid(glm::mat4).hash_code(), GL_FLOAT_MAT4, GL_FLOAT, (int)sizeof(float), 4, 4}},
 	};
@@ -57,7 +59,7 @@ private:
 	int _divisor{0};
 	std::map<std::string, attrinfo> _attrs;
 	int _size{0};
-	GLuint _bind{-1};
+	GLuint _bind{0};
 };
 
 using VertexProtoMgr = ResMgr<VertexProto>;

@@ -62,12 +62,16 @@ bool VertexInst::bindBuffer(GLuint vao, GLuint vbo) {
 	GLint loc{0};
 	GLuint bind = _proto->getBind();
 	for (const auto& it: _attrs) {
-		loc = it.second;
 		const VertexProto::attrinfo& ainfo = _proto->findInfo(it.first);
 		const VertexProto::attrtype& atype = std::get<0>(ainfo);
-		glVertexArrayAttribFormat(vao, loc, std::get<3>(atype), std::get<2>(atype), FALSE, std::get<1>(ainfo));
-		glVertexArrayAttribBinding(vao, loc, bind);
-		glEnableVertexArrayAttrib(vao, loc);
+		// 例如matrix，shader中实际是按行分为4个vec4
+		int row = std::get<3>(atype) * std::get<5>(atype);
+		for (int i = 0; i < std::get<4>(atype); ++i) {
+			loc = it.second + i;
+			glVertexArrayAttribFormat(vao, loc, std::get<5>(atype), std::get<2>(atype), FALSE, std::get<1>(ainfo) + i * row);
+			glVertexArrayAttribBinding(vao, loc, bind);
+			glEnableVertexArrayAttrib(vao, loc);
+		}
 	}
 
 	glVertexArrayVertexBuffer(vao, bind, vbo, 0, _proto->getSize());
