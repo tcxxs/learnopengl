@@ -115,6 +115,7 @@ bool MeshProto::_loadMaterial(const std::filesystem::path& path, const aiMesh* m
 	aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 	if (!_loadTexture(path, mat, aiTextureType_DIFFUSE, "material.diffuse"))
 		return false;
+	// TODO: specular不一定有，会导致shader采样到随机贴图
 	if (!_loadTexture(path, mat, aiTextureType_SPECULAR, "material.specular"))
 		return false;
 
