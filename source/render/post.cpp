@@ -1,4 +1,5 @@
 #include "render/post.hpp"
+#include "render/vertex.hpp"
 
 Post::ptr Post::create(const std::string& name) {
 	if (_confs.root().IsNull()) {
@@ -12,6 +13,11 @@ Post::ptr Post::create(const std::string& name) {
 	if (!conf.IsDefined())
 		return {};
 
+	if (!_vbo) {
+		if (!_initVBO())
+			return {};
+	}
+
 	Post::ptr post = std::shared_ptr<Post>(new Post());
 	post->setName(name);
 	post->_shader = ShaderMgr::inst().req(conf["shader"].as<std::string>());
@@ -21,10 +27,28 @@ Post::ptr Post::create(const std::string& name) {
 		post->_ins.push_back(it.as<std::string>());
 	}
 
-	if (!post->_initGL())
+	if (!post->_initVAO())
 		return {};
 
 	return post;
+}
+
+bool Post::_initVBO() {
+	int size = 6 * (3 + 2 + 3);
+	float verts[6 * (3 + 2 + 3)] = {
+		// pos3, uv2, normal3
+	    -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+	    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	    1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	    -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+	    1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	    1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f};
+	glCreateBuffers(1, &_vbo);
+	glNamedBufferStorage(_vbo, size * sizeof(float), verts, GL_DYNAMIC_STORAGE_BIT);
+
+	if (oglError())
+		return false;
+	return true;
 }
 
 Post::~Post() {
@@ -32,32 +56,10 @@ Post::~Post() {
 		glDeleteVertexArrays(1, &_vao);
 		_vao = 0;
 	}
-	if (_vbo) {
-		glDeleteBuffers(1, &_vbo);
-		_vbo = 0;
-	}
-}
-
-bool Post::_initGL() {
-	glGenVertexArrays(1, &_vao);
-	glGenBuffers(1, &_vbo);
-
-	glBindVertexArray(_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(float), _vertexs, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(POS_LOC);
-	glVertexAttribPointer(POS_LOC, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(UV_LOC);
-	glVertexAttribPointer(UV_LOC, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	if (oglError())
-		return false;
-
-	return true;
+	//if (_vbo) {
+	//	glDeleteBuffers(1, &_vbo);
+	//	_vbo = 0;
+	//}
 }
 
 void Post::draw(const framevec& ins) {
@@ -72,7 +74,14 @@ void Post::draw(const framevec& ins) {
 	}
 
 	glBindVertexArray(_vao);
-	glDisable(GL_DEPTH_TEST);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+}
+
+bool Post::_initVAO() {
+	glCreateVertexArrays(1, &_vao);
+	if (!_shader->bindVertex(VERTEX_BASE, _vao, _vbo))
+		return false;
+
+	return true;
 }

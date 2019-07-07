@@ -18,15 +18,16 @@ public:
 	inline const Shader::ptr& getShader() const { return _shader; }
 
 private:
-	bool _initGL();
+	bool static _initVBO();
+	bool _initVAO();
 
 public:
 	Attributes attrs;
 private:
 	inline static Config _confs;
-	inline static float _vertexs[] = {POST_VERTEX};
-	inline static GLuint _vao{0}, _vbo{0};
+	inline static GLuint _vbo{0};
 	Shader::ptr _shader;
+	GLuint _vao{0};
 	std::vector<std::string> _ins;
 };
 

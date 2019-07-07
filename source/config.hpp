@@ -24,15 +24,6 @@
 #define UV_NAME "uv"
 #define NORMAL_NAME "normal"
 
-// x, y, uv
-#define POST_VERTEX               \
-	-1.0f, 1.0f, 0.0f, 1.0f,      \
-	    -1.0f, -1.0f, 0.0f, 0.0f, \
-	    1.0f, -1.0f, 1.0f, 0.0f,  \
-	    -1.0f, 1.0f, 0.0f, 1.0f,  \
-	    1.0f, -1.0f, 1.0f, 0.0f,  \
-	    1.0f, 1.0f, 1.0f, 1.0f
-
 #define VERTEX_BASE "Vertex"
 #define VERTEX_INSTANCE "Instance"
 

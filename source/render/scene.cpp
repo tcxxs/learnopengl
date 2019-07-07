@@ -99,7 +99,7 @@ bool Scene::addPass(const Config::node& conf) {
 
 	if (!conf["in"].IsNull()) {
 		for (auto& it: conf["in"]) {
-			auto find = _frames.find(it.as<std::string>());
+			const auto& find = _frames.find(it.as<std::string>());
 			if (find == _frames.end()) {
 				std::cout << "pass input not found, " << it.as<std::string>();
 				return false;
@@ -108,10 +108,18 @@ bool Scene::addPass(const Config::node& conf) {
 		}
 	}
 	if (!conf["out"].IsNull()) {
-		Frame::ptr frame = Frame::create();
-		frame->attachTexture();
-		frame->attachDepthStencil();
-		_frames[conf["out"].as<std::string>()] = frame;
+		Frame::ptr frame;
+		const std::string& out = conf["out"].as<std::string>();
+		const auto& find = _frames.find(out);
+		if (find == _frames.end()) {
+			frame = Frame::create();
+			frame->attachTexture();
+			frame->attachDepthStencil();
+			_frames[out] = frame;
+		}
+		else {
+			frame = find->second;
+		}
 		pass.out = frame;
 	}
 	for (const auto& it: conf["states"]) {
@@ -138,15 +146,21 @@ bool Scene::addPass(const Config::node& conf) {
 		else if (key == "depth") {
 			bool enable = it.second[0].as<bool>();
 			GLenum flag = GL_LESS;
-			const std::string& arg = it.second[1].as<std::string>();
-			if (arg == "less")
-				flag = GL_LESS;
-			else if (arg == "lesseq")
-				flag = GL_LEQUAL;
+			if (enable) {
+				const std::string& arg = it.second[1].as<std::string>();
+				if (arg == "less")
+					flag = GL_LESS;
+				else if (arg == "lesseq")
+					flag = GL_LEQUAL;
+			}
 
 			pass.states.emplace_back([enable, flag] {
-				enable ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
-				glDepthFunc(flag);
+				if (enable) {
+					glEnable(GL_DEPTH_TEST);
+					glDepthFunc(flag);
+				}
+				else
+					glDisable(GL_DEPTH_TEST);
 			});
 		}
 	}
@@ -171,6 +185,9 @@ bool Scene::addUniform(const std::string& name, int count) {
 	return true;
 }
 
+// TODO: skybox画之前的gl call有200多个
+// uniform data: 场景的uniform在sky pass也设置了
+// vertex array: mesh的bind vertex也做了
 void Scene::draw() {
 	for (const auto& it: _pass) {
 		glViewport(0, 0, WIDTH, HEIGHT);
@@ -259,7 +276,7 @@ void Scene::drawScene(const Pass& pass) {
 void Scene::drawCommand(const Command& cmd) {
 	cmd.material->use();
 	const Shader::ptr& shader = cmd.material->getShader();
-	
+
 	shader->setVars(cmd.attrs);
 	if (!cmd.ins) {
 		shader->setVar("model", cmd.model);
@@ -281,16 +298,19 @@ void Scene::drawCommand(const Command& cmd) {
 	}
 
 	glBindVertexArray(cmd.vao);
-	if (cmd.inds > 0)
+	if (cmd.inds > 0) {
 		if (cmd.ins)
 			glDrawElementsInstanced(GL_TRIANGLES, cmd.inds, GL_UNSIGNED_INT, 0, cmd.ins);
 		else
 			glDrawElements(GL_TRIANGLES, cmd.inds, GL_UNSIGNED_INT, 0);
-	else 
+	}
+	else {
 		if (cmd.ins)
 			glDrawArraysInstanced(GL_TRIANGLES, 0, cmd.verts, cmd.ins);
 		else
 			glDrawArrays(GL_TRIANGLES, 0, cmd.verts);
+	}
+
 	glBindVertexArray(0);
 }
 

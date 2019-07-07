@@ -144,7 +144,7 @@ int ModelInst::draw(CommandQueue& cmds) {
 		if (_vbo) {
 			if (!cmd.material->getShader()->bindVertex(VERTEX_INSTANCE, it->getVAO(), _vbo))
 				return -1;
-			cmd.ins = _mats.size();
+			cmd.ins = (int)_mats.size();
 		}
 		else {
 			cmd.model = _mats[0];

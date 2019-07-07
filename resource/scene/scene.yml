@@ -70,7 +70,7 @@ pass:
     shaders: [phong, color, reflect, phong_ins]
     post:
     in:
-    out:
+    out: draw
     states:
       clear: [color, depth, stencil]
       depth: [true, less]
@@ -84,11 +84,14 @@ pass:
     shaders: [sky]
     post:
     in:
-    out:
+    out: draw
     states:
       depth: [true, lesseq]
-  # - name: grey
-  #   post: grey
-  #   in: [draw]
-  #   out:
-  #   state: [clear]
+  - name: grey
+    shaders:
+    post: grey
+    in: [draw]
+    out:
+    states:
+      clear: [color, depth, stencil]
+      depth: [false]
