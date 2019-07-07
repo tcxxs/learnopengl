@@ -4,6 +4,7 @@
 #include "render/vertex.hpp"
 
 bool Render::init() {
+	glEnable(GL_MULTISAMPLE);
 	if (!VertexProtoMgr::inst().req(VERTEX_BASE))
 		return false;
 	if (!VertexProtoMgr::inst().req(VERTEX_INSTANCE))

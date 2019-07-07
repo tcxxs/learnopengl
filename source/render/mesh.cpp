@@ -64,7 +64,7 @@ bool MeshProto::_loadRaw(const Config::node& conf) {
 	}
 
 	glCreateBuffers(1, &_vbo);
-	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexInstance), verts.data(), GL_DYNAMIC_STORAGE_BIT);
+	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexBase), verts.data(), GL_DYNAMIC_STORAGE_BIT);
 
 	return true;
 }
@@ -97,7 +97,7 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 	}
 
 	glCreateBuffers(1, &_vbo);
-	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexInstance), verts.data(), GL_DYNAMIC_STORAGE_BIT);
+	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexBase), verts.data(), GL_DYNAMIC_STORAGE_BIT);
 
 	std::vector<GLuint> inds;
 	for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {

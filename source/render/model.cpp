@@ -151,6 +151,6 @@ int ModelInst::draw(CommandQueue& cmds) {
 		}
 		cmd.attrs.updateAttrs(attrs);
 	}
-	
+
 	return total;
 }
