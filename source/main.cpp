@@ -13,7 +13,7 @@
 #include "render/scene.hpp"
 
 int main() {
-	if (!EventMgr::inst().init(FPS)) {
+	if (!EventMgr::inst().init()) {
 		return -1;
 	}
 	if (!RenderMgr::inst().init()) {

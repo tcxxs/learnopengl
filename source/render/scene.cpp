@@ -1,4 +1,5 @@
 #include "scene.hpp"
+#include "event.hpp"
 #include "render/command.hpp"
 
 Scene::ptr Scene::create(const std::string& name) {
@@ -125,6 +126,7 @@ bool Scene::addPass(const Config::node& conf) {
 	for (const auto& it: conf["states"]) {
 		const std::string& key = it.first.Scalar();
 		if (key == "clear") {
+			const glm::vec3& bgcolor = EventMgr::inst().getBGColor();
 			GLbitfield flags = 0;
 			for (const auto& ita: it.second) {
 				const std::string& arg = ita.Scalar();
@@ -136,9 +138,9 @@ bool Scene::addPass(const Config::node& conf) {
 					flags |= GL_STENCIL_BUFFER_BIT;
 			}
 
-			pass.states.emplace_back([flags] {
+			pass.states.emplace_back([bgcolor, flags] {
 				if (flags & GL_COLOR_BUFFER_BIT) {
-					glClearColor(BG_COLOR);
+					glClearColor(bgcolor.x, bgcolor.y, bgcolor.z, 1.0f);
 				}
 				glClear(flags);
 			});
@@ -190,7 +192,7 @@ bool Scene::addUniform(const std::string& name, int count) {
 // vertex array: mesh的bind vertex也做了
 void Scene::draw() {
 	for (const auto& it: _pass) {
-		glViewport(0, 0, WIDTH, HEIGHT);
+		glViewport(0, 0, EventMgr::inst().getWidth(), EventMgr::inst().getHeight());
 		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_BLEND);
 		glEnable(GL_CULL_FACE);

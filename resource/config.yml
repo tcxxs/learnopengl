@@ -1,0 +1,5 @@
+fps: 60
+width: 1024
+height: 768
+bgcolor: 0.2, 0.3, 0.3
+msaa: 4

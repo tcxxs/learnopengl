@@ -5,15 +5,39 @@ Event::~Event() {
 	glfwTerminate();
 }
 
-bool Event::init(int fps) {
+bool Event::init() {
+	if (!_initConfig())
+		return false;
+	if (!_initWindow())
+		return false;
+}
+
+bool Event::_initConfig() {
+	std::filesystem::path path = std::filesystem::current_path() / "resource" / "config.yml";
+	Config conf;
+	if (!conf.load(path)) {
+		std::cout << "render config error";
+		return false;
+	}
+
+	_fps = conf["fps"].as<int>(60);
+	_width = conf["width"].as<int>(1024);
+	_height = conf["height"].as<int>(768);
+	_bgcolor = conf["bgcolor"].as<glm::vec3>(glm::vec3(0.0f));
+	_msaa = conf["msaa"].as<int>(0);
+	return true;
+}
+
+bool Event::_initWindow() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	if (_msaa > 0)
+		glfwWindowHint(GLFW_SAMPLES, _msaa);
 
-	_window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL);
+	_window = glfwCreateWindow(_width, _height, "LearnOpenGL", NULL, NULL);
 	if (_window == nullptr) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		return false;
@@ -41,7 +65,7 @@ bool Event::init(int fps) {
 	float now = (float)glfwGetTime();
 	_time_last = now;
 	_frame_last = now;
-	_frame_interv = 1.0f / fps;
+	_frame_interv = 1.0f / _fps;
 	return true;
 }
 

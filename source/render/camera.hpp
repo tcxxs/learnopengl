@@ -5,6 +5,7 @@
 #include "glm/ext.hpp"
 #include "glm/gtx/string_cast.hpp"
 #include "config.hpp"
+#include "event.hpp"
 #include "utils/resource.hpp"
 
 class Camera : public Res<Camera> {
@@ -57,7 +58,7 @@ public:
 
 	inline void setFov(float fov) {
 		_fov = fov;
-    	_proj = glm::perspective(glm::radians(_fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+    	_proj = glm::perspective(glm::radians(_fov), (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight(), 0.1f, 100.0f);
 	}
 
 	inline const glm::mat4& getProj() const { return _proj; }
@@ -99,5 +100,5 @@ private:
 	float _yaw{0.0f}, _pitch{0.0f}, _roll{0.0f};
 
 	glm::mat4 _proj{1.0f};
-	float _fov{FOV};
+	float _fov{0};
 };

@@ -74,9 +74,6 @@ bool Shader::_loadProgram() {
 	if (gs)
 		glAttachShader(_prog, gs);
 	glAttachShader(_prog, fs);
-	glBindAttribLocation(_prog, POS_LOC, POS_NAME);
-	glBindAttribLocation(_prog, UV_LOC, UV_NAME);
-	glBindAttribLocation(_prog, NORMAL_LOC, NORMAL_NAME);
 	glLinkProgram(_prog);
 
 	GLint success;

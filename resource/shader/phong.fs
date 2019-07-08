@@ -108,6 +108,7 @@ void main()
 
 	vec3 color = vec3(0.0);
     for (int i = 0; i < scene.lights; ++i) {
+        // TODO: 这里应该用subproduce来优化
         switch (lights[i].light.type) {
         case LIGHT_DIR:
             color += calc_dir(lights[i].light, camera_dir, normal, diffuse_color, specular_color);
