@@ -13,15 +13,23 @@ lights:
   - name: test3
     type: dir
     dir: [0.0, -1.0, 1.0]
+  - name: test4
+    type: point
+    pos: [0.0, 0.05, 1.0]
 models:
   - name: sky
     type: sky
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
-  # - name: land
-  #   type: land
-  #   pos: [0.0, -0.1, 0.0]
-  #   scale: 5.0
+  - name: land
+    type: land
+    pos: [0.0, -0.1, 0.0]
+    scale: 5.0
+    material: phong
+  - name: cube
+    type: cube
+    pos: [0.5, 0.0, 0.0]
+    scale: 0.5
   - name: cube
     type: cube
     pos: [0.5, 0.0, 0.0]
@@ -39,6 +47,10 @@ models:
     type: lamp
     pos: [0.0, 1.0, -1.0]
     dir: [0.0, -1.0, 1.0]
+    scale: 0.01
+  - name: light4
+    type: sun
+    pos: [0.0, 0.05, 1.0]
     scale: 0.01
   - name: nanosuit
     type: nanosuit

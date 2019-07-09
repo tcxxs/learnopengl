@@ -56,12 +56,18 @@ vec3 phong_specular(vec3 color, float factory, vec3 dir, vec3 normal, vec3 camer
 	return color * specular * fac * factory;
 }
 
+vec3 blinn_specular(vec3 color, float factory, vec3 dir, vec3 normal, vec3 camera_dir, vec3 specular) {
+    vec3 halfdir = normalize(-dir + camera_dir);
+    float fac = pow(max(dot(halfdir, normal), 0.0), material.shininess);
+	return color * specular * fac * factory;
+}
+
 vec3 calc_dir(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, vec3 specular_color) {
     vec3 dir = normalize(light.dir);
 
 	vec3 ambient = phong_ambient(light.ambient, 1.0, diffuse_color);
     vec3 diffuse = phong_diffuse(light.diffuse, 1.0, dir, normal, diffuse_color);
-    vec3 specular = phong_specular(light.specular, 1.0, dir, normal, camera_dir, specular_color);
+    vec3 specular = blinn_specular(light.specular, 1.0, dir, normal, camera_dir, specular_color);
 
     return ambient + diffuse + specular;
 }
@@ -74,7 +80,7 @@ vec3 calc_point(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, v
 
 	vec3 ambient = phong_ambient(light.ambient, attenuation, diffuse_color);
     vec3 diffuse = phong_diffuse(light.diffuse, attenuation, dir, normal, diffuse_color);
-    vec3 specular = phong_specular(light.specular, attenuation, dir, normal, camera_dir, specular_color);
+    vec3 specular = blinn_specular(light.specular, attenuation, dir, normal, camera_dir, specular_color);
 
     return ambient + diffuse + specular;
 }
@@ -90,7 +96,7 @@ vec3 calc_spot(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, ve
 
         vec3 ambient = phong_ambient(light.ambient, attenuation * intensity, diffuse_color);
         vec3 diffuse = phong_diffuse(light.diffuse, attenuation * intensity, dir, normal, diffuse_color);
-        vec3 specular = phong_specular(light.specular, attenuation * intensity, dir, normal, camera_dir, specular_color);
+        vec3 specular = blinn_specular(light.specular, attenuation * intensity, dir, normal, camera_dir, specular_color);
 
         return ambient + diffuse + specular;
     }
@@ -102,7 +108,7 @@ vec3 calc_spot(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, ve
 void main()
 {
     vec3 diffuse_color = texture(material.diffuse, vertex.uv).rgb;
-    vec3 specular_color = texture(material.specular, vertex.uv).rgb;
+    vec3 specular_color = vec3(0.5);//texture(material.specular, vertex.uv).rgb;
     vec3 camera_dir = normalize(scene.camera - vertex.pos);
     vec3 normal = normalize(vertex.normal);
 

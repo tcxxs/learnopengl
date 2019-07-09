@@ -3,7 +3,7 @@ lamp:
   materials: [white]
 land:
   file: land/land.obj
-  materials: [grey]
+  materials: [grey, phong]
 sun:
   file: sun/sun.obj
   materials: [white]
