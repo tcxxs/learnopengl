@@ -41,6 +41,8 @@ in VertexAttrs {
 }vertex;
 out vec4 FragColor;
 
+#define SPECULAR_FUNC blinn_specular
+
 vec3 phong_ambient(vec3 color, float factory, vec3 diffuse) {
     return color * diffuse * factory;
 }
@@ -67,7 +69,7 @@ vec3 calc_dir(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, vec
 
 	vec3 ambient = phong_ambient(light.ambient, 1.0, diffuse_color);
     vec3 diffuse = phong_diffuse(light.diffuse, 1.0, dir, normal, diffuse_color);
-    vec3 specular = blinn_specular(light.specular, 1.0, dir, normal, camera_dir, specular_color);
+    vec3 specular = SPECULAR_FUNC(light.specular, 1.0, dir, normal, camera_dir, specular_color);
 
     return ambient + diffuse + specular;
 }
@@ -80,7 +82,7 @@ vec3 calc_point(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, v
 
 	vec3 ambient = phong_ambient(light.ambient, attenuation, diffuse_color);
     vec3 diffuse = phong_diffuse(light.diffuse, attenuation, dir, normal, diffuse_color);
-    vec3 specular = blinn_specular(light.specular, attenuation, dir, normal, camera_dir, specular_color);
+    vec3 specular = SPECULAR_FUNC(light.specular, attenuation, dir, normal, camera_dir, specular_color);
 
     return ambient + diffuse + specular;
 }
@@ -96,7 +98,7 @@ vec3 calc_spot(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, ve
 
         vec3 ambient = phong_ambient(light.ambient, attenuation * intensity, diffuse_color);
         vec3 diffuse = phong_diffuse(light.diffuse, attenuation * intensity, dir, normal, diffuse_color);
-        vec3 specular = blinn_specular(light.specular, attenuation * intensity, dir, normal, camera_dir, specular_color);
+        vec3 specular = SPECULAR_FUNC(light.specular, attenuation * intensity, dir, normal, camera_dir, specular_color);
 
         return ambient + diffuse + specular;
     }
@@ -108,7 +110,7 @@ vec3 calc_spot(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, ve
 void main()
 {
     vec3 diffuse_color = texture(material.diffuse, vertex.uv).rgb;
-    vec3 specular_color = vec3(0.5);//texture(material.specular, vertex.uv).rgb;
+    vec3 specular_color = texture(material.specular, vertex.uv).rgb;
     vec3 camera_dir = normalize(scene.camera - vertex.pos);
     vec3 normal = normalize(vertex.normal);
 
