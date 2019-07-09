@@ -42,6 +42,8 @@ in VertexAttrs {
 out vec4 FragColor;
 
 #define SPECULAR_FUNC blinn_specular
+#define GAMMA_CORRCT 1
+#define GAMMA_VAL 2.2
 
 vec3 phong_ambient(vec3 color, float factory, vec3 diffuse) {
     return color * diffuse * factory;
@@ -110,6 +112,9 @@ vec3 calc_spot(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, ve
 void main()
 {
     vec3 diffuse_color = texture(material.diffuse, vertex.uv).rgb;
+    #if GAMMA_CORRCT
+    diffuse_color = pow(diffuse_color, vec3(GAMMA_VAL));
+    #endif
     vec3 specular_color = texture(material.specular, vertex.uv).rgb;
     vec3 camera_dir = normalize(scene.camera - vertex.pos);
     vec3 normal = normalize(vertex.normal);
@@ -130,5 +135,8 @@ void main()
         }
     }
 
+    #if GAMMA_CORRCT
+    color = pow(color, vec3(1.0/GAMMA_VAL));
+    #endif
     FragColor = vec4(color, 1.0);
 } 

@@ -14,8 +14,14 @@ lights:
     type: dir
     dir: [0.0, -1.0, 1.0]
   - name: test4
-    type: point
+    type: point1
     pos: [0.0, 0.05, 1.0]
+  - name: test5
+    type: point2
+    pos: [1.5, 0.05, 1.0]
+  - name: test6
+    type: point3
+    pos: [3.0, 0.05, 1.0]
 models:
   - name: sky
     type: sky
@@ -51,6 +57,14 @@ models:
   - name: light4
     type: sun
     pos: [0.0, 0.05, 1.0]
+    scale: 0.01
+  - name: light5
+    type: sun
+    pos: [1.5, 0.05, 1.0]
+    scale: 0.01
+  - name: light6
+    type: sun
+    pos: [3.0, 0.05, 1.0]
     scale: 0.01
   - name: nanosuit
     type: nanosuit
