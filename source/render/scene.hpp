@@ -17,7 +17,7 @@ public:
 	virtual ~Scene();
 
 	const Camera::ptr& getCamera() const { return _cam; }
-	void addCamera(const Config::node& conf);
+	void addCamera(const std::string& name, const Config::node& conf);
 	bool addLight(const Config::node& conf);
 	bool addModel(const Config::node& conf);
 	bool addPass(const Config::node& conf);
@@ -27,7 +27,7 @@ public:
 		Scene::current = shared_from_this();
 	}
 	void draw();
-	void drawScene(const std::set<Shader::ptr>& shaders);
+	void drawScene(const Pass::ptr& pass);
 	void drawCommand(const Command& cmd);
 
 public:
@@ -35,6 +35,7 @@ public:
 
 private:
 	Camera::ptr _cam;
+	std::map<std::string, Camera::ptr> _cams;
 	std::vector<LightInst::ptr> _lights;
 	std::vector<ModelInst::ptr> _models;
 	std::vector<Pass::ptr> _pass;

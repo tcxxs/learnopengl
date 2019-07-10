@@ -1,7 +1,13 @@
-camera:
-  fov: 45.0
-  pos: [0.0, 1.0, 2.0]
-  target: [0.0, 0.0, -1.0]
+camera: eye
+cameras:
+  eye:
+    fov: 45.0
+    pos: [0.0, 1.0, 2.0]
+    target: [0.0, 0.0, -1.0]
+  light:
+    fov: 45.0
+    pos: [0.0, 1.0, -1.0]
+    target: [0.0, -1.0, 1.0]
 lights:
   - name: test1
     type: spot
@@ -92,10 +98,20 @@ models:
   #   rotate: [0.0, 0.0, 0.0]
   #   material: phong_debug
 pass:
+  # - name: example
+  #   camera:
+  #   shaders: [phong, color, reflect, phong_ins]
+  #   post:
+  #   in:
+  #   out:
+  #     name: draw
+  #     attach: [texture, depst]
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
   - name: draw
+    camera: light
     shaders: [phong, color, reflect, phong_ins]
-    post:
-    in:
     out:
       name: draw
       attach: [texture, depst]
@@ -116,10 +132,8 @@ pass:
   #   states:
   #     depth: [true, lesseq]
   - name: grey
-    shaders:
     post: grey
     in: [draw]
-    out:
     states:
       clear: [color, depth, stencil]
       depth: [false]

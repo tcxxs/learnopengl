@@ -15,7 +15,11 @@ Pass::ptr Pass::create(const Config::node& conf, framemap& frames) {
 
 bool Pass::_initConf(const Config::node& conf) {
 	setName(conf["name"].as<std::string>());
-	if (!conf["shaders"].IsNull()) {
+
+	if (Config::valid(conf["camera"])) {
+		_cam = conf["camera"].as<std::string>();
+	}
+	if (Config::valid(conf["shaders"])) {
 		for (auto& it: conf["shaders"]) {
 			Shader::ptr shader = ShaderMgr::inst().req(it.as<std::string>());
 			if (!shader)
@@ -24,7 +28,7 @@ bool Pass::_initConf(const Config::node& conf) {
 		}
 	}
 
-	if (!conf["post"].IsNull()) {
+	if (Config::valid(conf["post"])) {
 		_post = PostMgr::inst().req(conf["post"].as<std::string>());
 		if (!_post)
 			return false;
@@ -34,7 +38,7 @@ bool Pass::_initConf(const Config::node& conf) {
 }
 
 bool Pass::_initFrame(const Config::node& conf, framemap& frames) {
-	if (!conf["in"].IsNull()) {
+	if (Config::valid(conf["in"])) {
 		for (auto& it: conf["in"]) {
 			const auto& find = frames.find(it.as<std::string>());
 			if (find == frames.end()) {
@@ -45,7 +49,7 @@ bool Pass::_initFrame(const Config::node& conf, framemap& frames) {
 		}
 	}
 
-	if (!conf["out"].IsNull()) {
+	if (Config::valid(conf["out"])) {
 		Frame::ptr frame;
 		const std::string& out = conf["out"]["name"].as<std::string>();
 		const auto& find = frames.find(out);
@@ -72,12 +76,14 @@ bool Pass::_initFrame(const Config::node& conf, framemap& frames) {
 }
 
 bool Pass::_initState(const Config::node& conf) {
-	for (const auto& it: conf["states"]) {
-		const std::string& key = it.first.as<std::string>();
-		if (key == "clear")
-			_stateClear(it.second);
-		else if (key == "depth")
-			_stateDepth(it.second);
+	if (Config::valid(conf["states"])) {
+		for (const auto& it: conf["states"]) {
+			const std::string& key = it.first.as<std::string>();
+			if (key == "clear")
+				_stateClear(it.second);
+			else if (key == "depth")
+				_stateDepth(it.second);
+		}
 	}
 
 	return true;

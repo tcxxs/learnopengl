@@ -13,7 +13,17 @@ Scene::ptr Scene::create(const std::string& name) {
 		return {};
 	}
 
-	scene->addCamera(conf["camera"]);
+	for (const auto& it: conf["cameras"]) {
+		const std::string& name = it.first.as<std::string>();
+		scene->addCamera(name, it.second);
+	}
+	const std::string cam = conf["camera"].as<std::string>();
+	const auto& find = scene->_cams.find(cam);
+	if (find == scene->_cams.end()) {
+		std::cout << "scene camera not found, " << cam << std::endl;
+		return {};
+	}
+	scene->_cam = find->second;
 
 	const auto lights = conf["lights"];
 	if (lights.IsDefined()) {
@@ -48,12 +58,13 @@ Scene::ptr Scene::create(const std::string& name) {
 Scene::~Scene() {
 }
 
-void Scene::addCamera(const Config::node& conf) {
-	_cam = Camera::create();
-	_cam->setFov(conf["fov"].as<float>());
+void Scene::addCamera(const std::string& name, const Config::node& conf) {
+	Camera::ptr cam = Camera::create();
+	cam->setFov(conf["fov"].as<float>());
 	glm::vec3 pos = conf["pos"].as<glm::vec3>();
 	glm::vec3 tar = conf["target"].as<glm::vec3>();
-	_cam->lookAt(pos, tar);
+	cam->lookAt(pos, tar);
+	_cams[name] = cam;
 }
 
 bool Scene::addLight(const Config::node& conf) {
@@ -118,15 +129,20 @@ void Scene::draw() {
 
 		it->drawBegin();
 		if (!it->drawPost())
-			drawScene(it->getShaders());
+			drawScene(it);
 		it->drawEnd();
 	}
 }
 
-void Scene::drawScene(const std::set<Shader::ptr>& shaders) {
+void Scene::drawScene(const Pass::ptr& pass) {
+	Camera::ptr cam = _cam;
+	const auto& find = _cams.find(pass->getCamera());
+	if (find != _cams.end())
+		cam = find->second;
+	
 	UniformInst::ptr& matvp = _uniforms[UNIFORM_MATVP];
-	matvp->setVar("view", _cam->getView());
-	matvp->setVar("proj", _cam->getProj());
+	matvp->setVar("view", cam->getView());
+	matvp->setVar("proj", cam->getProj());
 
 	for (int i = 0; i < _lights.size(); ++i) {
 		UniformInst::ptr& uniform = _uniforms[string_format(UNIFORM_LIGHTS "[%d]", i)];
@@ -167,7 +183,7 @@ void Scene::drawScene(const std::set<Shader::ptr>& shaders) {
 	}
 
 	UniformInst::ptr& scene = _uniforms[UNIFORM_SCENE];
-	scene->setVar("camera", _cam->getPos());
+	scene->setVar("camera", cam->getPos());
 	scene->setVar("lights", (int)_lights.size());
 
 	CommandQueue cmds;
@@ -177,6 +193,7 @@ void Scene::drawScene(const std::set<Shader::ptr>& shaders) {
 		}
 	}
 
+	const auto& shaders = pass->getShaders();
 	for (auto& it: cmds) {
 		if (shaders.empty() || shaders.count(it.material->getShader()) > 0)
 			drawCommand(it);

@@ -15,6 +15,7 @@ public:
 	static ptr create(const Config::node& conf, framemap& frames);
 
 	inline const std::set<Shader::ptr>& getShaders() const { return _shaders; }
+	inline const std::string& getCamera() const { return _cam; }
 
 	void drawBegin();
 	void drawEnd();
@@ -36,6 +37,7 @@ private:
 	void _stateDepth(const Config::node& conf);
 
 private:
+	std::string _cam;
 	std::set<Shader::ptr> _shaders;
 	Post::ptr _post;
 	std::vector<Frame::ptr> _ins;

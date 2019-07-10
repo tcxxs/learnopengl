@@ -206,6 +206,7 @@ public:
 	using node = YAML::Node;
 	static const node visit(const node& doc, const std::string& path);
 	static std::any guess(const node& doc);
+	inline static bool valid(const node& doc) { return doc.IsDefined() && !doc.IsNull(); }
 
 	bool load(const std::filesystem::path& path);
 	const node& root() const {
