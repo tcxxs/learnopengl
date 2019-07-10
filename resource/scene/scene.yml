@@ -97,6 +97,8 @@ pass:
     post:
     in:
     out:
+      name: draw
+      attach: [texture, depst]
     states:
       clear: [color, depth, stencil]
       depth: [true, less]
@@ -106,18 +108,18 @@ pass:
   #   in:
   #   out:
   #   states:
-  - name: sky
-    shaders: [sky]
-    post:
-    in:
-    out:
-    states:
-      depth: [true, lesseq]
-  # - name: grey
-  #   shaders:
-  #   post: grey
-  #   in: [draw]
+  # - name: sky
+  #   shaders: [sky]
+  #   post:
+  #   in:
   #   out:
   #   states:
-  #     clear: [color, depth, stencil]
-  #     depth: [false]
+  #     depth: [true, lesseq]
+  - name: grey
+    shaders:
+    post: grey
+    in: [draw]
+    out:
+    states:
+      clear: [color, depth, stencil]
+      depth: [false]

@@ -81,92 +81,11 @@ bool Scene::addModel(const Config::node& conf) {
 }
 
 bool Scene::addPass(const Config::node& conf) {
-	Pass& pass = _pass.emplace_back();
+	Pass::ptr pass = Pass::create(conf, _frames);
+	if (!pass)
+		return false;
 
-	pass.name = conf["name"].as<std::string>();
-	if (!conf["shaders"].IsNull()) {
-		for (auto& it: conf["shaders"]) {
-			Shader::ptr shader = ShaderMgr::inst().req(it.as<std::string>());
-			if (!shader)
-				return false;
-			pass.shaders.insert(shader);
-		}
-	}
-	if (!conf["post"].IsNull()) {
-		pass.post = PostMgr::inst().req(conf["post"].as<std::string>());
-		if (!pass.post)
-			return false;
-	}
-
-	if (!conf["in"].IsNull()) {
-		for (auto& it: conf["in"]) {
-			const auto& find = _frames.find(it.as<std::string>());
-			if (find == _frames.end()) {
-				std::cout << "pass input not found, " << it.as<std::string>();
-				return false;
-			}
-			pass.ins.push_back(find->second);
-		}
-	}
-	if (!conf["out"].IsNull()) {
-		Frame::ptr frame;
-		const std::string& out = conf["out"].as<std::string>();
-		const auto& find = _frames.find(out);
-		if (find == _frames.end()) {
-			frame = Frame::create();
-			frame->attachTexture();
-			frame->attachDepthStencil();
-			_frames[out] = frame;
-		}
-		else {
-			frame = find->second;
-		}
-		pass.out = frame;
-	}
-	for (const auto& it: conf["states"]) {
-		const std::string& key = it.first.Scalar();
-		if (key == "clear") {
-			const glm::vec3& bgcolor = EventMgr::inst().getBGColor();
-			GLbitfield flags = 0;
-			for (const auto& ita: it.second) {
-				const std::string& arg = ita.Scalar();
-				if (arg == "color")
-					flags |= GL_COLOR_BUFFER_BIT;
-				else if (arg == "depth")
-					flags |= GL_DEPTH_BUFFER_BIT;
-				else if (arg == "stencil")
-					flags |= GL_STENCIL_BUFFER_BIT;
-			}
-
-			pass.states.emplace_back([bgcolor, flags] {
-				if (flags & GL_COLOR_BUFFER_BIT) {
-					glClearColor(bgcolor.x, bgcolor.y, bgcolor.z, 1.0f);
-				}
-				glClear(flags);
-			});
-		}
-		else if (key == "depth") {
-			bool enable = it.second[0].as<bool>();
-			GLenum flag = GL_LESS;
-			if (enable) {
-				const std::string& arg = it.second[1].as<std::string>();
-				if (arg == "less")
-					flag = GL_LESS;
-				else if (arg == "lesseq")
-					flag = GL_LEQUAL;
-			}
-
-			pass.states.emplace_back([enable, flag] {
-				if (enable) {
-					glEnable(GL_DEPTH_TEST);
-					glDepthFunc(flag);
-				}
-				else
-					glDisable(GL_DEPTH_TEST);
-			});
-		}
-	}
-
+	_pass.push_back(pass);
 	return true;
 }
 
@@ -197,25 +116,14 @@ void Scene::draw() {
 		glEnable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
 
-		if (it.out) {
-			it.out->useBegin();
-		}
-		for (const auto& st: it.states)
-			st();
-
-		if (it.post) {
-			drawPost(it);
-		}
-		else {
-			drawScene(it);
-		}
-		if (it.out) {
-			it.out->useEnd();
-		}
+		it->drawBegin();
+		if (!it->drawPost())
+			drawScene(it->getShaders());
+		it->drawEnd();
 	}
 }
 
-void Scene::drawScene(const Pass& pass) {
+void Scene::drawScene(const std::set<Shader::ptr>& shaders) {
 	UniformInst::ptr& matvp = _uniforms[UNIFORM_MATVP];
 	matvp->setVar("view", _cam->getView());
 	matvp->setVar("proj", _cam->getProj());
@@ -270,7 +178,7 @@ void Scene::drawScene(const Pass& pass) {
 	}
 
 	for (auto& it: cmds) {
-		if (pass.shaders.empty() || pass.shaders.count(it.material->getShader()) > 0)
+		if (shaders.empty() || shaders.count(it.material->getShader()) > 0)
 			drawCommand(it);
 	}
 }
@@ -314,8 +222,4 @@ void Scene::drawCommand(const Command& cmd) {
 	}
 
 	glBindVertexArray(0);
-}
-
-void Scene::drawPost(const Pass& pass) {
-	pass.post->draw(pass.ins);
 }

@@ -10,6 +10,8 @@ bool Event::init() {
 		return false;
 	if (!_initWindow())
 		return false;
+
+	return true;
 }
 
 bool Event::_initConfig() {

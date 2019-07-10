@@ -118,6 +118,28 @@ bool Frame::attachRenderBuffer() {
 	return oglError();
 }
 
+bool Frame::attachShadowMap() {
+	int width = EventMgr::inst().getWidth();
+	int height = EventMgr::inst().getHeight();
+
+	glGenTextures(1, &_tex);
+	glBindTexture(GL_TEXTURE_2D, _tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _tex, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return true;
+}
+
 GLuint Frame::getTexture() {
 	int msaa = EventMgr::inst().getMSAA();
 	int width = EventMgr::inst().getWidth();
@@ -136,7 +158,7 @@ GLuint Frame::getTexture() {
 	}
 }
 
-bool Frame::useBegin() {
+bool Frame::drawBegin() {
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {

@@ -13,11 +13,12 @@ public:
 	bool attachTexture();
 	bool attachDepthStencil();
 	bool attachRenderBuffer();
+	bool attachShadowMap();
 
 	GLuint getTexture();
 
-	bool useBegin();
-	inline void useEnd() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+	bool drawBegin();
+	inline void drawEnd() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 private:
 	GLuint _fbo{0};
