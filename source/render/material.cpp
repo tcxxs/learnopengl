@@ -23,7 +23,7 @@ Material::ptr Material::create(const std::string& name) {
 	}
 
 	const auto node = conf["vars"];
-	if (node.IsDefined()) {
+	if (Config::valid(node)) {
 		if (!mate->attrs.updateConf(node))
 			return {};
 		for (auto& it : mate->attrs) {

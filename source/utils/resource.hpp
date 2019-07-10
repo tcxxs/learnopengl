@@ -50,6 +50,9 @@ public:
 	template <typename ...ARGS>
 	inline static inst_ptr create(const proto_ptr& proto, ARGS... args) {
 		inst_ptr inst = I::create(proto, args...);
+		if (!inst)
+			return empty;
+
 		inst->_proto = proto;
 		return inst;
 	}
@@ -68,6 +71,8 @@ public:
 	template <typename ...ARGS>
 	inline typename I::ptr instance(ARGS... args) {
 		I::ptr inst = ResInst<P, I>::create(shared_from_this(), args...);
+		if (!inst)
+			return I::empty;
 		_insts[inst->getID()] = inst;
 		return inst;
 	}

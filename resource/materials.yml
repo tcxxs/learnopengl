@@ -48,3 +48,5 @@ reflect:
       sorbin/sorbin_rt.tga,
       sorbin/sorbin_lf.tga
     ]
+shadow:
+  shader: shadow

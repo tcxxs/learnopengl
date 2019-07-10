@@ -1,3 +1,6 @@
 grey:
   shader: grey
   in: [draw]
+show:
+  shader: show
+  in: [frame]

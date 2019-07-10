@@ -5,8 +5,6 @@ MeshProto::ptr MeshProto::create(const Config::node& conf) {
 
 	if (!mesh->_loadRaw(conf["file"]))
 		return {};
-	if (!mesh->_initMaterial(conf["materials"]))
-		return {};
 
 	return mesh;
 }
@@ -19,8 +17,6 @@ MeshProto::ptr MeshProto::create(const Config::node& conf, const aiMesh* ms, con
 		return {};
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / conf["file"].as<std::string>();
 	if (!mesh->_loadMaterial(path.parent_path(), ms, scene))
-		return {};
-	if (!mesh->_initMaterial(conf["materials"]))
 		return {};
 
 	return mesh;
@@ -107,7 +103,7 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 	_isize = (int)inds.size();
 	glCreateBuffers(1, &_ibo);
 	glNamedBufferStorage(_ibo, inds.size() * sizeof(GLuint), inds.data(), GL_DYNAMIC_STORAGE_BIT);
-	
+
 	return true;
 }
 
@@ -138,49 +134,26 @@ bool MeshProto::_loadTexture(const std::filesystem::path& path, const aiMaterial
 	return true;
 }
 
-bool MeshProto::_initMaterial(const Config::node& conf) {
-	for (const auto it: conf) {
-		const std::string key = it.as<std::string>();
-		Material::ptr mate = MaterialMgr::inst().req(key);
-		if (!mate)
-			return false;
-		_materials[key] = mate;
-	}
-
-	return true;
-}
-
 MeshInst::ptr MeshInst::create(const MeshProto::ptr& proto) {
 	MeshInst::ptr mesh = std::shared_ptr<MeshInst>(new MeshInst());
 
 	return mesh;
 }
 
- MeshInst::~MeshInst() {
-	 if (_vao) {
-		 glDeleteVertexArrays(1, &_vao);
-		 _vao = 0;
-	 }
+MeshInst::~MeshInst() {
+	if (_vao) {
+		glDeleteVertexArrays(1, &_vao);
+		_vao = 0;
+	}
 }
 
-bool MeshInst::changeMaterial(const std::string& mate) {
-	if (mate.empty()) {
-		_material = _proto->getMaterialDefault();
-	}
-	else {
-		_material = _proto->getMaterial(mate);
-		if (!_material) {
-			std::cout << "mesh instance, not found material, " << mate << std::endl;
-			return false;
-		}
-	}
-
+bool MeshInst::changeMaterial(const Material::ptr& mate) {
 	if (_vao) {
 		glDeleteVertexArrays(1, &_vao);
 		_vao = 0;
 	}
 	glCreateVertexArrays(1, &_vao);
-	if (!_material->getShader()->bindVertex(VERTEX_BASE, _vao, _proto->getVBO())) {
+	if (!mate->getShader()->bindVertex(VERTEX_BASE, _vao, _proto->getVBO())) {
 		std::cout << "mesh change material, bind vertex base, " << mate << std::endl;
 		return false;
 	}
@@ -193,7 +166,6 @@ int MeshInst::draw(CommandQueue& cmds) {
 	cmd.vao = _vao;
 	cmd.inds = _proto->getInds();
 	cmd.verts = _proto->getVerts();
-	cmd.material = _material;
 	cmd.attrs.updateAttrs(_proto->attrs);
 	return 1;
 }

@@ -23,5 +23,6 @@ public:
 private:
 	GLuint _fbo{0};
 	GLuint _rbo{0}, _tex{0}, _ds{0};
+	GLbitfield _blit;
 	GLuint _fboblit{0}, _texblit{0};
 };

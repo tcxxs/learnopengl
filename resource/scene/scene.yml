@@ -78,6 +78,9 @@ models:
     scale: 0.05
     rotate: [0.0, 0.0, 0.0]
     material: phong
+    materials:
+      shadow: shadow
+      debug: phong_debug
   - name: nanosuit_ins
     type: nanosuit
     material: phong_ins
@@ -109,14 +112,19 @@ pass:
   #   states:
   #     clear: [color, depth, stencil]
   #     depth: [true, less]
-  - name: draw
+  # - name: draw
+  #   shaders: [phong, color, reflect, phong_ins]
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
+  - name: shadow
     camera: light
-    shaders: [phong, color, reflect, phong_ins]
+    shaders: [shadow]
     out:
-      name: draw
-      attach: [texture, depst]
+      name: shadow
+      attach: [shadow]
     states:
-      clear: [color, depth, stencil]
+      clear: [depth]
       depth: [true, less]
   # - name: debug
   #   shaders: [phong_debug]
@@ -131,9 +139,15 @@ pass:
   #   out:
   #   states:
   #     depth: [true, lesseq]
-  - name: grey
-    post: grey
-    in: [draw]
+  # - name: grey
+  #   post: grey
+  #   in: [draw]
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [false]
+  - name: show
+    post: show
+    in: [shadow]
     states:
       clear: [color, depth, stencil]
       depth: [false]

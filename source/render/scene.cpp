@@ -188,15 +188,13 @@ void Scene::drawScene(const Pass::ptr& pass) {
 
 	CommandQueue cmds;
 	for (auto& it: _models) {
-		if (it->draw(cmds) < 0) {
+		if (it->draw(cmds, pass) < 0) {
 			continue;
 		}
 	}
 
-	const auto& shaders = pass->getShaders();
 	for (auto& it: cmds) {
-		if (shaders.empty() || shaders.count(it.material->getShader()) > 0)
-			drawCommand(it);
+		drawCommand(it);
 	}
 }
 

@@ -24,6 +24,9 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 			return {};
 	}
 
+	if (!model->_initMaterial(conf["materials"]))
+		return {};
+
 	return model;
 }
 
@@ -66,10 +69,26 @@ bool ModelProto::_loadVertex(const Config::node& conf) {
 	return true;
 }
 
+bool ModelProto::_initMaterial(const Config::node& conf) {
+	for (const auto it: conf) {
+		const std::string key = it.as<std::string>();
+		Material::ptr mate = MaterialMgr::inst().req(key);
+		if (!mate)
+			return false;
+		_mates[key] = mate;
+	}
+
+	return true;
+}
+
 ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::node& conf) {
 	ModelInst::ptr model = ModelInst::ptr(new ModelInst());
+	model->_proto = proto;
 	model->setName(conf["name"].as<std::string>());
 
+	if (!model->_initMaterial(conf))
+		return {};
+	
 	const Config::node ins = conf["instance"];
 	if (ins.IsDefined()) {
 		for (const auto& it: ins) {
@@ -82,12 +101,9 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 		model->_addInstance(conf);
 	}
 
-	const std::string material = conf["material"].as<std::string>("");
 	for (const auto& it: proto->getMeshs()) {
 		MeshInst::ptr mesh = it->instance();
 		if (!mesh)
-			return {};
-		if (!mesh->changeMaterial(material))
 			return {};
 		model->_meshs.push_back(mesh);
 	}
@@ -117,6 +133,36 @@ void ModelInst::_addInstance(const Config::node& conf) {
 	}
 }
 
+bool ModelInst::_initMaterial(const Config::node& conf) {
+	if (Config::valid(conf["material"])) {
+		const std::string& mate = conf["material"].as<std::string>();
+		_mate = _proto->getMaterial(mate);
+		if (!_mate) {
+			std::cout << "model material not found, " << mate << std::endl;
+			return false;
+		}
+	}
+	else {
+		_mate = _proto->getMaterialDefault();
+	}
+	_mateid = _mate->getID();
+
+	if (Config::valid(conf["materials"])) {
+		for (const auto& it: conf["materials"]) {
+			const std::string& pass = it.first.as<std::string>();
+			const std::string& name = it.second.as<std::string>();
+			const Material::ptr& mate = _proto->getMaterial(name);
+			if (!_mate) {
+				std::cout << "model pass material not found, " << mate << std::endl;
+				return false;
+			}
+			_mates[pass] = mate;
+		}
+	}
+
+	return true;
+}
+
 bool ModelInst::_initInstance() {
 	size_t size = sizeof(glm::mat4);
 	glCreateBuffers(1, &_vbo);
@@ -131,10 +177,25 @@ bool ModelInst::_initInstance() {
 	return true;
 }
 
-int ModelInst::draw(CommandQueue& cmds) {
+int ModelInst::draw(CommandQueue& cmds, const Pass::ptr& pass) {
+	Material::ptr mate = _mate;
+	const auto& find = _mates.find(pass->getName());
+	if (find != _mates.end())
+		mate = find->second;
+	bool changed = false;
+	if (_mateid != mate->getID()) {
+		changed = true;
+		_mateid = mate->getID();
+	}
+
+	if (pass->getShaders().count(mate->getShader()) <= 0)
+		return 0;
+	
 	int total{0};
 	int n;
 	for (auto& it: _meshs) {
+		if (changed)
+			it->changeMaterial(mate);
 		n = it->draw(cmds);
 		if (n < 0)
 			return -1;
@@ -142,13 +203,16 @@ int ModelInst::draw(CommandQueue& cmds) {
 
 		Command& cmd = cmds.back();
 		if (_vbo) {
-			if (!cmd.material->getShader()->bindVertex(VERTEX_INSTANCE, it->getVAO(), _vbo))
-				return -1;
+			if (changed) {
+				if (!mate->getShader()->bindVertex(VERTEX_INSTANCE, it->getVAO(), _vbo))
+					return -1;
+			}
 			cmd.ins = (int)_mats.size();
 		}
 		else {
 			cmd.model = _mats[0];
 		}
+		cmd.material = mate;
 		cmd.attrs.updateAttrs(attrs);
 	}
 

@@ -20,12 +20,11 @@ public:
 
 	inline const GLuint getVAO() const { return _vao; }
 
-	bool changeMaterial(const std::string& mate);
+	bool changeMaterial(const Material::ptr& mate);
 	int draw(CommandQueue& cmds);
 
 private:
 	GLuint _vao{0}, _ins{0};
-	Material::ptr _material;
 };
 
 class MeshProto: public ResProto<MeshProto, MeshInst> {
@@ -39,23 +38,11 @@ public:
 	inline const int getVerts() const { return _vsize; }
 	inline const int getInds() const { return _isize; }
 
-	inline const Material::ptr& getMaterial(const std::string& name) const {
-		const auto& it = _materials.find(name);
-		if (it == _materials.end())
-			return Material::empty;
-		else
-			return it->second;
-	}
-	inline const Material::ptr& getMaterialDefault() const {
-		return _materials.begin()->second;
-	}
-
 protected:
 	bool _loadRaw(const Config::node& conf);
 	bool _loadVertex(const aiMesh* mesh);
 	bool _loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene* scene);
 	bool _loadTexture(const std::filesystem::path& path, const aiMaterial* mat, const aiTextureType type, const std::string& name);
-	bool _initMaterial(const Config::node& conf);
 
 public:
 	Attributes attrs;
@@ -64,5 +51,4 @@ private:
 	int _pos{0}, _uv{0}, _normal{0};
 	int _vsize{0}, _isize{0};
 	GLuint _vbo{0}, _ibo{0};
-	std::map<std::string, Material::ptr> _materials;
 };

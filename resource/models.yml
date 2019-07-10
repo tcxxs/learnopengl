@@ -9,7 +9,7 @@ sun:
   materials: [white]
 nanosuit:
   file: nanosuit/nanosuit.obj
-  materials: [phong, phong_ins, phong_debug, white]
+  materials: [phong, phong_ins, phong_debug, shadow, white]
 sky:
   file:
     layout: [3, 0, 0]
@@ -104,4 +104,4 @@ cube:
       -0.5,  0.5, -0.5, 0.0, 1.0, 0.0,
       -0.5,  0.5,  0.5, 0.0, 1.0, 0.0,
     ]
-  materials: [reflect]
+  materials: [reflect, shadow]

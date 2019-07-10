@@ -15,6 +15,8 @@
 #include "render/camera.hpp"
 #include "render/light.hpp"
 #include "render/command.hpp"
+#include "render/material.hpp"
+#include "render/pass.hpp"
 
 class ModelProto;
 class ModelInst: public ResInst<ModelProto, ModelInst> {
@@ -22,11 +24,12 @@ public:
 	static ptr create(const proto_ptr& proto, const Config::node& conf);
 	virtual ~ModelInst();
 
-	int draw(CommandQueue& cmds);
+	int draw(CommandQueue& cmds, const Pass::ptr& pass);
 
 	inline bool changeShader(const std::string& name) {}
 private:
 	void _addInstance(const Config::node& conf);
+	bool _initMaterial(const Config::node& conf);
 	bool _initInstance();
 
 public:
@@ -35,6 +38,9 @@ public:
 private:
 	GLuint _vbo{0};
 	std::vector<glm::mat4> _mats;
+	Material::idt _mateid;
+	Material::ptr _mate;
+	std::map<std::string, Material::ptr> _mates;
 	std::vector<MeshInst::ptr> _meshs;
 };
 
@@ -44,16 +50,29 @@ public:
 
 	static ptr create(const std::string& name);
 
+	inline const Material::ptr& getMaterial(const std::string& name) const {
+		const auto& it = _mates.find(name);
+		if (it == _mates.end())
+			return Material::empty;
+		else
+			return it->second;
+	}
+	inline const Material::ptr& getMaterialDefault() const {
+		return _mates.begin()->second;
+	}
+
 	inline const meshvec& getMeshs() const { return _meshs; }
 
 protected:
 	bool _loadAssimp(const Config::node& conf);
 	bool _loadNode(const Config::node& conf, aiNode* node, const aiScene* scene);
 	bool _loadVertex(const Config::node& conf);
+	bool _initMaterial(const Config::node& conf);
 
 private:
 	inline static Config _confs;
 	inline static Assimp::Importer _imp;
+	std::map<std::string, Material::ptr> _mates;
 	meshvec _meshs;
 };
 

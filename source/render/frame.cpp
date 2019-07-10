@@ -62,6 +62,7 @@ bool Frame::attachTexture() {
 	glBindTexture(type, 0);
 
 	if (msaa > 0) {
+		_blit = GL_COLOR_BUFFER_BIT;
 		glGenTextures(1, &_texblit);
 		glBindTexture(GL_TEXTURE_2D, _texblit);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -119,25 +120,56 @@ bool Frame::attachRenderBuffer() {
 }
 
 bool Frame::attachShadowMap() {
+	int msaa = EventMgr::inst().getMSAA();
 	int width = EventMgr::inst().getWidth();
 	int height = EventMgr::inst().getHeight();
 
+	GLenum type;
+	if (msaa > 0) {
+		type = GL_TEXTURE_2D_MULTISAMPLE;
+	}
+	else {
+		type = GL_TEXTURE_2D;
+	}
 	glGenTextures(1, &_tex);
-	glBindTexture(GL_TEXTURE_2D, _tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(type, _tex);
+	if (msaa > 0) {
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaa, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
+	}
+	else {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	}
+	glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _tex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, type, _tex, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(type, 0);
 
-	return true;
+	if (msaa > 0) {
+		_blit = GL_DEPTH_BUFFER_BIT;
+		glGenTextures(1, &_texblit);
+		glBindTexture(GL_TEXTURE_2D, _texblit);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, _fboblit);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _texblit, 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	return oglError();
 }
 
 GLuint Frame::getTexture() {
@@ -148,7 +180,7 @@ GLuint Frame::getTexture() {
 	if (msaa > 0) {
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fboblit);
-		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, _blit, GL_NEAREST);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		return _texblit;
