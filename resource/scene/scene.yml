@@ -100,32 +100,43 @@ models:
   #   scale: 0.05
   #   rotate: [0.0, 0.0, 0.0]
   #   material: phong_debug
+frames:
+  # scene: [texture, depst]
+  # shadow: [shadow]
 pass:
-  # - name: example
-  #   camera:
-  #   shaders: [phong, color, reflect, phong_ins]
-  #   post:
-  #   in:
-  #   out:
-  #     name: draw
-  #     attach: [texture, depst]
-  #   states:
+  # - name: xxx         #可能会在model的materils中引用
+  #   camera: xxx       #cameras中的名字
+  #   shaders:          
+  #     xxx:            #shader名称
+  #       yyy: zzz      #将uniform yyy，设置为zzz
+  #       yyy: <-zzz    #zzz是一个input frame
+  #       yyy: ->zzz    #zzz是一个output frame        
+  #       ...
+  #     ...
+  #   posts:            #同shader
+  #     ...
+  #   out:              #输出frame
+  #   states:           #状态控制
   #     clear: [color, depth, stencil]
   #     depth: [true, less]
-  # - name: draw
-  #   shaders: [phong, color, reflect, phong_ins]
-  #   states:
-  #     clear: [color, depth, stencil]
-  #     depth: [true, less]
-  - name: shadow
-    camera: light
-    shaders: [shadow]
-    out:
-      name: shadow
-      attach: [shadow]
+  - name: scene
+    shaders:
+      phong:
+      phong_ins:
+      color:
+      reflect:
     states:
-      clear: [depth]
+      clear: [color, depth, stencil]
       depth: [true, less]
+  # - name: shadow
+  #   camera: light
+  #   shaders: [shadow]
+  #   out:
+  #     name: shadow
+  #     attach: [shadow]
+  #   states:
+  #     clear: [depth]
+  #     depth: [true, less]
   # - name: debug
   #   shaders: [phong_debug]
   #   post:
@@ -145,9 +156,9 @@ pass:
   #   states:
   #     clear: [color, depth, stencil]
   #     depth: [false]
-  - name: show
-    post: show
-    in: [shadow]
-    states:
-      clear: [color, depth, stencil]
-      depth: [false]
+  # - name: show
+  #   post: show
+  #   in: [shadow]
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [false]

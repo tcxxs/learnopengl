@@ -2,6 +2,10 @@ phong:
   shader: phong
   vars:
     material.shininess: 32.0
+phong_shadow:
+  shader: phong_shadow
+  vars:
+    material.shininess: 32.0
 phong_ins:
   shader: phong_ins
   vars:
@@ -50,3 +54,5 @@ reflect:
     ]
 shadow:
   shader: shadow
+show:
+  shader: show

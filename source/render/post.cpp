@@ -20,13 +20,9 @@ Post::ptr Post::create(const std::string& name) {
 
 	Post::ptr post = std::shared_ptr<Post>(new Post());
 	post->setName(name);
-	post->_shader = ShaderMgr::inst().req(conf["shader"].as<std::string>());
-	if (!post->_shader)
+	post->_material = MaterialMgr::inst().req(conf["material"].as<std::string>());
+	if (!post->_material)
 		return {};
-	for (auto& it: conf["in"]) {
-		post->_ins.push_back(it.as<std::string>());
-	}
-
 	if (!post->_initVAO())
 		return {};
 
@@ -62,26 +58,18 @@ Post::~Post() {
 	//}
 }
 
-void Post::draw(const framevec& ins) {
-	_shader->use();
-
-	GLuint tex = 0;
-	for (int i = 0; i < _ins.size(); ++i) {
-		glActiveTexture(GL_TEXTURE0 + tex);
-		glBindTexture(GL_TEXTURE_2D, ins[i]->getTexture());
-		_shader->setVar(_ins[i], tex);
-		tex += 1;
-	}
-
-	glBindVertexArray(_vao);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindVertexArray(0);
-}
-
 bool Post::_initVAO() {
 	glCreateVertexArrays(1, &_vao);
-	if (!_shader->bindVertex(VERTEX_BASE, _vao, _vbo))
+	if (!_material->getShader()->bindVertex(VERTEX_BASE, _vao, _vbo))
 		return false;
 
 	return true;
+}
+
+int Post::draw(CommandQueue& cmds) {
+	auto& cmd = cmds.emplace_back();
+	cmd.vao = _vao;
+	cmd.verts = 6;
+	cmd.material = _material;
+	return 1;
 }

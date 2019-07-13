@@ -70,7 +70,7 @@ bool ModelProto::_loadVertex(const Config::node& conf) {
 }
 
 bool ModelProto::_initMaterial(const Config::node& conf) {
-	for (const auto it: conf) {
+	for (const auto& it: conf) {
 		const std::string key = it.as<std::string>();
 		Material::ptr mate = MaterialMgr::inst().req(key);
 		if (!mate)
@@ -145,7 +145,7 @@ bool ModelInst::_initMaterial(const Config::node& conf) {
 	else {
 		_mate = _proto->getMaterialDefault();
 	}
-	_mateid = _mate->getID();
+	_mateid = 0;
 
 	if (Config::valid(conf["materials"])) {
 		for (const auto& it: conf["materials"]) {
@@ -177,9 +177,9 @@ bool ModelInst::_initInstance() {
 	return true;
 }
 
-int ModelInst::draw(CommandQueue& cmds, const Pass::ptr& pass) {
+int ModelInst::draw(CommandQueue& cmds, const std::string& pass, const std::set<Shader::ptr>& shaders) {
 	Material::ptr mate = _mate;
-	const auto& find = _mates.find(pass->getName());
+	const auto& find = _mates.find(pass);
 	if (find != _mates.end())
 		mate = find->second;
 	bool changed = false;
@@ -188,7 +188,7 @@ int ModelInst::draw(CommandQueue& cmds, const Pass::ptr& pass) {
 		_mateid = mate->getID();
 	}
 
-	if (pass->getShaders().count(mate->getShader()) <= 0)
+	if (shaders.count(mate->getShader()) <= 0)
 		return 0;
 	
 	int total{0};

@@ -128,11 +128,11 @@ public:
 	}
 
 	inline const resptr& get(const resid id) {
-		auto it = _rmap.find(id);
-		if (it == _rmap.end())
+		const auto& find = _rmap.find(id);
+		if (find == _rmap.end())
 			return R::empty;
 		else
-			return it->second;
+			return find->second;
 	}
 	inline const resptr& get(const resna& key) {
 		const resid id = index(key);

@@ -11,6 +11,7 @@
 #include "render/uniform.hpp"
 #include "render/pass.hpp"
 
+// TODO: 是不是该有个render context
 class Scene: public Res<Scene> {
 public:
 	static ptr create(const std::string& name);
@@ -21,14 +22,17 @@ public:
 	bool addLight(const Config::node& conf);
 	bool addModel(const Config::node& conf);
 	bool addPass(const Config::node& conf);
-	bool addUniform(const std::string& name, int count = 1);
 
 	inline void active() {
 		Scene::current = shared_from_this();
 	}
 	void draw();
-	void drawScene(const Pass::ptr& pass);
+	void drawUniforms(const Pass::ptr& pass);
 	void drawCommand(const Command& cmd);
+
+private:
+	bool _initUniform(const std::string& name, int count = 1);
+	bool _initFrame(const Config::node& conf);
 
 public:
 	inline static ptr current{};

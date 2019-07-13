@@ -1,6 +1,4 @@
 grey:
-  shader: grey
-  in: [draw]
+  material: grey
 show:
-  shader: show
-  in: [frame]
+  material: show

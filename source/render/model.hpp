@@ -16,7 +16,6 @@
 #include "render/light.hpp"
 #include "render/command.hpp"
 #include "render/material.hpp"
-#include "render/pass.hpp"
 
 class ModelProto;
 class ModelInst: public ResInst<ModelProto, ModelInst> {
@@ -24,7 +23,7 @@ public:
 	static ptr create(const proto_ptr& proto, const Config::node& conf);
 	virtual ~ModelInst();
 
-	int draw(CommandQueue& cmds, const Pass::ptr& pass);
+	int draw(CommandQueue& cmds, const std::string& pass, const std::set<Shader::ptr>& shaders);
 
 	inline bool changeShader(const std::string& name) {}
 private:

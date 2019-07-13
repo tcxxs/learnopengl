@@ -1,2 +1,0 @@
-- 设置shader的宏
-- model应该更加提纯shader设置器的概念

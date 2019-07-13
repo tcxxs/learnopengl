@@ -45,11 +45,15 @@ Scene::ptr Scene::create(const std::string& name) {
 			return {};
 	}
 
-	if (!scene->addUniform(UNIFORM_MATVP))
+	// TODO: 因为uniform需要shader的布局信息，所以需要shader加载之后
+	// 1，用stdlaout自己算；2，用一个特殊shader触发
+	if (!scene->_initUniform(UNIFORM_MATVP))
 		return {};
-	if (!scene->addUniform(UNIFORM_SCENE))
+	if (!scene->_initUniform(UNIFORM_SCENE))
 		return {};
-	if (!scene->addUniform(UNIFORM_LIGHTS, LIGHT_MAX))
+	if (!scene->_initUniform(UNIFORM_LIGHTS, LIGHT_MAX))
+		return {};
+	if (!scene->_initFrame(conf["frames"]))
 		return {};
 
 	return scene;
@@ -100,7 +104,7 @@ bool Scene::addPass(const Config::node& conf) {
 	return true;
 }
 
-bool Scene::addUniform(const std::string& name, int count) {
+bool Scene::_initUniform(const std::string& name, int count) {
 	const UniformProto::ptr& proto = UniformProtoMgr::inst().get(name);
 	if (!proto)
 		return false;
@@ -117,29 +121,64 @@ bool Scene::addUniform(const std::string& name, int count) {
 	return true;
 }
 
-// TODO: skybox画之前的gl call有200多个
-// uniform data: 场景的uniform在sky pass也设置了
-// vertex array: mesh的bind vertex也做了
+bool Scene::_initFrame(const Config::node& conf) {
+	if (!Config::valid(conf))
+		return true;
+
+	for (const auto& it: conf) {
+		const std::string& name = it.first.as<std::string>();
+		Frame::ptr frame = Frame::create();
+		if (!frame)
+			return false;
+		for (const auto& ita: it.second) {
+			const std::string& attach = ita.as<std::string>();
+			if (attach == "texture")
+				frame->attachTexture();
+			else if (attach == "depst")
+				frame->attachDepthStencil();
+			else if (attach == "shadow")
+				frame->attachShadowMap();
+		}
+		if (!frame->checkStatus())
+			return false;
+		_frames[name] = frame;
+	}
+
+	return true;
+}
+
 void Scene::draw() {
+	CommandQueue cmds;
 	for (const auto& it: _pass) {
 		glViewport(0, 0, EventMgr::inst().getWidth(), EventMgr::inst().getHeight());
 		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_BLEND);
 		glEnable(GL_CULL_FACE);
 
+		cmds.clear();
 		it->drawBegin();
-		if (!it->drawPost())
-			drawScene(it);
+		drawUniforms(it);
+		// TODO: 同shader、同attr应该合批
+		if (it->drawPass(cmds, _models) >= 0) {
+			for (auto& it: cmds) {
+				drawCommand(it);
+			}
+		}
 		it->drawEnd();
+
+		// TODO: 在msaa下，frame texture需要blit，怎么判断比较好？
+		for (auto& it: _frames)
+			it.second->setDirty();
 	}
 }
 
-void Scene::drawScene(const Pass::ptr& pass) {
+// TODO: 其实大部分同一帧都不变
+void Scene::drawUniforms(const Pass::ptr& pass) {
 	Camera::ptr cam = _cam;
 	const auto& find = _cams.find(pass->getCamera());
 	if (find != _cams.end())
 		cam = find->second;
-	
+
 	UniformInst::ptr& matvp = _uniforms[UNIFORM_MATVP];
 	matvp->setVar("view", cam->getView());
 	matvp->setVar("proj", cam->getProj());
@@ -185,17 +224,6 @@ void Scene::drawScene(const Pass::ptr& pass) {
 	UniformInst::ptr& scene = _uniforms[UNIFORM_SCENE];
 	scene->setVar("camera", cam->getPos());
 	scene->setVar("lights", (int)_lights.size());
-
-	CommandQueue cmds;
-	for (auto& it: _models) {
-		if (it->draw(cmds, pass) < 0) {
-			continue;
-		}
-	}
-
-	for (auto& it: cmds) {
-		drawCommand(it);
-	}
 }
 
 void Scene::drawCommand(const Command& cmd) {

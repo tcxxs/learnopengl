@@ -1,83 +1,126 @@
 #include "pass.hpp"
 #include "event.hpp"
 
-Pass::ptr Pass::create(const Config::node& conf, framemap& frames) {
+Pass::ptr Pass::create(const Config::node& conf, const framemap& frames) {
 	Pass::ptr pass = std::shared_ptr<Pass>(new Pass());
 
-	if (!pass->_initConf(conf))
+	if (!pass->_initConf(conf, frames))
 		return {};
-	if (!pass->_initFrame(conf, frames))
+	if (!pass->_initShader(conf["shaders"], frames))
 		return {};
-	if (!pass->_initState(conf))
+	if (!pass->_initPost(conf["posts"], frames))
+		return {};
+	if (!pass->_initState(conf["states"]))
 		return {};
 	return pass;
 }
 
-bool Pass::_initConf(const Config::node& conf) {
+bool Pass::_initConf(const Config::node& conf, const framemap& frames) {
 	setName(conf["name"].as<std::string>());
-
 	if (Config::valid(conf["camera"])) {
 		_cam = conf["camera"].as<std::string>();
 	}
-	if (Config::valid(conf["shaders"])) {
-		for (auto& it: conf["shaders"]) {
-			Shader::ptr shader = ShaderMgr::inst().req(it.as<std::string>());
-			if (!shader)
-				return false;
-			_shaders.insert(shader);
-		}
-	}
-
-	if (Config::valid(conf["post"])) {
-		_post = PostMgr::inst().req(conf["post"].as<std::string>());
-		if (!_post)
+	if (Config::valid(conf["out"])) {
+		const std::string& fname = conf["out"].as<std::string>();
+		const auto& find = frames.find(fname);
+		if (find == frames.end()) {
+			std::printf("pass %s, frame %s, not found\n", _name.c_str(), fname.c_str());
 			return false;
+		}
+		_out = find->second;
 	}
 
 	return true;
 }
 
-bool Pass::_initFrame(const Config::node& conf, framemap& frames) {
-	if (Config::valid(conf["in"])) {
-		for (auto& it: conf["in"]) {
-			const auto& find = frames.find(it.as<std::string>());
+bool Pass::_initShaderAttrs(const Config::node& conf, const framemap& frames, const Shader::ptr& shader) {
+	if (!Config::valid(conf))
+		return true;
+
+	auto insert = _sattrs.try_emplace(shader->getName(), ShaderAttrs());
+	if (!insert.second) {
+		std::printf("pass %s, shader %s, duplicate\n", _name.c_str(), shader->getName().c_str());
+		return false;
+	}
+	ShaderAttrs& attrs = insert.first->second;
+
+	GLint loc;
+	for (const auto& it: conf) {
+		const std::string& name = it.first.as<std::string>();
+		loc = shader->getVar(name);
+		if (loc < 0) {
+			std::printf("pass %s, shader %s, uniform %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str());
+			return false;
+		}
+		const std::string& value = it.second.Scalar();
+		if (value.find("<-") == 0) {
+			const auto& find = frames.find(value.substr(2));
 			if (find == frames.end()) {
-				std::cout << "pass input not found, " << it.as<std::string>();
+				std::printf("pass %s, shader %s, uniform %s, frame %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str(), value.c_str());
 				return false;
 			}
-			_ins.push_back(find->second);
+			attrs.ins[name] = find->second;
 		}
-	}
-
-	if (Config::valid(conf["out"])) {
-		Frame::ptr frame;
-		const std::string& out = conf["out"]["name"].as<std::string>();
-		const auto& find = frames.find(out);
-		if (find == frames.end()) {
-			frame = Frame::create();
-			for (const auto& it: conf["out"]["attach"]) {
-				const std::string& attach = it.as<std::string>();
-				if (attach == "texture")
-					frame->attachTexture();
-				else if (attach == "depst")
-					frame->attachDepthStencil();
-				else if (attach == "shadow")
-					frame->attachShadowMap();
+		else if (value.find("->") == 0) {
+			const auto& find = frames.find(value.substr(2));
+			if (find == frames.end()) {
+				std::printf("pass %s, shader %s, uniform %s, frame %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str(), value.c_str());
+				return false;
 			}
-			frames[out] = frame;
+			attrs.outs[name] = find->second;
 		}
 		else {
-			frame = find->second;
+			std::any val = Config::guess(it.second);
+			if (!val.has_value()) {
+				std::printf("pass %s, shader %s, uniform %s, value %s, not valid\n", _name.c_str(), shader->getName().c_str(), name.c_str(), value.c_str());
+				return false;
+			}
+			attrs.attrs.setAttr(name, val);
 		}
-		_out = frame;
 	}
 
+	return true;
+}
+
+bool Pass::_initShader(const Config::node& conf, const framemap& frames) {
+	if (!Config::valid(conf))
+		return true;
+
+	for (const auto& it: conf) {
+		const std::string& name = it.first.as<std::string>();
+		const Shader::ptr& shader = ShaderMgr::inst().req(name);
+		if (!shader) {
+			std::cout << "pass shader not found, " << name << std::endl;
+			return false;
+		}
+		if (!_initShaderAttrs(it.second, frames, shader))
+			return false;
+		_shaders.insert(shader);
+	}
+	return true;
+}
+
+bool Pass::_initPost(const Config::node& conf, const framemap& frames) {
+	if (!Config::valid(conf))
+		return true;
+
+	for (const auto& it: conf) {
+		const std::string& name = it.first.as<std::string>();
+		const Post::ptr& post = PostMgr::inst().req(name);
+		if (!post) {
+			std::cout << "pass shader not found, " << name << std::endl;
+			return false;
+		}
+		if (!_initShaderAttrs(it.second, frames, post->getMaterial()->getShader()))
+			return false;
+		_posts.insert(post);
+	}
 	return true;
 }
 
 bool Pass::_initState(const Config::node& conf) {
-	if (Config::valid(conf["states"])) {
-		for (const auto& it: conf["states"]) {
+	if (Config::valid(conf)) {
+		for (const auto& it: conf) {
 			const std::string& key = it.first.as<std::string>();
 			if (key == "clear")
 				_stateClear(it.second);
@@ -133,11 +176,50 @@ void Pass::_stateDepth(const Config::node& conf) {
 
 void Pass::drawBegin() {
 	if (_out)
-		_out->drawBegin();
+		glBindFramebuffer(GL_FRAMEBUFFER, _out->getFBO());
 	for (const auto& it: _states)
 		it();
 }
-void Pass::drawEnd() {
-	if (_out)
-		_out->drawEnd();
+
+int Pass::drawPass(CommandQueue& cmds, const modelvec& models) {
+	// TODO: 按照shader来收集cmd
+	int total{0};
+	int n;
+	if (!_shaders.empty()) {
+		for (auto& it: models) {
+			n = it->draw(cmds, _name, _shaders);
+			if (n < 0)
+				return -1;
+			total += n;
+		}
+	}
+
+	for (const auto& it: _posts) {
+		n = it->draw(cmds);
+		if (n < 0)
+			return -1;
+		total += n;
+	}
+
+	// TODO: pass完成后需要设置回去？
+	std::map<Frame::ptr, GLuint> texcache;
+	for (auto& it: cmds) {
+		const std::string& shader = it.material->getShader()->getName();
+		const auto& find = _sattrs.find(shader);
+		if (find == _sattrs.end())
+			continue;
+
+		const ShaderAttrs& attrs = find->second;
+		for (const auto& itin: attrs.ins) {
+			it.attrs.setAttr(itin.first, itin.second->getTexture());
+		}
+		for (const auto& itin: attrs.outs) {
+			// TODO: output texture
+		}
+		for (const auto& itin: attrs.attrs) {
+			it.attrs.updateAttrs(attrs.attrs);
+		}
+	}
+
+	return total;
 }

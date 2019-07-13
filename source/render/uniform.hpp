@@ -28,28 +28,28 @@ private:
 
 class UniformProto: public ResProto<UniformProto, UniformInst> {
 public:
-	using typeinfo = std::tuple<size_t, int>;
+	using typeinfo = std::tuple<size_t>;
 	using varinfo = std::tuple<const typeinfo, int>;
 	using glinfo = std::map<std::string, GLint>;
 	static ptr create(const std::string& name, const GLint size, const glinfo& vars);
 
 	inline int getSize() const { return _size; }
 	inline const varinfo& getVar(const std::string& key) const {
-		const auto it = _vars.find(key);
-		if (it == _vars.end())
+		const auto& find = _vars.find(key);
+		if (find == _vars.end())
 			return _varempty;
 		else
-			return it->second;
+			return find->second;
 	}
 
 private:
 	inline static Config _confs;
-	inline static varinfo _varempty{{0,0}, 0};
+	inline static varinfo _varempty{{0}, 0};
 	inline static std::map<std::string, typeinfo> _types{
-	    {"int", {typeid(int).hash_code(), (int)sizeof(int)}},
-	    {"float", {typeid(float).hash_code(), (int)sizeof(float)}},
-	    {"vec3", {typeid(glm::vec3).hash_code(), (int)sizeof(glm::vec3)}},
-	    {"mat4", {typeid(glm::mat4).hash_code(), (int)sizeof(glm::mat4)}},
+	    {"int", {typeid(int).hash_code()}},
+	    {"float", {typeid(float).hash_code()}},
+	    {"vec3", {typeid(glm::vec3).hash_code()}},
+	    {"mat4", {typeid(glm::mat4).hash_code()}},
 	};
 
 	std::map<std::string, varinfo> _vars;

@@ -14,15 +14,17 @@ public:
 	bool attachDepthStencil();
 	bool attachRenderBuffer();
 	bool attachShadowMap();
+	bool checkStatus();
 
+	inline GLuint getFBO() const { return _fbo; }
 	GLuint getTexture();
 
-	bool drawBegin();
-	inline void drawEnd() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+	inline void setDirty() { _blitdirty = true; }
 
 private:
 	GLuint _fbo{0};
 	GLuint _rbo{0}, _tex{0}, _ds{0};
-	GLbitfield _blit;
+	GLbitfield _blittype{0};
+	bool _blitdirty{true};
 	GLuint _fboblit{0}, _texblit{0};
 };

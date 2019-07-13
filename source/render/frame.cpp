@@ -64,14 +64,14 @@ bool Frame::attachTexture() {
 	glBindTexture(type, 0);
 
 	if (msaa > 0) {
-		_blit = GL_COLOR_BUFFER_BIT;
+		_blittype = GL_COLOR_BUFFER_BIT;
 		glGenTextures(1, &_texblit);
 		glBindTexture(GL_TEXTURE_2D, _texblit);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, _fboblit);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texblit, 0);
@@ -157,7 +157,7 @@ bool Frame::attachShadowMap() {
 	glBindTexture(type, 0);
 
 	if (msaa > 0) {
-		_blit = GL_DEPTH_BUFFER_BIT;
+		_blittype = GL_DEPTH_BUFFER_BIT;
 		glGenTextures(1, &_texblit);
 		glBindTexture(GL_TEXTURE_2D, _texblit);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -177,30 +177,35 @@ bool Frame::attachShadowMap() {
 	return oglError();
 }
 
+bool Frame::checkStatus() {
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	GLenum ret = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (ret != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "frame use, not complete" << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
 GLuint Frame::getTexture() {
 	int msaa = EventMgr::inst().getMSAA();
 	int width = EventMgr::inst().getWidth();
 	int height = EventMgr::inst().getHeight();
 
 	if (msaa > 0) {
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fboblit);
-		glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, _blit, GL_NEAREST);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		if (_blitdirty) {
+			_blitdirty = false;
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fboblit);
+			glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, _blittype, GL_NEAREST);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		}
 		return _texblit;
 	}
 	else {
 		return _tex;
 	}
-}
-
-bool Frame::drawBegin() {
-	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "frame use, not complete" << std::endl;
-		return false;
-	}
-	return true;
 }
