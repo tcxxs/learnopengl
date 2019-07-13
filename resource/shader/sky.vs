@@ -1,11 +1,12 @@
 #version 460 core
 
+in vec3 pos;
+
 uniform MatrixVP {
     mat4 view;
     mat4 proj;
 };
 
-in vec3 pos;
 out VertexAttrs {
     vec3 pos;
 }vertex;

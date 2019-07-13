@@ -182,15 +182,15 @@ int ModelInst::draw(CommandQueue& cmds, const std::string& pass, const std::set<
 	const auto& find = _mates.find(pass);
 	if (find != _mates.end())
 		mate = find->second;
+	if (shaders.count(mate->getShader()) <= 0)
+		return 0;
+
 	bool changed = false;
 	if (_mateid != mate->getID()) {
 		changed = true;
 		_mateid = mate->getID();
 	}
 
-	if (shaders.count(mate->getShader()) <= 0)
-		return 0;
-	
 	int total{0};
 	int n;
 	for (auto& it: _meshs) {

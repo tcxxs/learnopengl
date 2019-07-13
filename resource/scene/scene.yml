@@ -101,11 +101,14 @@ models:
   #   rotate: [0.0, 0.0, 0.0]
   #   material: phong_debug
 frames:
-  # scene: [texture, depst]
-  # shadow: [shadow]
+  scene: [texture, depst]
+  shadow: [shadow]
 pass:
   # - name: xxx         #可能会在model的materils中引用
   #   camera: xxx       #cameras中的名字
+  #   states:           #状态控制
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
   #   shaders:          
   #     xxx:            #shader名称
   #       yyy: zzz      #将uniform yyy，设置为zzz
@@ -116,18 +119,44 @@ pass:
   #   posts:            #同shader
   #     ...
   #   out:              #输出frame
-  #   states:           #状态控制
-  #     clear: [color, depth, stencil]
-  #     depth: [true, less]
+  ############ 正常场景
   - name: scene
+    states:
+      clear: [color, depth, stencil]
+      depth: [true, less]
     shaders:
       phong:
       phong_ins:
       color:
       reflect:
+  - name: sky
     states:
-      clear: [color, depth, stencil]
-      depth: [true, less]
+      depth: [true, lesseq]
+    shaders:
+      sky:
+  ############ 简单后处理
+  # - name: scene
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
+  #   shaders:
+  #     phong:
+  #     phong_ins:
+  #     color:
+  #     reflect:
+  #   out: scene
+  # - name: scene
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
+  #   shaders:
+  #     phong:
+  #     phong_ins:
+  #     color:
+  #     reflect:
+  #   out: scene
+
+
   # - name: shadow
   #   camera: light
   #   shaders: [shadow]
