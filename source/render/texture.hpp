@@ -5,6 +5,13 @@
 
 class Texture: public Res<Texture> {
 public:
+	struct val {
+		val(GLuint t): tex(t){};
+		val(GLenum p, GLuint t): type(p), tex(t){};
+		GLenum type{GL_TEXTURE_2D};
+		GLuint tex{0};
+	};
+
 	static ptr create(const std::string& name, const std::filesystem::path& path);
 	inline static ptr create(const std::string& name) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "texture" / name;
@@ -13,8 +20,7 @@ public:
 	static ptr create(const strcube& cube);
 	virtual ~Texture();
 
-	inline const GLenum getType() const { return _type; }
-	inline const GLuint getTexture() const { return _tex; }
+	inline const val getValue() const { return {_type, _tex}; }
 
 private:
 	GLuint _tex{0};

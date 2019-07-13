@@ -94,12 +94,6 @@ models:
       - pos: [1.5, 0.0, 0.0]
         scale: 0.05
         rotate: [0.0, 0.0, 0.0]
-  # - name: nanosuit_debug
-  #   type: nanosuit
-  #   pos: [0.0, 0.0, 0.0]
-  #   scale: 0.05
-  #   rotate: [0.0, 0.0, 0.0]
-  #   material: phong_debug
 frames:
   scene: [texture, depst]
   shadow: [shadow]
@@ -120,6 +114,21 @@ pass:
   #     ...
   #   out:              #输出frame
   ############ 正常场景
+  # - name: scene
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
+  #   shaders:
+  #     phong:
+  #     phong_ins:
+  #     color:
+  #     reflect:
+  # - name: sky
+  #   states:
+  #     depth: [true, lesseq]
+  #   shaders:
+  #     sky:
+  ############ 简单后处理
   - name: scene
     states:
       clear: [color, depth, stencil]
@@ -129,32 +138,14 @@ pass:
       phong_ins:
       color:
       reflect:
-  - name: sky
+    out: scene
+  - name: post
     states:
-      depth: [true, lesseq]
-    shaders:
-      sky:
-  ############ 简单后处理
-  # - name: scene
-  #   states:
-  #     clear: [color, depth, stencil]
-  #     depth: [true, less]
-  #   shaders:
-  #     phong:
-  #     phong_ins:
-  #     color:
-  #     reflect:
-  #   out: scene
-  # - name: scene
-  #   states:
-  #     clear: [color, depth, stencil]
-  #     depth: [true, less]
-  #   shaders:
-  #     phong:
-  #     phong_ins:
-  #     color:
-  #     reflect:
-  #   out: scene
+      clear: [color, depth, stencil]
+      depth: [true, less]
+    posts:
+      post:
+        scene: <-scene
 
 
   # - name: shadow

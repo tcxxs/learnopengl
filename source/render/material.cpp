@@ -31,13 +31,13 @@ Material::ptr Material::create(const std::string& name) {
 				const auto& tex = TextureMgr::inst().req(std::any_cast<std::string&>(it.second));
 				if (!tex)
 					return {};
-				it.second = tex;
+				it.second = tex->getValue();
 			}
 			else if (it.second.type() == typeid(strcube)) {
 				const auto& tex = TextureMgr::inst().create(std::any_cast<strcube&>(it.second));
 				if (!tex)
 					return {};
-				it.second = tex;
+				it.second = tex->getValue();
 			}
 		}
 	}

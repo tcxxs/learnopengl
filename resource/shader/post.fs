@@ -1,7 +1,7 @@
 #version 460 core
 
 in vec2 fg_uv;
-uniform sampler2D draw;
+uniform sampler2D scene;
 
 out vec4 FragColor;
 
@@ -29,7 +29,7 @@ void main()
     vec3 samples[9];
     for(int i = 0; i < 9; i++)
     {
-        samples[i] = vec3(texture(draw, fg_uv.xy + offsets[i]));
+        samples[i] = vec3(texture(scene, fg_uv.xy + offsets[i]));
     }
     vec3 col = vec3(0.0);
     for(int i = 0; i < 9; i++)

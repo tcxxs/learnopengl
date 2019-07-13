@@ -46,9 +46,9 @@ public:
 	inline void setVar(const GLuint& loc, const glm::mat4& var) {
 		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(var));
 	}
-	inline void setVar(const GLuint& loc, const Texture::ptr& var) {
+	inline void setVar(const GLuint& loc, const Texture::val& var) {
 		glActiveTexture(GL_TEXTURE0 + _tex);
-		glBindTexture(var->getType(), var->getTexture());
+		glBindTexture(var.type, var.tex);
 		glUniform1i(loc, _tex);
 		_tex += 1;
 	}

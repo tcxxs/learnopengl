@@ -127,7 +127,7 @@ bool MeshProto::_loadTexture(const std::filesystem::path& path, const aiMaterial
 		Texture::ptr tex = TextureMgr::inst().req(file.string(), file);
 		if (!tex)
 			return false;
-		attrs.setAttr(name, tex);
+		attrs.setAttr(name, tex->getValue());
 		break;
 	}
 

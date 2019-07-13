@@ -3,6 +3,7 @@
 #include "glad/glad.h"
 #include "config.hpp"
 #include "utils/resource.hpp"
+#include "render/texture.hpp"
 
 class Frame: public Res<Frame> {
 public:
@@ -17,7 +18,7 @@ public:
 	bool checkStatus();
 
 	inline GLuint getFBO() const { return _fbo; }
-	GLuint getTexture();
+	const Texture::val getTexture();
 
 	inline void setDirty() { _blitdirty = true; }
 

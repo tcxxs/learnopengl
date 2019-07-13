@@ -30,7 +30,7 @@ Texture::ptr Texture::create(const std::string& name, const std::filesystem::pat
 	return texture;
 }
 
-Res<Texture>::ptr Texture::create(const strcube& cube) {
+Texture::ptr Texture::create(const strcube& cube) {
 	Texture::ptr texture = std::shared_ptr<Texture>(new Texture());
 
 	glGenTextures(1, &texture->_tex);

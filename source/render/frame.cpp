@@ -189,7 +189,8 @@ bool Frame::checkStatus() {
 	return true;
 }
 
-GLuint Frame::getTexture() {
+const Texture::val Frame::getTexture()
+{
 	int msaa = EventMgr::inst().getMSAA();
 	int width = EventMgr::inst().getWidth();
 	int height = EventMgr::inst().getHeight();
@@ -203,9 +204,9 @@ GLuint Frame::getTexture() {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		}
-		return _texblit;
+		return {_texblit};
 	}
 	else {
-		return _tex;
+		return {_tex};
 	}
 }

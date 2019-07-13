@@ -13,6 +13,9 @@ Scene::ptr Scene::create(const std::string& name) {
 		return {};
 	}
 
+	if (!scene->_initFrame(conf["frames"]))
+		return {};
+
 	for (const auto& it: conf["cameras"]) {
 		const std::string& name = it.first.as<std::string>();
 		scene->addCamera(name, it.second);
@@ -52,8 +55,6 @@ Scene::ptr Scene::create(const std::string& name) {
 	if (!scene->_initUniform(UNIFORM_SCENE))
 		return {};
 	if (!scene->_initUniform(UNIFORM_LIGHTS, LIGHT_MAX))
-		return {};
-	if (!scene->_initFrame(conf["frames"]))
 		return {};
 
 	return scene;

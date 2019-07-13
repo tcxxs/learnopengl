@@ -209,8 +209,8 @@ void Shader::setVar(const GLuint& loc, const std::any& var) {
 	else if (var.type() == typeid(glm::vec3)) {
 		setVar(loc, std::any_cast<const glm::vec3&>(var));
 	}
-	else if (var.type() == typeid(Texture::ptr)) {
-		setVar(loc, std::any_cast<const Texture::ptr&>(var));
+	else if (var.type() == typeid(Texture::val)) {
+		setVar(loc, std::any_cast<const Texture::val&>(var));
 	}
 	else {
 		std::cout << "shader var unknow, loc: " << loc << ", type: " << var.type().name() << std::endl;

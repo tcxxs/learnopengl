@@ -18,7 +18,7 @@ white:
   shader: color
   vars:
     uf_color: [1.0, 1.0, 1.0]
-grey:
+gray:
   shader: color
   vars:
     uf_color: [0.2, 0.2, 0.2]
@@ -56,3 +56,5 @@ shadow:
   shader: shadow
 show:
   shader: show
+post:
+  shader: post
