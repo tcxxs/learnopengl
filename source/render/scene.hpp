@@ -38,7 +38,7 @@ private:
 	bool _initFrame(const Config::node& conf);
 
 	std::any _genCamera(const Config::node& conf);
-	std::any _genMatrix(const Config::node& conf);
+	std::any _genMatrixVP(const Config::node& conf);
 	std::any _genFrame(const Config::node& conf);
 
 public:

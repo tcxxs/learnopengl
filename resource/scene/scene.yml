@@ -62,7 +62,7 @@ models:
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
     rotate: [0.0, 0.0, 0.0]
-    material: phong
+    material: phong_shadow
     materials:
       shadow: shadow
       debug: phong_debug
@@ -113,32 +113,6 @@ pass:
   #   shaders:
   #     sky:
   ############ 简单后处理
-  - name: scene
-    states:
-      clear: [color, depth, stencil]
-      depth: [true, less]
-    shaders:
-      phong:
-      phong_ins:
-      color:
-      reflect:
-    out: [[frame, out, scene]]
-  - name: post
-    states:
-      clear: [color, depth, stencil]
-      depth: [true, less]
-    posts:
-      post:
-        scene: [[frame, in, scene]]
-  ############ lightmap
-  # - name: shadow
-  #   camera: [[camera, light, test1, 45.0]]
-  #   states:
-  #     clear: [color, depth, stencil]
-  #     depth: [true, less]
-  #   shaders:
-  #     shadow:
-  #   out: shadow
   # - name: scene
   #   states:
   #     clear: [color, depth, stencil]
@@ -146,16 +120,42 @@ pass:
   #   shaders:
   #     phong:
   #     phong_ins:
-  #     phong_shadow:
-  #       shadow.sampler: [[frame, in, shadow]]
-  #       shadow.matrix: [[matrix, light, test1]]
   #     color:
   #     reflect:
-  # - name: sky
+  #   out: [[frame, out, scene]]
+  # - name: post
   #   states:
-  #     depth: [true, lesseq]
-  #   shaders:
-  #     sky:
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
+  #   posts:
+  #     post:
+  #       scene: [[frame, in, scene]]
+  ############ lightmap
+  - name: shadow
+    camera: [[camera, light, light_shadow]]
+    states:
+      clear: [color, depth, stencil]
+      depth: [true, less]
+    shaders:
+      shadow:
+    out: [[frame, out, shadow]]
+  - name: scene
+    states:
+      clear: [color, depth, stencil]
+      depth: [true, less]
+    shaders:
+      phong:
+      phong_ins:
+      phong_shadow:
+        shadow_map: [[frame, in, shadow]]
+        shadow_vp: [[matvp, light, light_shadow]]
+      color:
+      reflect:
+  - name: sky
+    states:
+      depth: [true, lesseq]
+    shaders:
+      sky:
 
 
   # - name: shadow

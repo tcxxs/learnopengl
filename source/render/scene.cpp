@@ -14,7 +14,7 @@ Scene::ptr Scene::create(const std::string& name) {
 	}
 
 	scene->_cfuncs.emplace("camera", std::bind(&Scene::_genCamera, scene.get(), std::placeholders::_1));
-	scene->_cfuncs.emplace("matrix", std::bind(&Scene::_genMatrix, scene.get(), std::placeholders::_1));
+	scene->_cfuncs.emplace("matvp", std::bind(&Scene::_genMatrixVP, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("frame", std::bind(&Scene::_genFrame, scene.get(), std::placeholders::_1));
 	if (!scene->_initFrame(conf["frames"]))
 		return {};
@@ -286,12 +286,11 @@ std::any Scene::generateConf(const Config::node& conf) {
 }
 
 std::any Scene::_genCamera(const Config::node& conf) {
-	if (conf.size() < 4)
+	if (conf.size() < 3)
 		return {};
 
 	const std::string& type = conf[1].as<std::string>();
 	const std::string& name = conf[2].as<std::string>();
-	float fov = conf[3].as<float>();
 	if (type == "light") {
 		for (const auto& it: _lights) {
 			if (it->getName() != name)
@@ -304,7 +303,7 @@ std::any Scene::_genCamera(const Config::node& conf) {
 			Camera::ptr cam = Camera::create();
 			if (!cam)
 				return {};
-			cam->setFov(fov);
+			cam->setFov(_cam->getFov());
 			cam->lookAt(pos, pos + dir);
 			return cam;
 		}
@@ -313,13 +312,12 @@ std::any Scene::_genCamera(const Config::node& conf) {
 	return {};
 }
 
-std::any Scene::_genMatrix(const Config::node& conf) {
-	if (conf.size() < 4)
+std::any Scene::_genMatrixVP(const Config::node& conf) {
+	if (conf.size() < 3)
 		return {};
 
 	const std::string& type = conf[1].as<std::string>();
 	const std::string& name = conf[2].as<std::string>();
-	float fov = conf[3].as<float>();
 	if (type == "light") {
 		for (const auto& it: _lights) {
 			if (it->getName() != name)
@@ -330,7 +328,7 @@ std::any Scene::_genMatrix(const Config::node& conf) {
 			const glm::vec3 pos = it->getPos();
 			const glm::vec3 dir = it->getDir();
 			glm::mat4 view = glm::lookAt(pos, pos + dir, Camera::up);
-			glm::mat4 proj = glm::perspective(glm::radians(fov), (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight(), PROJ_NEAR, PROJ_FAR);
+			glm::mat4 proj = glm::perspective(glm::radians(_cam->getFov()), (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight(), PROJ_NEAR, PROJ_FAR);
 			return proj * view;
 		}
 	}

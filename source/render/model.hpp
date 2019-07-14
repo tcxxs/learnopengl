@@ -26,6 +26,7 @@ public:
 	int draw(CommandQueue& cmds, const std::string& pass, const std::set<Shader::ptr>& shaders);
 
 	inline bool changeShader(const std::string& name) {}
+
 private:
 	void _addInstance(const Config::node& conf);
 	bool _initMaterial(const Config::node& conf);
@@ -49,17 +50,7 @@ public:
 
 	static ptr create(const std::string& name);
 
-	inline const Material::ptr& getMaterial(const std::string& name) const {
-		const auto& it = _mates.find(name);
-		if (it == _mates.end())
-			return Material::empty;
-		else
-			return it->second;
-	}
-	inline const Material::ptr& getMaterialDefault() const {
-		return _mates.begin()->second;
-	}
-
+	inline const Material::ptr& getMaterial() const { return _mate; }
 	inline const meshvec& getMeshs() const { return _meshs; }
 
 protected:
@@ -71,7 +62,7 @@ protected:
 private:
 	inline static Config _confs;
 	inline static Assimp::Importer _imp;
-	std::map<std::string, Material::ptr> _mates;
+	Material::ptr _mate;
 	meshvec _meshs;
 };
 

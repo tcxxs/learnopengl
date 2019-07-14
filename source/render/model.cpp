@@ -24,7 +24,7 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 			return {};
 	}
 
-	if (!model->_initMaterial(conf["materials"]))
+	if (!model->_initMaterial(conf))
 		return {};
 
 	return model;
@@ -70,13 +70,10 @@ bool ModelProto::_loadVertex(const Config::node& conf) {
 }
 
 bool ModelProto::_initMaterial(const Config::node& conf) {
-	for (const auto& it: conf) {
-		const std::string key = it.as<std::string>();
-		Material::ptr mate = MaterialMgr::inst().req(key);
-		if (!mate)
-			return false;
-		_mates[key] = mate;
-	}
+	const std::string key = conf["material"].as<std::string>();
+	_mate = MaterialMgr::inst().req(key);
+	if (!_mate)
+		return false;
 
 	return true;
 }
@@ -89,7 +86,7 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 
 	if (!model->_initMaterial(conf))
 		return {};
-	
+
 	const Config::node ins = conf["instance"];
 	if (ins.IsDefined()) {
 		for (const auto& it: ins) {
@@ -136,27 +133,22 @@ void ModelInst::_addInstance(const Config::node& conf) {
 
 bool ModelInst::_initMaterial(const Config::node& conf) {
 	if (Config::valid(conf["material"])) {
-		const std::string& mate = conf["material"].as<std::string>();
-		_mate = _proto->getMaterial(mate);
-		if (!_mate) {
-			std::cout << "model material not found, " << mate << std::endl;
+		const std::string& name = conf["material"].as<std::string>();
+		_mate = MaterialMgr::inst().req(name);
+		if (!_mate)
 			return false;
-		}
 	}
 	else {
-		_mate = _proto->getMaterialDefault();
+		_mate = _proto->getMaterial();
 	}
-	_mateid = 0;
 
 	if (Config::valid(conf["materials"])) {
 		for (const auto& it: conf["materials"]) {
 			const std::string& pass = it.first.as<std::string>();
 			const std::string& name = it.second.as<std::string>();
-			const Material::ptr& mate = _proto->getMaterial(name);
-			if (!_mate) {
-				std::cout << "model pass material not found, " << mate << std::endl;
+			Material::ptr mate = MaterialMgr::inst().req(name);
+			if (!mate)
 				return false;
-			}
 			_mates[pass] = mate;
 		}
 	}

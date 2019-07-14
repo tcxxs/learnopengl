@@ -31,7 +31,7 @@ bool Pass::_initConf(const Config::node& conf, const genfunc& gen) {
 			std::printf("pass %s, out %s, not valid\n", _name.c_str(), conf["out"].Scalar().c_str());
 			return false;
 		}
-		auto frame = std::any_cast<frameinfo>(ret);
+		const auto& frame = std::any_cast<const frameinfo&>(ret);
 		_out = frame.second;
 	}
 
@@ -64,11 +64,16 @@ bool Pass::_initShaderAttrs(const Config::node& conf, const genfunc& gen, const 
 				std::printf("pass %s, shader %s, uniform %s, value %s, not valid\n", _name.c_str(), shader->getName().c_str(), name.c_str(), it.second.Scalar().c_str());
 				return false;
 			}
-			auto frame = std::any_cast<frameinfo>(ret);
-			if (frame.first == "in") {
-				attrs.ins[name] = frame.second;
+			if (ret.type() == typeid(frameinfo)) {
+				const auto& frame = std::any_cast<const frameinfo&>(ret);
+				if (frame.first == "in") {
+					attrs.ins[name] = frame.second;
+				}
+				else if (frame.first == "out") {
+				}
 			}
-			else if (frame.first == "out") {
+			else {
+				attrs.attrs.setAttr(name, ret);
 			}
 		}
 		else {
