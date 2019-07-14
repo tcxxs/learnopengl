@@ -1,5 +1,4 @@
 #include "uniform.hpp"
-#include "utils/utils.hpp"
 
 UniformProto::ptr UniformProto::create(const std::string& name, const GLint size, const UniformProto::glinfo& vars) {
 	if (_confs.root().IsNull()) {

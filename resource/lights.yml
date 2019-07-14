@@ -1,10 +1,8 @@
 dir:
-  type: 1
   ambient: [0.0, 0.0, 0.0]
   diffuse: [0.1, 0.1, 0.1]
   specular: [0.3, 0.3, 0.3]
 point:
-  type: 2
   ambient: [0.1, 0.1, 0.1]
   diffuse: [0.0, 0.0, 0.5]
   specular: [0.0, 0.0, 0.7]
@@ -12,7 +10,6 @@ point:
   linear: 0.09
   quadratic: 0.032
 point1:
-  type: 2
   ambient: [0.0, 0.0, 0.0]
   diffuse: [0.1, 0.1, 0.1]
   specular: [0.1, 0.1, 0.1]
@@ -20,7 +17,6 @@ point1:
   linear: 0.09
   quadratic: 0.032
 point2:
-  type: 2
   ambient: [0.0, 0.0, 0.0]
   diffuse: [0.2, 0.2, 0.2]
   specular: [0.2, 0.2, 0.2]
@@ -28,7 +24,6 @@ point2:
   linear: 0.09
   quadratic: 0.032
 point3:
-  type: 2
   ambient: [0.0, 0.0, 0.0]
   diffuse: [0.3, 0.3, 0.3]
   specular: [0.3, 0.3, 0.3]
@@ -36,7 +31,6 @@ point3:
   linear: 0.09
   quadratic: 0.032
 spot:
-  type: 3
   ambient: [0.0, 0.2, 0.0]
   diffuse: [0.0, 0.7, 0.0]
   specular: [0.0, 1.0, 0.0]

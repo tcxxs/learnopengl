@@ -14,6 +14,7 @@
 // TODO: 是不是该有个render context
 class Scene: public Res<Scene> {
 public:
+	using genfunc = std::function<std::any(const Config::node&)>;
 	static ptr create(const std::string& name);
 	virtual ~Scene();
 
@@ -30,14 +31,21 @@ public:
 	void drawUniforms(const Pass::ptr& pass);
 	void drawCommand(const Command& cmd);
 
+	std::any generateConf(const Config::node& conf);
+
 private:
 	bool _initUniform(const std::string& name, int count = 1);
 	bool _initFrame(const Config::node& conf);
+
+	std::any _genCamera(const Config::node& conf);
+	std::any _genMatrix(const Config::node& conf);
+	std::any _genFrame(const Config::node& conf);
 
 public:
 	inline static ptr current{};
 
 private:
+	std::map<std::string, genfunc> _cfuncs;
 	Camera::ptr _cam;
 	std::map<std::string, Camera::ptr> _cams;
 	std::vector<LightInst::ptr> _lights;

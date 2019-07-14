@@ -1,39 +1,44 @@
 #include "pass.hpp"
 #include "event.hpp"
 
-Pass::ptr Pass::create(const Config::node& conf, const framemap& frames) {
+Pass::ptr Pass::create(const Config::node& conf, const genfunc& gen) {
 	Pass::ptr pass = std::shared_ptr<Pass>(new Pass());
 
-	if (!pass->_initConf(conf, frames))
+	if (!pass->_initConf(conf, gen))
 		return {};
-	if (!pass->_initShader(conf["shaders"], frames))
+	if (!pass->_initShader(conf["shaders"], gen))
 		return {};
-	if (!pass->_initPost(conf["posts"], frames))
+	if (!pass->_initPost(conf["posts"], gen))
 		return {};
 	if (!pass->_initState(conf["states"]))
 		return {};
 	return pass;
 }
 
-bool Pass::_initConf(const Config::node& conf, const framemap& frames) {
+bool Pass::_initConf(const Config::node& conf, const genfunc& gen) {
 	setName(conf["name"].as<std::string>());
 	if (Config::valid(conf["camera"])) {
-		_cam = conf["camera"].as<std::string>();
-	}
-	if (Config::valid(conf["out"])) {
-		const std::string& fname = conf["out"].as<std::string>();
-		const auto& find = frames.find(fname);
-		if (find == frames.end()) {
-			std::printf("pass %s, frame %s, not found\n", _name.c_str(), fname.c_str());
+		std::any ret = gen(conf["camera"]);
+		if (!ret.has_value()) {
+			std::printf("pass %s, camera %s, not valid\n", _name.c_str(), conf["camera"].Scalar().c_str());
 			return false;
 		}
-		_out = find->second;
+		_cam = std::any_cast<Camera::ptr>(ret);
+	}
+	if (Config::valid(conf["out"])) {
+		std::any ret = gen(conf["out"]);
+		if (!ret.has_value()) {
+			std::printf("pass %s, out %s, not valid\n", _name.c_str(), conf["out"].Scalar().c_str());
+			return false;
+		}
+		auto frame = std::any_cast<frameinfo>(ret);
+		_out = frame.second;
 	}
 
 	return true;
 }
 
-bool Pass::_initShaderAttrs(const Config::node& conf, const framemap& frames, const Shader::ptr& shader) {
+bool Pass::_initShaderAttrs(const Config::node& conf, const genfunc& gen, const Shader::ptr& shader) {
 	if (!Config::valid(conf))
 		return true;
 
@@ -52,27 +57,24 @@ bool Pass::_initShaderAttrs(const Config::node& conf, const framemap& frames, co
 			std::printf("pass %s, shader %s, uniform %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str());
 			return false;
 		}
-		const std::string& value = it.second.Scalar();
-		if (value.find("<-") == 0) {
-			const auto& find = frames.find(value.substr(2));
-			if (find == frames.end()) {
-				std::printf("pass %s, shader %s, uniform %s, frame %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str(), value.c_str());
+
+		if (Config::generator(it.second)) {
+			std::any ret = gen(it.second);
+			if (!ret.has_value()) {
+				std::printf("pass %s, shader %s, uniform %s, value %s, not valid\n", _name.c_str(), shader->getName().c_str(), name.c_str(), it.second.Scalar().c_str());
 				return false;
 			}
-			attrs.ins[name] = find->second;
-		}
-		else if (value.find("->") == 0) {
-			const auto& find = frames.find(value.substr(2));
-			if (find == frames.end()) {
-				std::printf("pass %s, shader %s, uniform %s, frame %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str(), value.c_str());
-				return false;
+			auto frame = std::any_cast<frameinfo>(ret);
+			if (frame.first == "in") {
+				attrs.ins[name] = frame.second;
 			}
-			attrs.outs[name] = find->second;
+			else if (frame.first == "out") {
+			}
 		}
 		else {
 			std::any val = Config::guess(it.second);
 			if (!val.has_value()) {
-				std::printf("pass %s, shader %s, uniform %s, value %s, not valid\n", _name.c_str(), shader->getName().c_str(), name.c_str(), value.c_str());
+				std::printf("pass %s, shader %s, uniform %s, value %s, not valid\n", _name.c_str(), shader->getName().c_str(), name.c_str(), it.second.Scalar().c_str());
 				return false;
 			}
 			attrs.attrs.setAttr(name, val);
@@ -82,7 +84,7 @@ bool Pass::_initShaderAttrs(const Config::node& conf, const framemap& frames, co
 	return true;
 }
 
-bool Pass::_initShader(const Config::node& conf, const framemap& frames) {
+bool Pass::_initShader(const Config::node& conf, const genfunc& gen) {
 	if (!Config::valid(conf))
 		return true;
 
@@ -93,14 +95,14 @@ bool Pass::_initShader(const Config::node& conf, const framemap& frames) {
 			std::cout << "pass shader not found, " << name << std::endl;
 			return false;
 		}
-		if (!_initShaderAttrs(it.second, frames, shader))
+		if (!_initShaderAttrs(it.second, gen, shader))
 			return false;
 		_shaders.insert(shader);
 	}
 	return true;
 }
 
-bool Pass::_initPost(const Config::node& conf, const framemap& frames) {
+bool Pass::_initPost(const Config::node& conf, const genfunc& gen) {
 	if (!Config::valid(conf))
 		return true;
 
@@ -111,7 +113,7 @@ bool Pass::_initPost(const Config::node& conf, const framemap& frames) {
 			std::cout << "pass shader not found, " << name << std::endl;
 			return false;
 		}
-		if (!_initShaderAttrs(it.second, frames, post->getMaterial()->getShader()))
+		if (!_initShaderAttrs(it.second, gen, post->getMaterial()->getShader()))
 			return false;
 		_posts.insert(post);
 	}

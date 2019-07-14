@@ -1,5 +1,4 @@
 #include "vertex.hpp"
-#include "utils/utils.hpp"
 
 VertexProto::ptr VertexProto::create(const std::string& name) {
 	if (_confs.root().IsNull()) {

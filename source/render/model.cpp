@@ -84,7 +84,8 @@ bool ModelProto::_initMaterial(const Config::node& conf) {
 ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::node& conf) {
 	ModelInst::ptr model = ModelInst::ptr(new ModelInst());
 	model->_proto = proto;
-	model->setName(conf["name"].as<std::string>());
+	if (Config::valid(conf["name"]))
+		model->setName(conf["name"].as<std::string>());
 
 	if (!model->_initMaterial(conf))
 		return {};

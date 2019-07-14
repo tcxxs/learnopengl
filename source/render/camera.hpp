@@ -8,7 +8,7 @@
 #include "event.hpp"
 #include "utils/resource.hpp"
 
-class Camera : public Res<Camera> {
+class Camera: public Res<Camera> {
 public:
 	static ptr create();
 	virtual ~Camera();
@@ -34,15 +34,15 @@ public:
 	}
 	inline void setYaw(float yaw) {
 		if (yaw < 0)
-			_yaw = 2*PI - fmod(-yaw, 2*PI);
+			_yaw = 2 * PI - fmod(-yaw, 2 * PI);
 		else
-			_yaw = fmod(yaw, 2*PI);
+			_yaw = fmod(yaw, 2 * PI);
 		_eulerToLookat();
 		_lookatToCoord();
 		_lookatToView();
 	}
 	inline void setPitch(float pitch) {
-		_pitch = fmod(pitch, 2*PI);
+		_pitch = fmod(pitch, 2 * PI);
 		_eulerToLookat();
 		_lookatToCoord();
 		_lookatToView();
@@ -58,18 +58,18 @@ public:
 
 	inline void setFov(float fov) {
 		_fov = fov;
-    	_proj = glm::perspective(glm::radians(_fov), (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight(), 0.1f, 100.0f);
+		_proj = glm::perspective(glm::radians(_fov), (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight(), PROJ_NEAR, PROJ_FAR);
 	}
 
 	inline const glm::mat4& getProj() const { return _proj; }
 	inline float getFov() const { return _fov; }
 
 private:
-	inline void _lookatToView() { 
-		_view = glm::lookAt(_pos, _pos - _front, Camera::_upy);
+	inline void _lookatToView() {
+		_view = glm::lookAt(_pos, _pos - _front, Camera::up);
 	}
 	inline void _lookatToCoord() {
-		_right = glm::normalize(glm::cross(Camera::_upy, _front));
+		_right = glm::normalize(glm::cross(Camera::up, _front));
 		_up = glm::normalize(glm::cross(_front, _right));
 	}
 	inline void _coordToEuler() {
@@ -77,9 +77,9 @@ private:
 		if (_front.x < 0)
 			_yaw += PI;
 		else if (_front.z < 0)
-			_yaw += 2*PI;
-		_yaw = fmod(_yaw, 2*PI);
-		_pitch = fmod(asin(_front.y / glm::length(_front)), 2*PI);
+			_yaw += 2 * PI;
+		_yaw = fmod(_yaw, 2 * PI);
+		_pitch = fmod(asin(_front.y / glm::length(_front)), 2 * PI);
 
 		//std::cout << glm::to_string(_front) << "->" << _yaw << std::endl;
 	}
@@ -92,8 +92,10 @@ private:
 		//std::cout << _yaw << "->" << glm::to_string(_front) << std::endl;
 	}
 
+public:
+	inline static const glm::vec3 up{0.0f, 1.0f, 0.0f};
+
 private:
-	inline static const glm::vec3 _upy{0.0f, 1.0f, 0.0f};
 	glm::mat4 _view{1.0f};
 	glm::vec3 _pos{0.0f};
 	glm::vec3 _front{0.0f}, _right{0.0f}, _up{0.0f};

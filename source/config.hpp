@@ -7,6 +7,9 @@
 
 #define PI 3.1415926535897f
 
+#define PROJ_NEAR 0.1f
+#define PROJ_FAR 100.0f
+
 #define CAM_FOV 1.0f
 #define CAM_MOVE 1.0f
 #define CAM_ROTATE 0.0005f
@@ -19,6 +22,3 @@
 #define UNIFORM_LIGHTS "Lights"
 
 #define LIGHT_MAX 10
-#define LIGHT_DIR 1
-#define LIGHT_POINT 2
-#define LIGHT_SPOT 3

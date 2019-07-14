@@ -2,6 +2,7 @@
 
 #include "glad/glad.h"
 #include "utils/resource.hpp"
+#include "utils/utils.hpp"
 
 class Texture: public Res<Texture> {
 public:

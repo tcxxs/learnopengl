@@ -13,6 +13,9 @@ Scene::ptr Scene::create(const std::string& name) {
 		return {};
 	}
 
+	scene->_cfuncs.emplace("camera", std::bind(&Scene::_genCamera, scene.get(), std::placeholders::_1));
+	scene->_cfuncs.emplace("matrix", std::bind(&Scene::_genMatrix, scene.get(), std::placeholders::_1));
+	scene->_cfuncs.emplace("frame", std::bind(&Scene::_genFrame, scene.get(), std::placeholders::_1));
 	if (!scene->_initFrame(conf["frames"]))
 		return {};
 
@@ -97,7 +100,7 @@ bool Scene::addModel(const Config::node& conf) {
 }
 
 bool Scene::addPass(const Config::node& conf) {
-	Pass::ptr pass = Pass::create(conf, _frames);
+	Pass::ptr pass = Pass::create(conf, std::bind(&Scene::generateConf, this, std::placeholders::_1));
 	if (!pass)
 		return false;
 
@@ -175,10 +178,9 @@ void Scene::draw() {
 
 // TODO: 其实大部分同一帧都不变
 void Scene::drawUniforms(const Pass::ptr& pass) {
-	Camera::ptr cam = _cam;
-	const auto& find = _cams.find(pass->getCamera());
-	if (find != _cams.end())
-		cam = find->second;
+	Camera::ptr cam = pass->getCamera();
+	if (!cam)
+		cam = _cam;
 
 	UniformInst::ptr& matvp = _uniforms[UNIFORM_MATVP];
 	matvp->setVar("view", cam->getView());
@@ -188,17 +190,17 @@ void Scene::drawUniforms(const Pass::ptr& pass) {
 		UniformInst::ptr& uniform = _uniforms[string_format(UNIFORM_LIGHTS "[%d]", i)];
 		const LightInst::ptr& light = _lights[i];
 		const LightProto::ptr& proto = light->prototype();
-		const int type = proto->getType();
+		const LightProto::lighttype type = proto->getType();
 
-		uniform->setVar("light.type", type);
+		uniform->setVar("light.type", (int)type);
 		switch (proto->getType()) {
-		case LIGHT_DIR:
+		case LightProto::LIGHT_DIR:
 			uniform->setVar("light.dir", light->getDir());
 			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
 			uniform->setVar("light.diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
 			uniform->setVar("light.specular", proto->attrs.getAttr<glm::vec3>("specular"));
 			break;
-		case LIGHT_POINT:
+		case LightProto::LIGHT_POINT:
 			uniform->setVar("light.pos", light->getPos());
 			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
 			uniform->setVar("light.diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
@@ -207,7 +209,7 @@ void Scene::drawUniforms(const Pass::ptr& pass) {
 			uniform->setVar("light.linear", proto->attrs.getAttr<float>("linear"));
 			uniform->setVar("light.quadratic", proto->attrs.getAttr<float>("quadratic"));
 			break;
-		case LIGHT_SPOT:
+		case LightProto::LIGHT_SPOT:
 			uniform->setVar("light.pos", light->getPos());
 			uniform->setVar("light.dir", light->getDir());
 			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
@@ -266,4 +268,87 @@ void Scene::drawCommand(const Command& cmd) {
 	}
 
 	glBindVertexArray(0);
+}
+
+// TODO: 现在是静态的，或许应该要支持动态
+std::any Scene::generateConf(const Config::node& conf) {
+	// 由连续两层list组成
+	if (!Config::generator(conf))
+		return {};
+	const Config::node gen = conf[0];
+	if (conf.size() < 1)
+		return {};
+	const auto& find = _cfuncs.find(gen[0].as<std::string>());
+	if (find == _cfuncs.end())
+		return {};
+
+	return find->second(gen);
+}
+
+std::any Scene::_genCamera(const Config::node& conf) {
+	if (conf.size() < 4)
+		return {};
+
+	const std::string& type = conf[1].as<std::string>();
+	const std::string& name = conf[2].as<std::string>();
+	float fov = conf[3].as<float>();
+	if (type == "light") {
+		for (const auto& it: _lights) {
+			if (it->getName() != name)
+				continue;
+			if (it->prototype()->getType() != LightProto::LIGHT_SPOT)
+				continue;
+
+			const glm::vec3 pos = it->getPos();
+			const glm::vec3 dir = it->getDir();
+			Camera::ptr cam = Camera::create();
+			if (!cam)
+				return {};
+			cam->setFov(fov);
+			cam->lookAt(pos, pos + dir);
+			return cam;
+		}
+	}
+
+	return {};
+}
+
+std::any Scene::_genMatrix(const Config::node& conf) {
+	if (conf.size() < 4)
+		return {};
+
+	const std::string& type = conf[1].as<std::string>();
+	const std::string& name = conf[2].as<std::string>();
+	float fov = conf[3].as<float>();
+	if (type == "light") {
+		for (const auto& it: _lights) {
+			if (it->getName() != name)
+				continue;
+			if (it->prototype()->getType() != LightProto::LIGHT_SPOT)
+				continue;
+
+			const glm::vec3 pos = it->getPos();
+			const glm::vec3 dir = it->getDir();
+			glm::mat4 view = glm::lookAt(pos, pos + dir, Camera::up);
+			glm::mat4 proj = glm::perspective(glm::radians(fov), (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight(), PROJ_NEAR, PROJ_FAR);
+			return proj * view;
+		}
+	}
+
+	return {};
+}
+
+std::any Scene::_genFrame(const Config::node& conf) {
+	if (conf.size() < 3)
+		return {};
+
+	const std::string& type = conf[1].as<std::string>();
+	const std::string& name = conf[2].as<std::string>();
+	if (type != "in" && type != "out")
+		return {};
+	const auto& find = _frames.find(name);
+	if (find == _frames.end())
+		return {};
+
+	return std::make_pair(type, find->second);
 }

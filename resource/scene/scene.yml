@@ -9,71 +9,56 @@ cameras:
     pos: [0.0, 1.0, -1.0]
     target: [0.0, -1.0, 1.0]
 lights:
-  - name: test1
-    type: spot
+  - type: spot
+    name: light_shadow
     pos: [-0.1, 0.3, 0.5]
     dir: [0.0, 0.0, -1.0]
-  - name: test2
-    type: point
+  - type: point
     pos: [0.1, 0.6, 0.2]
-  - name: test3
-    type: dir
+  - type: dir
     dir: [0.0, -1.0, 1.0]
-  - name: test4
-    type: point1
+  - type: point1
     pos: [0.0, 0.05, 1.0]
-  - name: test5
-    type: point2
+  - type: point2
     pos: [1.5, 0.05, 1.0]
-  - name: test6
-    type: point3
+  - type: point3
     pos: [3.0, 0.05, 1.0]
 models:
-  - name: sky
-    type: sky
+  - type: sky
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
-  - name: land
-    type: land
+  - type: land
     pos: [0.0, -0.1, 0.0]
     scale: 5.0
     material: phong
-  - name: cube
-    type: cube
+  - type: cube
     pos: [0.5, 0.0, 0.0]
     scale: 0.5
-  - name: cube
-    type: cube
+  - type: cube
     pos: [0.5, 0.0, 0.0]
     scale: 0.5
-  - name: light1
-    type: lamp
+  - type: lamp
     pos: [-0.1, 0.3, 0.5]
     dir: [0.0, 0.0, -1.0]
     scale: 0.01
-  - name: light2
-    type: sun
+  - type: sun
     pos: [0.1, 0.6, 0.2]
     scale: 0.01
-  - name: light3
-    type: lamp
+  - type: lamp
     pos: [0.0, 1.0, -1.0]
     dir: [0.0, -1.0, 1.0]
     scale: 0.01
-  - name: light4
-    type: sun
+  - type: sun
     pos: [0.0, 0.05, 1.0]
     scale: 0.01
-  - name: light5
-    type: sun
+  - type: sun
     pos: [1.5, 0.05, 1.0]
     scale: 0.01
-  - name: light6
-    type: sun
+  - type: sun
     pos: [3.0, 0.05, 1.0]
     scale: 0.01
-  - name: nanosuit
-    type: nanosuit
+  - type: nanosuit
+    name: nanosuit
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
     rotate: [0.0, 0.0, 0.0]
@@ -81,8 +66,7 @@ models:
     materials:
       shadow: shadow
       debug: phong_debug
-  - name: nanosuit_ins
-    type: nanosuit
+  - type: nanosuit
     material: phong_ins
     instance:
       - pos: [0.5, 0.0, 0.0]
@@ -138,14 +122,40 @@ pass:
       phong_ins:
       color:
       reflect:
-    out: scene
+    out: [[frame, out, scene]]
   - name: post
     states:
       clear: [color, depth, stencil]
       depth: [true, less]
     posts:
       post:
-        scene: <-scene
+        scene: [[frame, in, scene]]
+  ############ lightmap
+  # - name: shadow
+  #   camera: [[camera, light, test1, 45.0]]
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
+  #   shaders:
+  #     shadow:
+  #   out: shadow
+  # - name: scene
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [true, less]
+  #   shaders:
+  #     phong:
+  #     phong_ins:
+  #     phong_shadow:
+  #       shadow.sampler: [[frame, in, shadow]]
+  #       shadow.matrix: [[matrix, light, test1]]
+  #     color:
+  #     reflect:
+  # - name: sky
+  #   states:
+  #     depth: [true, lesseq]
+  #   shaders:
+  #     sky:
 
 
   # - name: shadow

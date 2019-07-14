@@ -1,3 +1,5 @@
+#pragma warning(once : 4996)
+
 #include <iostream>
 
 #include "glad/glad.h"

@@ -15,17 +15,24 @@ LightProto::ptr LightProto::create(const std::string& name) {
 	LightProto::ptr proto = std::shared_ptr<LightProto>(new LightProto());
 	proto->setName(name);
 
-	proto->_type = conf["type"].as<int>();
 	if (!proto->attrs.updateConf(conf)) {
 		return {};
 	}
+	if (proto->attrs.hasAttr("inner"))
+		proto->_type = LIGHT_SPOT;
+	else if (proto->attrs.hasAttr("constant"))
+		proto->_type = LIGHT_POINT;
+	else
+		proto->_type = LIGHT_DIR;
 
 	return proto;
 }
 
 LightInst::ptr LightInst::create(const proto_ptr& proto, const Config::node& conf) {
 	LightInst::ptr light = std::shared_ptr<LightInst>(new LightInst());
-	light->setName(conf["name"].as<std::string>());
+
+	if (Config::valid(conf["name"]))
+		light->setName(conf["name"].as<std::string>());
 	Config::node pos = conf["pos"];
 	if (pos.IsDefined()) {
 		light->setPos(pos.as<glm::vec3>());

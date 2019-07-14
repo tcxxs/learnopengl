@@ -19,6 +19,74 @@ inline std::string string_format(const std::string& format, Args... args) {
 	return std::string(buf.get(), buf.get() + size - 1);
 }
 
+using strcube = std::array<std::string, 6>;
+namespace YAML {
+template <>
+struct convert<glm::vec3> {
+	static Node encode(const glm::vec3& rhs) {
+		Node node;
+		node.push_back(rhs.x);
+		node.push_back(rhs.y);
+		node.push_back(rhs.z);
+		return node;
+	}
+
+	static bool decode(const Node& node, glm::vec3& rhs) {
+		if (!node.IsSequence() || node.size() != 3) {
+			return false;
+		}
+
+		rhs.x = node[0].as<float>();
+		rhs.y = node[1].as<float>();
+		rhs.z = node[2].as<float>();
+		return true;
+	}
+};
+
+template <>
+struct convert<strcube> {
+	static Node encode(const strcube& rhs) {
+		Node node;
+		for (const auto& it: rhs)
+			node.push_back(it);
+		return node;
+	}
+
+	static bool decode(const Node& node, strcube& rhs) {
+		if (!node.IsSequence() || node.size() != 6) {
+			return false;
+		}
+
+		for (int i = 0; i < 6; ++i)
+			rhs[i] = node[i].as<std::string>();
+		return true;
+	}
+};
+} // namespace YAML
+
+class Config {
+public:
+	using node = YAML::Node;
+	static const node visit(const node& doc, const std::string& path);
+	static std::any guess(const node& doc);
+	inline static bool valid(const node& doc) { return doc.IsDefined() && !doc.IsNull(); }
+	inline static bool generator(const node& doc) { return doc.IsSequence() && doc.size() == 1 && doc[0].IsSequence(); }
+
+	bool load(const std::filesystem::path& path);
+	const node& root() const {
+		return _doc;
+	}
+	inline const node operator[](const std::string& path) const {
+		return visit(_doc, path);
+	}
+
+public:
+	inline static node empty{};
+
+private:
+	node _doc;
+};
+
 class Attributes {
 public:
 	using AttrMap = std::map<std::string, std::any>;
@@ -32,6 +100,7 @@ public:
 	void setAttr(const std::string& key, const std::any& value) {
 		_attrs[key] = value;
 	}
+	bool hasAttr(const std::string& key) const { return _attrs.find(key) != _attrs.end(); }
 	template <typename V>
 	const V& getAttr(const std::string& key) {
 		return std::any_cast<V&>(_attrs[key]);

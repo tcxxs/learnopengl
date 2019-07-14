@@ -5,6 +5,7 @@
 #include "glad/glad.h"
 #include "config.hpp"
 #include "utils/resource.hpp"
+#include "utils/utils.hpp"
 
 class VertexProto;
 class VertexInst: public ResInst<VertexProto, VertexInst> {

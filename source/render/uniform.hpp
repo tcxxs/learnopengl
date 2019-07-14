@@ -4,6 +4,7 @@
 #include "glad/glad.h"
 #include "config.hpp"
 #include "utils/resource.hpp"
+#include "utils/utils.hpp"
 
 class UniformProto;
 class UniformInst: public ResInst<UniformProto, UniformInst> {

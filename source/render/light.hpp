@@ -23,15 +23,21 @@ private:
 
 class LightProto: public ResProto<LightProto, LightInst> {
 public:
+	enum lighttype {
+		LIGHT_DIR = 1,
+		LIGHT_POINT,
+		LIGHT_SPOT,
+	};
 	static ptr create(const std::string& name);
 
-	inline const int getType() const { return _type; }
+	inline const lighttype getType() const { return _type; }
 
 public:
 	Attributes attrs;
+
 private:
 	inline static Config _confs;
-	int _type{0};
+	lighttype _type{LIGHT_DIR};
 };
 
 using LightProtoMgr = ResMgr<LightProto>;
