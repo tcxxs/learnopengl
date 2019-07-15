@@ -28,7 +28,7 @@ models:
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
   - type: land
-    pos: [0.0, -0.1, 0.0]
+    pos: [0.0, -0.3, 0.0]
     scale: 5.0
     material: phong_shadow
   - type: cube
@@ -59,7 +59,7 @@ models:
     name: nanosuit
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
-    material: phong
+    material: phong_shadow
     materials:
       shadow: shadow
       debug: phong_debug
@@ -136,6 +136,7 @@ pass:
     states:
       clear: [color, depth, stencil]
       depth: [true, less]
+      face: front
     shaders:
       shadow:
     out: [[frame, out, shadow]]
@@ -143,6 +144,7 @@ pass:
     states:
       clear: [color, depth, stencil]
       depth: [true, less]
+      face: back
     shaders:
       phong:
       phong_ins:

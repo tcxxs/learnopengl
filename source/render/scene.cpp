@@ -157,7 +157,6 @@ void Scene::draw() {
 		glViewport(0, 0, EventMgr::inst().getWidth(), EventMgr::inst().getHeight());
 		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_BLEND);
-		glEnable(GL_CULL_FACE);
 
 		cmds.clear();
 		it->drawBegin();
