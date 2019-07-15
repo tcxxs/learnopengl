@@ -10,6 +10,9 @@ sun:
 nanosuit:
   file: nanosuit/nanosuit.obj
   material: phong
+aircraft:
+  file: aircraft/aircraft.obj
+  material: phong
 sky:
   file:
     layout: [3, 0, 0]

@@ -9,20 +9,20 @@ cameras:
     pos: [0.0, 1.0, -1.0]
     target: [0.0, -1.0, 1.0]
 lights:
-  - type: spot
+  - type: spot_shadow
     name: light_shadow
-    pos: [-0.1, 0.3, 0.5]
-    dir: [0.0, 0.0, -1.0]
-  - type: point
-    pos: [0.1, 0.6, 0.2]
-  - type: dir
+    pos: [0.2, 1.2, 0.7]
+    dir: [-0.5, -1.0, -1.0]
+  - type: dir_ambient
     dir: [0.0, -1.0, 1.0]
-  - type: point1
-    pos: [0.0, 0.05, 1.0]
-  - type: point2
-    pos: [1.5, 0.05, 1.0]
-  - type: point3
-    pos: [3.0, 0.05, 1.0]
+  # - type: point
+  #   pos: [0.1, 0.6, 0.2]
+  # - type: point1
+  #   pos: [0.0, 0.05, 1.0]
+  # - type: point2
+  #   pos: [1.5, 0.05, 1.0]
+  # - type: point3
+  #   pos: [3.0, 0.05, 1.0]
 models:
   - type: sky
     pos: [0.0, 0.0, 0.0]
@@ -30,16 +30,14 @@ models:
   - type: land
     pos: [0.0, -0.1, 0.0]
     scale: 5.0
-    material: phong
-  - type: cube
-    pos: [0.5, 0.0, 0.0]
-    scale: 0.5
+    material: phong_shadow
   - type: cube
     pos: [0.5, 0.0, 0.0]
     scale: 0.5
   - type: lamp
-    pos: [-0.1, 0.3, 0.5]
-    dir: [0.0, 0.0, -1.0]
+    name: light_shadow
+    pos: [0.2, 1.2, 0.7]
+    dir: [0.5, 1.0, -1.0]
     scale: 0.01
   - type: sun
     pos: [0.1, 0.6, 0.2]
@@ -61,8 +59,7 @@ models:
     name: nanosuit
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
-    rotate: [0.0, 0.0, 0.0]
-    material: phong_shadow
+    material: phong
     materials:
       shadow: shadow
       debug: phong_debug
@@ -71,13 +68,16 @@ models:
     instance:
       - pos: [0.5, 0.0, 0.0]
         scale: 0.05
-        rotate: [0.0, 0.0, 0.0]
       - pos: [1.0, 0.0, 0.0]
         scale: 0.05
-        rotate: [0.0, 0.0, 0.0]
       - pos: [1.5, 0.0, 0.0]
         scale: 0.05
-        rotate: [0.0, 0.0, 0.0]
+  - type: aircraft
+    name: aircraft
+    pos: [-0.3, 0.2, -0.5]
+    scale: 0.1
+    dir: [-1.0, -1.0, -1.0]
+    material: phong_shadow
 frames:
   scene: [texture, depst]
   shadow: [shadow]

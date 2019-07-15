@@ -126,7 +126,7 @@ void ModelInst::_addInstance(const Config::node& conf) {
 	}
 	const Config::node dir = conf["dir"];
 	if (dir.IsDefined()) {
-		glm::mat4 rot = glm::lookAt(pos, pos + dir.as<glm::vec3>(), glm::vec3(0, 1, 0));
+		glm::mat4 rot = glm::lookAt(pos, pos + dir.as<glm::vec3>(), Camera::up);
 		mat = mat * rot;
 	}
 }

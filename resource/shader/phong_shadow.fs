@@ -72,7 +72,7 @@ float shadow_factor() {
     vec3 coords = shadow_scpos.xyz / shadow_scpos.w;
     coords = coords * 0.5 + 0.5;
     float depth = texture(shadow_map, coords.xy).r;
-    return coords.z > depth  ? 1.0 : 0.0;
+    return coords.z > depth  ? 0.0: 1.0;
 }
 
 vec3 calc_dir(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, vec3 specular_color, float shadow_fac) {
