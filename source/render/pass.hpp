@@ -30,8 +30,9 @@ public:
 	using modelvec = std::vector<ModelInst::ptr>;
 	static ptr create(const Config::node& conf, const genfunc& gen);
 
-	inline const std::set<Shader::ptr>& getShaders() const { return _shaders; }
+	inline float getViewScale() const { return _out ? _out->getSize() : 1.0f; }
 	inline const Camera::ptr& getCamera() const { return _cam; }
+	inline const std::set<Shader::ptr>& getShaders() const { return _shaders; }
 
 	void drawBegin();
 	inline void drawEnd() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }

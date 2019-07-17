@@ -2,13 +2,27 @@
 #include "event.hpp"
 #include "utils/utils.hpp"
 
-Frame::ptr Frame::create() {
+Frame::ptr Frame::create(const Config::node& conf) {
 	Frame::ptr frame = std::shared_ptr<Frame>(new Frame());
 
 	glGenFramebuffers(1, &frame->_fbo);
 	if (EventMgr::inst().getMSAA() > 0) {
 		glGenFramebuffers(1, &frame->_fboblit);
 	}
+
+	frame->_size = conf["size"].as<float>(1.0f);
+	for (const auto& it: conf["attach"]) {
+		const std::string& attach = it.as<std::string>();
+		if (attach == "texture")
+			frame->_attachTexture();
+		else if (attach == "depst")
+			frame->_attachDepthStencil();
+		else if (attach == "shadow")
+			frame->_attachShadowMap();
+	}
+	if (!frame->_checkStatus())
+		return {};
+
 	return frame;
 }
 
@@ -33,10 +47,10 @@ Frame::~Frame() {
 	}
 }
 
-bool Frame::attachTexture() {
+bool Frame::_attachTexture() {
 	int msaa = EventMgr::inst().getMSAA();
-	int width = EventMgr::inst().getWidth();
-	int height = EventMgr::inst().getHeight();
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
 
 	GLenum type;
 	if (msaa > 0) {
@@ -82,10 +96,10 @@ bool Frame::attachTexture() {
 	return oglError();
 }
 
-bool Frame::attachDepthStencil() {
+bool Frame::_attachDepthStencil() {
 	int msaa = EventMgr::inst().getMSAA();
-	int width = EventMgr::inst().getWidth();
-	int height = EventMgr::inst().getHeight();
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
 
 	//glGenTextures(1, &_ds);
 	//glBindTexture(GL_TEXTURE_2D, _ds);
@@ -106,10 +120,10 @@ bool Frame::attachDepthStencil() {
 	return oglError();
 }
 
-bool Frame::attachRenderBuffer() {
+bool Frame::_attachRenderBuffer() {
 	int msaa = EventMgr::inst().getMSAA();
-	int width = EventMgr::inst().getWidth();
-	int height = EventMgr::inst().getHeight();
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
 
 	glGenRenderbuffers(1, &_rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, _rbo);
@@ -123,10 +137,10 @@ bool Frame::attachRenderBuffer() {
 	return oglError();
 }
 
-bool Frame::attachShadowMap() {
+bool Frame::_attachShadowMap() {
 	int msaa = EventMgr::inst().getMSAA();
-	int width = EventMgr::inst().getWidth();
-	int height = EventMgr::inst().getHeight();
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
 
 	GLenum type;
 	if (msaa > 0) {
@@ -181,7 +195,7 @@ bool Frame::attachShadowMap() {
 	return oglError();
 }
 
-bool Frame::checkStatus() {
+bool Frame::_checkStatus() {
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 	GLenum ret = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -196,8 +210,8 @@ bool Frame::checkStatus() {
 const Texture::val Frame::getTexture()
 {
 	int msaa = EventMgr::inst().getMSAA();
-	int width = EventMgr::inst().getWidth();
-	int height = EventMgr::inst().getHeight();
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
 
 	if (msaa > 0) {
 		if (_blitdirty) {

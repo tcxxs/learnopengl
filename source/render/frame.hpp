@@ -7,22 +7,25 @@
 
 class Frame: public Res<Frame> {
 public:
-	static ptr create();
+	static ptr create(const Config::node& conf);
 
 	virtual ~Frame();
 
-	bool attachTexture();
-	bool attachDepthStencil();
-	bool attachRenderBuffer();
-	bool attachShadowMap();
-	bool checkStatus();
-
+	inline float getSize() const { return _size; }
 	inline GLuint getFBO() const { return _fbo; }
 	const Texture::val getTexture();
 
 	inline void setDirty() { _blitdirty = true; }
 
 private:
+	bool _attachTexture();
+	bool _attachDepthStencil();
+	bool _attachRenderBuffer();
+	bool _attachShadowMap();
+	bool _checkStatus();
+
+private:
+	float _size{0.0f};
 	GLuint _fbo{0};
 	GLuint _rbo{0}, _tex{0}, _ds{0};
 	GLbitfield _blittype{0};

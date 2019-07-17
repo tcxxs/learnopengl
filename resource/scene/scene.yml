@@ -79,8 +79,10 @@ models:
     dir: [-1.0, -1.0, -1.0]
     material: phong_shadow
 frames:
-  scene: [texture, depst]
-  shadow: [shadow]
+  scene:
+    attach: [texture, depst]
+  shadow:
+    attach: [shadow]
 pass:
   # - name: xxx         #可能会在model的materils中引用
   #   camera: xxx       #cameras中的名字
@@ -158,39 +160,3 @@ pass:
       depth: [true, lesseq]
     shaders:
       sky:
-
-
-  # - name: shadow
-  #   camera: light
-  #   shaders: [shadow]
-  #   out:
-  #     name: shadow
-  #     attach: [shadow]
-  #   states:
-  #     clear: [depth]
-  #     depth: [true, less]
-  # - name: debug
-  #   shaders: [phong_debug]
-  #   post:
-  #   in:
-  #   out:
-  #   states:
-  # - name: sky
-  #   shaders: [sky]
-  #   post:
-  #   in:
-  #   out:
-  #   states:
-  #     depth: [true, lesseq]
-  # - name: grey
-  #   post: grey
-  #   in: [draw]
-  #   states:
-  #     clear: [color, depth, stencil]
-  #     depth: [false]
-  # - name: show
-  #   post: show
-  #   in: [shadow]
-  #   states:
-  #     clear: [color, depth, stencil]
-  #     depth: [false]

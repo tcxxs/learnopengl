@@ -131,19 +131,8 @@ bool Scene::_initFrame(const Config::node& conf) {
 
 	for (const auto& it: conf) {
 		const std::string& name = it.first.as<std::string>();
-		Frame::ptr frame = Frame::create();
+		Frame::ptr frame = Frame::create(it.second);
 		if (!frame)
-			return false;
-		for (const auto& ita: it.second) {
-			const std::string& attach = ita.as<std::string>();
-			if (attach == "texture")
-				frame->attachTexture();
-			else if (attach == "depst")
-				frame->attachDepthStencil();
-			else if (attach == "shadow")
-				frame->attachShadowMap();
-		}
-		if (!frame->checkStatus())
 			return false;
 		_frames[name] = frame;
 	}
@@ -152,9 +141,13 @@ bool Scene::_initFrame(const Config::node& conf) {
 }
 
 void Scene::draw() {
+	int width = EventMgr::inst().getWidth();
+	int height = EventMgr::inst().getHeight();
+	float scale;
 	CommandQueue cmds;
 	for (const auto& it: _pass) {
-		glViewport(0, 0, EventMgr::inst().getWidth(), EventMgr::inst().getHeight());
+		scale = it->getViewScale();
+		glViewport(0, 0, GLsizei(width * scale), GLsizei(height * scale));
 		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_BLEND);
 
