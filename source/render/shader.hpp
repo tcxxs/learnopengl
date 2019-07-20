@@ -50,13 +50,11 @@ public:
 		glUniformMatrix4fv(loc, (GLsizei)var.size(), GL_FALSE, glm::value_ptr(var[0]));
 	}
 	inline void setVar(const GLuint& loc, const Texture::val& var) {
-		glActiveTexture(GL_TEXTURE0 + _tex);
+		glActiveTexture(GL_TEXTURE0 + loc);
 		glBindTexture(var.type, var.tex);
-		glUniform1i(loc, _tex);
-		_tex += 1;
 	}
 	inline void setVars(const Attributes& attrs) {
-		for (const auto& it : attrs) {
+		for (const auto& it: attrs) {
 			setVar(it.first, it.second);
 		}
 	}
@@ -78,7 +76,6 @@ private:
 
 private:
 	GLuint _prog{0};
-	int _tex{0};
 	std::map<std::string, GLuint> _vars;
 	std::map<std::string, VertexInst::ptr> _verts;
 };

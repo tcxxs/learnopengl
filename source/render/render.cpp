@@ -4,6 +4,11 @@
 #include "render/vertex.hpp"
 
 bool Render::init() {
+	if (EventMgr::inst().getDebug()) {
+		glEnable(GL_DEBUG_OUTPUT);
+		glDebugMessageCallback(oglDebug, nullptr);
+		//glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, GL_TRUE);
+	}
 	if (EventMgr::inst().getMSAA())
 		glEnable(GL_MULTISAMPLE);
 

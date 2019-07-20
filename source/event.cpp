@@ -22,6 +22,7 @@ bool Event::_initConfig() {
 		return false;
 	}
 
+	_debug = conf["debug"].as<bool>(false);
 	_fps = conf["fps"].as<int>(60);
 	_width = conf["width"].as<int>(1024);
 	_height = conf["height"].as<int>(768);
@@ -36,6 +37,8 @@ bool Event::_initWindow() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	if (_debug)
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	if (_msaa > 0)
 		glfwWindowHint(GLFW_SAMPLES, _msaa);

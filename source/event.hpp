@@ -20,6 +20,7 @@ public:
 	void onMouse(float xpos, float ypos);
 	void onScroll(float xoffset, float yoffset);
 
+	inline bool getDebug() const { return _debug; }
 	inline int getFPS() const { return _fps; }
 	inline int getWidth() const { return _width; }
 	inline int getHeight() const { return _height; }
@@ -32,6 +33,7 @@ private:
 	bool _initWindow();
 
 private:
+	bool _debug{false};
 	int _fps{0};
 	int _width{0}, _height{0};
 	glm::vec3 _bgcolor{0.0f};

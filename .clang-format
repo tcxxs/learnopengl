@@ -13,3 +13,4 @@ ColumnLimit: 0
 SpaceBeforeInheritanceColon: false
 SpaceBeforeCtorInitializerColon: false
 SpaceBeforeRangeBasedForLoopColon: false
+AllowShortCaseLabelsOnASingleLine: true

@@ -141,13 +141,14 @@ bool Shader::_loadVertex() {
 bool Shader::_loadUniform() {
 	GLint resources;
 	std::string name(50, '\0');
+	GLuint tex{0};
 
-	const GLenum props_uniform[] = {GL_LOCATION};
-	GLint values_uniform[1];
+	const GLenum props_uniform[] = {GL_TYPE, GL_LOCATION};
+	GLint values_uniform[2];
 	glGetProgramInterfaceiv(_prog, GL_UNIFORM, GL_ACTIVE_RESOURCES, &resources);
 	for (int i = 0; i < resources; ++i) {
-		glGetProgramResourceiv(_prog, GL_UNIFORM, i, 1, props_uniform, 1, nullptr, values_uniform);
-		if (values_uniform[0] < 0)
+		glGetProgramResourceiv(_prog, GL_UNIFORM, i, 2, props_uniform, 2, nullptr, values_uniform);
+		if (values_uniform[1] < 0)
 			continue;
 
 		glGetProgramResourceName(_prog, GL_UNIFORM, i, (GLsizei)name.capacity(), nullptr, name.data());
@@ -158,7 +159,17 @@ bool Shader::_loadUniform() {
 			uname = name.c_str();
 		else
 			uname = name.substr(0, pos);
-		_vars.emplace(uname.c_str(), values_uniform[0]);
+
+		// 先分配好texture unit，不然都是默认0但是type不同会出错
+		// TODO: 绑定1x1默认
+		if (values_uniform[0] == GL_SAMPLER_2D || values_uniform[0] == GL_SAMPLER_CUBE) {
+			glProgramUniform1i(_prog, values_uniform[1], tex);
+			_vars.emplace(uname.c_str(), tex);
+			tex += 1;
+		}
+		else {
+			_vars.emplace(uname.c_str(), values_uniform[1]);
+		}
 	}
 
 	const GLenum props_block[]{GL_NUM_ACTIVE_VARIABLES}, props_active[]{GL_BUFFER_DATA_SIZE, GL_ACTIVE_VARIABLES}, props_var[]{GL_OFFSET};
@@ -203,7 +214,6 @@ bool Shader::_loadUniform() {
 
 void Shader::use() {
 	glUseProgram(_prog);
-	_tex = 0;
 }
 
 void Shader::setVar(const GLuint& loc, const std::any& var) {
