@@ -9,10 +9,12 @@ UniformProto::ptr UniformProto::create(const std::string& name, const GLint size
 		}
 	}
 	Config::node conf = _confs[name];
-	if (!conf.IsDefined())
+	if (!Config::valid(conf)) {
+		std::printf("uniforms config not find, %s", name.c_str());
 		return {};
+	}
 
-	UniformProto::ptr proto = std::shared_ptr<UniformProto>(new UniformProto());
+	UniformProto::ptr proto = std::make_shared<UniformProto>();
 	proto->setName(name);
 
 	proto->_size = size;
@@ -35,11 +37,11 @@ UniformProto::ptr UniformProto::create(const std::string& name, const GLint size
 }
 
 UniformInst::ptr UniformInst::create(const proto_ptr& proto) {
-	UniformInst::ptr uniform = std::shared_ptr<UniformInst>(new UniformInst());
+	UniformInst::ptr uniform = std::make_shared<UniformInst>();
 
 	glGenBuffers(1, &uniform->_ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, uniform->_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, proto->getSize(), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, proto->getSize(), nullptr, GL_STATIC_DRAW);
 	void* buff = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	memset(buff, 0, proto->getSize());
 	glUnmapBuffer(GL_UNIFORM_BUFFER);

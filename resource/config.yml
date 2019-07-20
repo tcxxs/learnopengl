@@ -3,3 +3,4 @@ width: 1600
 height: 900
 bgcolor: 0.2, 0.3, 0.3
 msaa: 4
+scene: shadow_point

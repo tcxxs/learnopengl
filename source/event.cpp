@@ -27,6 +27,7 @@ bool Event::_initConfig() {
 	_height = conf["height"].as<int>(768);
 	_bgcolor = conf["bgcolor"].as<glm::vec3>(glm::vec3(0.0f));
 	_msaa = conf["msaa"].as<int>(0);
+	_scene = conf["scene"].as<std::string>();
 	return true;
 }
 
@@ -39,7 +40,7 @@ bool Event::_initWindow() {
 	if (_msaa > 0)
 		glfwWindowHint(GLFW_SAMPLES, _msaa);
 
-	_window = glfwCreateWindow(_width, _height, "LearnOpenGL", NULL, NULL);
+	_window = glfwCreateWindow(_width, _height, "LearnOpenGL", nullptr, nullptr);
 	if (_window == nullptr) {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		return false;

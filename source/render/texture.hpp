@@ -7,8 +7,7 @@
 class Texture: public Res<Texture> {
 public:
 	struct val {
-		val(GLuint t): tex(t){};
-		val(GLenum p, GLuint t): type(p), tex(t){};
+		val(GLuint t, GLenum p = GL_TEXTURE_2D): tex(t), type(p){};
 		GLenum type{GL_TEXTURE_2D};
 		GLuint tex{0};
 	};
@@ -21,7 +20,7 @@ public:
 	static ptr create(const strcube& cube);
 	virtual ~Texture();
 
-	inline const val getValue() const { return {_type, _tex}; }
+	inline const val getValue() const { return {_tex, _type}; }
 
 private:
 	GLuint _tex{0};

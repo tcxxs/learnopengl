@@ -9,10 +9,12 @@ VertexProto::ptr VertexProto::create(const std::string& name) {
 		}
 	}
 	Config::node conf = _confs[name];
-	if (!conf.IsDefined())
+	if (!Config::valid(conf)) {
+		std::printf("vertexs config not find, %s", name.c_str());
 		return {};
+	}
 
-	VertexProto::ptr proto = std::shared_ptr<VertexProto>(new VertexProto());
+	VertexProto::ptr proto = std::make_shared<VertexProto>();
 	proto->setName(name);
 	proto->_bind = _binding;
 	++_binding;
@@ -36,7 +38,7 @@ VertexProto::ptr VertexProto::create(const std::string& name) {
 }
 
 VertexInst::ptr VertexInst::create(const proto_ptr& proto) {
-	VertexInst::ptr vertex = std::shared_ptr<VertexInst>(new VertexInst());
+	VertexInst::ptr vertex = std::make_shared<VertexInst>();
 
 	return vertex;
 }

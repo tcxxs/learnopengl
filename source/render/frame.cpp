@@ -3,7 +3,7 @@
 #include "utils/utils.hpp"
 
 Frame::ptr Frame::create(const Config::node& conf) {
-	Frame::ptr frame = std::shared_ptr<Frame>(new Frame());
+	Frame::ptr frame = std::make_shared<Frame>();
 
 	glGenFramebuffers(1, &frame->_fbo);
 	if (EventMgr::inst().getMSAA() > 0) {
@@ -17,8 +17,10 @@ Frame::ptr Frame::create(const Config::node& conf) {
 			frame->_attachTexture();
 		else if (attach == "depst")
 			frame->_attachDepthStencil();
-		else if (attach == "shadow")
-			frame->_attachShadowMap();
+		else if (attach == "depth")
+			frame->_attachDepth();
+		else if (attach == "depcube")
+			frame->_attachDepthCube();
 	}
 	if (!frame->_checkStatus())
 		return {};
@@ -47,11 +49,24 @@ Frame::~Frame() {
 	}
 }
 
+bool Frame::_checkStatus() {
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	GLenum ret = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if (ret != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "frame use, not complete" << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
 bool Frame::_attachTexture() {
 	int msaa = EventMgr::inst().getMSAA();
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
 
+	_textype = GL_TEXTURE_2D;
 	GLenum type;
 	if (msaa > 0) {
 		type = GL_TEXTURE_2D_MULTISAMPLE;
@@ -65,7 +80,7 @@ bool Frame::_attachTexture() {
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaa, GL_RGBA, width, height, GL_TRUE);
 	}
 	else {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -81,7 +96,7 @@ bool Frame::_attachTexture() {
 		_blittype = GL_COLOR_BUFFER_BIT;
 		glGenTextures(1, &_texblit);
 		glBindTexture(GL_TEXTURE_2D, _texblit);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -103,7 +118,7 @@ bool Frame::_attachDepthStencil() {
 
 	//glGenTextures(1, &_ds);
 	//glBindTexture(GL_TEXTURE_2D, _ds);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
 
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, _ds, 0);
 	//glBindTexture(GL_TEXTURE_2D, 0);
@@ -137,74 +152,57 @@ bool Frame::_attachRenderBuffer() {
 	return oglError();
 }
 
-bool Frame::_attachShadowMap() {
-	int msaa = EventMgr::inst().getMSAA();
+bool Frame::_attachDepth() {
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
 
-	GLenum type;
-	if (msaa > 0) {
-		type = GL_TEXTURE_2D_MULTISAMPLE;
-	}
-	else {
-		type = GL_TEXTURE_2D;
-	}
+	_textype = GL_TEXTURE_2D;
 	glGenTextures(1, &_tex);
-	glBindTexture(type, _tex);
-	if (msaa > 0) {
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaa, GL_DEPTH_COMPONENT, width, height, GL_TRUE);
-	}
-	else {
-		// opengl 4.6，TEXTURE_2D_MULTISAMPLE初始化这几个属性会报错
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	}
+	glBindTexture(GL_TEXTURE_2D, _tex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, type, _tex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _tex, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(type, 0);
-
-	if (msaa > 0) {
-		_blittype = GL_DEPTH_BUFFER_BIT;
-		glGenTextures(1, &_texblit);
-		glBindTexture(GL_TEXTURE_2D, _texblit);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, _fboblit);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _texblit, 0);
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return oglError();
 }
 
-bool Frame::_checkStatus() {
-	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	GLenum ret = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	if (ret != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "frame use, not complete" << std::endl;
-		return false;
-	}
+bool Frame::_attachDepthCube() {
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
+	int size = std::max(width, height);
 
-	return true;
+	_textype = GL_TEXTURE_CUBE_MAP;
+	glGenTextures(1, &_tex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, _tex);
+
+	for (GLuint i = 0; i < 6; ++i)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _tex, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	return oglError();
 }
 
 const Texture::val Frame::getTexture()
@@ -213,7 +211,7 @@ const Texture::val Frame::getTexture()
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
 
-	if (msaa > 0) {
+	if (msaa && _blittype) {
 		if (_blitdirty) {
 			_blitdirty = false;
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo);
@@ -222,9 +220,9 @@ const Texture::val Frame::getTexture()
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		}
-		return {_texblit};
+		return {_texblit, _textype};
 	}
 	else {
-		return {_tex};
+		return {_tex, _textype};
 	}
 }

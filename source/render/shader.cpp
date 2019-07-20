@@ -2,7 +2,7 @@
 #include "render/uniform.hpp"
 
 Shader::ptr Shader::create(const std::string& name) {
-	Shader::ptr shader = std::shared_ptr<Shader>(new Shader());
+	Shader::ptr shader = std::make_shared<Shader>();
 	shader->setName(name);
 
 	if (!shader->_loadProgram())
@@ -39,7 +39,7 @@ bool Shader::_loadShader(const std::string& ext, int type, GLuint& shader) {
 	const char* cstr = content.c_str();
 
 	shader = glCreateShader(type);
-	glShaderSource(shader, 1, &cstr, NULL);
+	glShaderSource(shader, 1, &cstr, nullptr);
 	glCompileShader(shader);
 
 	GLint success;
@@ -47,10 +47,10 @@ bool Shader::_loadShader(const std::string& ext, int type, GLuint& shader) {
 
 	if (!success) {
 		GLchar infoLog[512];
-		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+		glGetShaderInfoLog(shader, 512, nullptr, infoLog);
 		std::cout << "load shader: " << _name
-		          << ", compile fail: \n"
-		          << infoLog << std::endl;
+			<< ", compile fail: \n"
+			<< infoLog << std::endl;
 		return false;
 	}
 
@@ -80,9 +80,9 @@ bool Shader::_loadProgram() {
 	glGetProgramiv(_prog, GL_LINK_STATUS, &success);
 	if (!success) {
 		GLchar infoLog[512];
-		glGetProgramInfoLog(_prog, 512, NULL, infoLog);
+		glGetProgramInfoLog(_prog, 512, nullptr, infoLog);
 		std::cout << "load program, link fail: \n"
-		          << infoLog << std::endl;
+			<< infoLog << std::endl;
 		return false;
 	}
 
@@ -104,11 +104,11 @@ bool Shader::_loadVertex() {
 	GLint values[2];
 	glGetProgramInterfaceiv(_prog, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &resources);
 	for (int i = 0; i < resources; ++i) {
-		glGetProgramResourceiv(_prog, GL_PROGRAM_INPUT, i, 2, props, 2, NULL, values);
+		glGetProgramResourceiv(_prog, GL_PROGRAM_INPUT, i, 2, props, 2, nullptr, values);
 		if (values[0] < 0)
 			continue;
 
-		glGetProgramResourceName(_prog, GL_PROGRAM_INPUT, i, (GLsizei)name.capacity(), NULL, name.data());
+		glGetProgramResourceName(_prog, GL_PROGRAM_INPUT, i, (GLsizei)name.capacity(), nullptr, name.data());
 
 		vertfind = nullptr;
 		for (const auto& it: _verts) {
@@ -146,12 +146,19 @@ bool Shader::_loadUniform() {
 	GLint values_uniform[1];
 	glGetProgramInterfaceiv(_prog, GL_UNIFORM, GL_ACTIVE_RESOURCES, &resources);
 	for (int i = 0; i < resources; ++i) {
-		glGetProgramResourceiv(_prog, GL_UNIFORM, i, 1, props_uniform, 1, NULL, values_uniform);
+		glGetProgramResourceiv(_prog, GL_UNIFORM, i, 1, props_uniform, 1, nullptr, values_uniform);
 		if (values_uniform[0] < 0)
 			continue;
 
-		glGetProgramResourceName(_prog, GL_UNIFORM, i, (GLsizei)name.capacity(), NULL, name.data());
-		_vars.emplace(name.c_str(), values_uniform[0]);
+		glGetProgramResourceName(_prog, GL_UNIFORM, i, (GLsizei)name.capacity(), nullptr, name.data());
+		std::string uname;
+		size_t pos;
+		pos = name.find('[');
+		if (pos == std::string::npos)
+			uname = name.c_str();
+		else
+			uname = name.substr(0, pos);
+		_vars.emplace(uname.c_str(), values_uniform[0]);
 	}
 
 	const GLenum props_block[]{GL_NUM_ACTIVE_VARIABLES}, props_active[]{GL_BUFFER_DATA_SIZE, GL_ACTIVE_VARIABLES}, props_var[]{GL_OFFSET};
@@ -159,8 +166,8 @@ bool Shader::_loadUniform() {
 	GLuint bind{0};
 	glGetProgramInterfaceiv(_prog, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &resources);
 	for (int i = 0; i < resources; ++i) {
-		glGetProgramResourceiv(_prog, GL_UNIFORM_BLOCK, i, 1, props_block, 1, NULL, values_block);
-		glGetProgramResourceName(_prog, GL_UNIFORM_BLOCK, i, (GLsizei)name.capacity(), NULL, name.data());
+		glGetProgramResourceiv(_prog, GL_UNIFORM_BLOCK, i, 1, props_block, 1, nullptr, values_block);
+		glGetProgramResourceName(_prog, GL_UNIFORM_BLOCK, i, (GLsizei)name.capacity(), nullptr, name.data());
 		glUniformBlockBinding(_prog, i, bind);
 		_vars.emplace(name.c_str(), bind);
 		++bind;
@@ -177,10 +184,10 @@ bool Shader::_loadUniform() {
 
 		std::vector<GLint> values_active(values_block[0] + 1);
 		std::map<std::string, GLint> vars;
-		glGetProgramResourceiv(_prog, GL_UNIFORM_BLOCK, i, 2, props_active, values_block[0] + 1, NULL, values_active.data());
+		glGetProgramResourceiv(_prog, GL_UNIFORM_BLOCK, i, 2, props_active, values_block[0] + 1, nullptr, values_active.data());
 		for (int j = 0; j < values_block[0]; ++j) {
-			glGetProgramResourceiv(_prog, GL_UNIFORM, values_active[j + 1], 1, props_var, 1, NULL, values_var);
-			glGetProgramResourceName(_prog, GL_UNIFORM, values_active[j + 1], (GLsizei)name.capacity(), NULL, name.data());
+			glGetProgramResourceiv(_prog, GL_UNIFORM, values_active[j + 1], 1, props_var, 1, nullptr, values_var);
+			glGetProgramResourceName(_prog, GL_UNIFORM, values_active[j + 1], (GLsizei)name.capacity(), nullptr, name.data());
 			pos = name.find(uname + '.');
 			if (pos == 0)
 				vname = name.substr(uname.size() + 1).c_str();
@@ -211,6 +218,9 @@ void Shader::setVar(const GLuint& loc, const std::any& var) {
 	}
 	else if (var.type() == typeid(glm::mat4)) {
 		setVar(loc, std::any_cast<const glm::mat4&>(var));
+	}
+	else if (var.type() == typeid(std::vector<glm::mat4>)) {
+		setVar(loc, std::any_cast<const std::vector<glm::mat4>&>(var));
 	}
 	else if (var.type() == typeid(Texture::val)) {
 		setVar(loc, std::any_cast<const Texture::val&>(var));

@@ -9,10 +9,12 @@ LightProto::ptr LightProto::create(const std::string& name) {
 		}
 	}
 	Config::node conf = _confs[name];
-	if (!conf.IsDefined())
+	if (!Config::valid(conf)) {
+		std::printf("lights config not find, %s", name.c_str());
 		return {};
+	}
 
-	LightProto::ptr proto = std::shared_ptr<LightProto>(new LightProto());
+	LightProto::ptr proto = std::make_shared<LightProto>();
 	proto->setName(name);
 
 	if (!proto->attrs.updateConf(conf)) {
@@ -29,7 +31,7 @@ LightProto::ptr LightProto::create(const std::string& name) {
 }
 
 LightInst::ptr LightInst::create(const proto_ptr& proto, const Config::node& conf) {
-	LightInst::ptr light = std::shared_ptr<LightInst>(new LightInst());
+	LightInst::ptr light = std::make_shared<LightInst>();
 
 	if (Config::valid(conf["name"]))
 		light->setName(conf["name"].as<std::string>());

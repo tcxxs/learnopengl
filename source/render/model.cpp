@@ -9,10 +9,12 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 		}
 	}
 	Config::node conf = _confs[name];
-	if (!conf.IsDefined())
+	if (!Config::valid(conf)) {
+		std::printf("models config not find, %s", name.c_str());
 		return {};
+	}
 
-	ModelProto::ptr model = ModelProto::ptr(new ModelProto());
+	ModelProto::ptr model = std::make_shared<ModelProto>();
 	model->setName(name);
 
 	if (conf["file"].IsScalar()) {
@@ -159,7 +161,7 @@ bool ModelInst::_initMaterial(const Config::node& conf) {
 bool ModelInst::_initInstance() {
 	size_t size = sizeof(glm::mat4);
 	glCreateBuffers(1, &_vbo);
-	glNamedBufferStorage(_vbo, _mats.size() * size, NULL, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+	glNamedBufferStorage(_vbo, _mats.size() * size, nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
 
 	void* data = glMapNamedBuffer(_vbo, GL_WRITE_ONLY);
 	for (int i = 0; i < _mats.size(); ++i) {

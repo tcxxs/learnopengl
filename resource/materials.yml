@@ -54,6 +54,8 @@ reflect:
     ]
 shadow:
   shader: shadow
+shadow_point:
+  shader: shadow_point
 show:
   shader: show
 post:

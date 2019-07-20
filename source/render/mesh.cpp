@@ -1,7 +1,7 @@
 #include "model.hpp"
 
 MeshProto::ptr MeshProto::create(const Config::node& conf) {
-	MeshProto::ptr mesh = std::shared_ptr<MeshProto>(new MeshProto());
+	MeshProto::ptr mesh = std::make_shared<MeshProto>();
 
 	if (!mesh->_loadRaw(conf["file"]))
 		return {};
@@ -10,7 +10,7 @@ MeshProto::ptr MeshProto::create(const Config::node& conf) {
 }
 
 MeshProto::ptr MeshProto::create(const Config::node& conf, const aiMesh* ms, const aiScene* scene) {
-	MeshProto::ptr mesh = std::shared_ptr<MeshProto>(new MeshProto());
+	MeshProto::ptr mesh = std::make_shared<MeshProto>();
 	// mesh->setName(name);
 
 	if (!mesh->_loadVertex(ms))
@@ -135,7 +135,7 @@ bool MeshProto::_loadTexture(const std::filesystem::path& path, const aiMaterial
 }
 
 MeshInst::ptr MeshInst::create(const MeshProto::ptr& proto) {
-	MeshInst::ptr mesh = std::shared_ptr<MeshInst>(new MeshInst());
+	MeshInst::ptr mesh = std::make_shared<MeshInst>();
 
 	return mesh;
 }

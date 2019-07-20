@@ -1,7 +1,7 @@
 #include "camera.hpp"
 
 Camera::ptr Camera::create() {
-	Camera::ptr camera = std::shared_ptr<Camera>(new Camera());
+	Camera::ptr camera = std::make_shared<Camera>();
 	
 	return camera;
 }

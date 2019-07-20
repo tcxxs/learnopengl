@@ -1,0 +1,4 @@
+Checks: "*;-cppcoreguidelines-special-member-functions"
+CheckOptions:
+    - key: cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
+      value: 1

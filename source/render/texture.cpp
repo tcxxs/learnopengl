@@ -4,7 +4,7 @@
 #include "stb/stb_image.h"
 
 Texture::ptr Texture::create(const std::string& name, const std::filesystem::path& path) {
-	Texture::ptr texture = std::shared_ptr<Texture>(new Texture());
+	Texture::ptr texture = std::make_shared<Texture>();
 	texture->setName(name);
 
 	stbi_set_flip_vertically_on_load(true);
@@ -31,7 +31,7 @@ Texture::ptr Texture::create(const std::string& name, const std::filesystem::pat
 }
 
 Texture::ptr Texture::create(const strcube& cube) {
-	Texture::ptr texture = std::shared_ptr<Texture>(new Texture());
+	Texture::ptr texture = std::make_shared<Texture>();
 
 	glGenTextures(1, &texture->_tex);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, texture->_tex);

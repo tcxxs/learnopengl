@@ -22,7 +22,8 @@ int main() {
 		return -1;
 	}
 
-	const Scene::ptr& scene = SceneMgr::inst().create("scene");
+	const std::string& name = EventMgr::inst().getScene();
+	const Scene::ptr& scene = SceneMgr::inst().create(name);
 	if (!scene)
 		return -1;
 	scene->active();

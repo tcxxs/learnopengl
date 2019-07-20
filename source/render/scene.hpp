@@ -11,7 +11,7 @@
 #include "render/uniform.hpp"
 #include "render/pass.hpp"
 
-// TODO: 是不是该有个render context
+// TODO: 鏄笉鏄鏈変釜render context
 class Scene: public Res<Scene> {
 public:
 	using genfunc = std::function<std::any(const Config::node&)>;
@@ -38,7 +38,7 @@ private:
 	bool _initFrame(const Config::node& conf);
 
 	std::any _genCamera(const Config::node& conf);
-	std::any _genMatrixVP(const Config::node& conf);
+	std::any _genLight(const Config::node& conf);
 	std::any _genFrame(const Config::node& conf);
 
 public:

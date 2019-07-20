@@ -10,15 +10,17 @@ Post::ptr Post::create(const std::string& name) {
 		}
 	}
 	Config::node conf = _confs[name];
-	if (!conf.IsDefined())
+	if (!Config::valid(conf)) {
+		std::printf("posts config not find, %s", name.c_str());
 		return {};
+	}
 
 	if (!_vbo) {
 		if (!_initVBO())
 			return {};
 	}
 
-	Post::ptr post = std::shared_ptr<Post>(new Post());
+	Post::ptr post = std::make_shared<Post>();
 	post->setName(name);
 	post->_material = MaterialMgr::inst().req(conf["material"].as<std::string>());
 	if (!post->_material)

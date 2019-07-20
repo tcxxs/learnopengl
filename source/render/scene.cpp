@@ -3,7 +3,7 @@
 #include "render/command.hpp"
 
 Scene::ptr Scene::create(const std::string& name) {
-	Scene::ptr scene = std::shared_ptr<Scene>(new Scene());
+	Scene::ptr scene = std::make_shared<Scene>();
 	scene->setName(name);
 
 	Config conf;
@@ -14,7 +14,7 @@ Scene::ptr Scene::create(const std::string& name) {
 	}
 
 	scene->_cfuncs.emplace("camera", std::bind(&Scene::_genCamera, scene.get(), std::placeholders::_1));
-	scene->_cfuncs.emplace("matvp", std::bind(&Scene::_genMatrixVP, scene.get(), std::placeholders::_1));
+	scene->_cfuncs.emplace("light", std::bind(&Scene::_genLight, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("frame", std::bind(&Scene::_genFrame, scene.get(), std::placeholders::_1));
 	if (!scene->_initFrame(conf["frames"]))
 		return {};
@@ -281,8 +281,8 @@ std::any Scene::_genCamera(const Config::node& conf) {
 	if (conf.size() < 3)
 		return {};
 
-	const std::string& type = conf[1].as<std::string>();
-	const std::string& name = conf[2].as<std::string>();
+	const std::string& name = conf[1].as<std::string>();
+	const std::string& type = conf[2].as<std::string>();
 	if (type == "light") {
 		for (const auto& it: _lights) {
 			if (it->getName() != name)
@@ -304,24 +304,41 @@ std::any Scene::_genCamera(const Config::node& conf) {
 	return {};
 }
 
-std::any Scene::_genMatrixVP(const Config::node& conf) {
+std::any Scene::_genLight(const Config::node& conf) {
 	if (conf.size() < 3)
 		return {};
 
-	const std::string& type = conf[1].as<std::string>();
-	const std::string& name = conf[2].as<std::string>();
-	if (type == "light") {
-		for (const auto& it: _lights) {
-			if (it->getName() != name)
-				continue;
-			if (it->prototype()->getType() != LightProto::LIGHT_SPOT)
-				continue;
+	const std::string& name = conf[1].as<std::string>();
+	const std::string& type = conf[2].as<std::string>();
+	for (const auto& it: _lights) {
+		if (it->getName() != name)
+			continue;
 
-			const glm::vec3 pos = it->getPos();
-			const glm::vec3 dir = it->getDir();
-			glm::mat4 view = glm::lookAt(pos, pos + dir, Camera::up);
-			glm::mat4 proj = glm::perspective(glm::radians(_cam->getFov()), (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight(), PROJ_NEAR, PROJ_FAR);
-			return proj * view;
+		const glm::vec3 pos = it->getPos();
+		const glm::vec3 dir = it->getDir();
+		if (type == "pos") {
+			return pos;
+		}
+		else if (type == "vp") {
+			const float aspect = (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight();
+			glm::mat4 proj, view;
+
+			switch (it->prototype()->getType()) {
+			case LightProto::LIGHT_SPOT:
+				proj = glm::perspective(glm::radians(_cam->getFov()), aspect, PROJ_NEAR, PROJ_FAR);
+				view = glm::lookAt(pos, pos + dir, Camera::up);
+				return proj * view;
+			case LightProto::LIGHT_POINT:
+				std::vector<glm::mat4> mats;
+				proj = glm::perspective(glm::radians(90.0f), aspect, PROJ_NEAR, PROJ_FAR);
+				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+				return mats;
+			}
 		}
 	}
 
@@ -332,8 +349,8 @@ std::any Scene::_genFrame(const Config::node& conf) {
 	if (conf.size() < 3)
 		return {};
 
-	const std::string& type = conf[1].as<std::string>();
-	const std::string& name = conf[2].as<std::string>();
+	const std::string& name = conf[1].as<std::string>();
+	const std::string& type = conf[2].as<std::string>();
 	if (type != "in" && type != "out")
 		return {};
 	const auto& find = _frames.find(name);

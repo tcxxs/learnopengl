@@ -2,7 +2,7 @@
 #include "event.hpp"
 
 Pass::ptr Pass::create(const Config::node& conf, const genfunc& gen) {
-	Pass::ptr pass = std::shared_ptr<Pass>(new Pass());
+	Pass::ptr pass = std::make_shared<Pass>();
 
 	if (!pass->_initConf(conf, gen))
 		return {};
@@ -55,7 +55,7 @@ bool Pass::_initShaderAttrs(const Config::node& conf, const genfunc& gen, const 
 		loc = shader->getVar(name);
 		if (loc < 0) {
 			std::printf("pass %s, shader %s, uniform %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str());
-			return false;
+			continue;
 		}
 
 		if (Config::generator(it.second)) {
@@ -166,11 +166,16 @@ void Pass::_stateDepth(const Config::node& conf) {
 	bool enable = conf[0].as<bool>();
 	GLenum func = GL_LESS;
 	if (enable) {
-		const std::string& arg = conf[1].as<std::string>();
-		if (arg == "less")
+		if (conf.size() > 1) {
+			const std::string& arg = conf[1].as<std::string>();
+			if (arg == "less")
+				func = GL_LESS;
+			else if (arg == "lesseq")
+				func = GL_LEQUAL;
+		}
+		else {
 			func = GL_LESS;
-		else if (arg == "lesseq")
-			func = GL_LEQUAL;
+		}
 	}
 
 	_states.emplace_back([enable, func] {

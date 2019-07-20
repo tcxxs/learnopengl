@@ -24,6 +24,7 @@ public:
 	inline int getWidth() const { return _width; }
 	inline int getHeight() const { return _height; }
 	inline int getMSAA() const { return _msaa; }
+	inline const std::string& getScene() const { return _scene; }
 	inline const glm::vec3& getBGColor() const { return _bgcolor; }
 
 private:
@@ -35,6 +36,7 @@ private:
 	int _width{0}, _height{0};
 	glm::vec3 _bgcolor{0.0f};
 	int _msaa{0};
+	std::string _scene;
 	GLFWwindow* _window{nullptr};
 	float _time_last{0.0f}, _time_delta{0.0f};
 	float _frame_interv{0.0f}, _frame_last{0.0f}, _frame_delta{0.0f};

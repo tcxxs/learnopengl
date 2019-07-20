@@ -10,10 +10,12 @@ Material::ptr Material::create(const std::string& name) {
 		}
 	}
 	Config::node conf = _confs[name];
-	if (!conf.IsDefined())
+	if (!Config::valid(conf)) {
+		std::printf("materials config not find, %s", name.c_str());
 		return {};
+	}
 	
-	Material::ptr mate = std::shared_ptr<Material>(new Material());
+	Material::ptr mate = std::make_shared<Material>();
 	mate->setName(name);
 
 	mate->_shader = ShaderMgr::inst().req(conf["shader"].as<std::string>());

@@ -5,6 +5,8 @@
 #define LIGHT_POINT 2
 #define LIGHT_SPOT 3
 
+#define VIEW_FAR 100.0
+
 struct Material {
     sampler2D diffuse;
     sampler2D specular;
@@ -33,6 +35,10 @@ uniform Scene {
 uniform Lights {
     Light light;
 }lights[LIGHT_MAX];
+
+uniform int shadow_type;
+uniform samplerCube shadow_cube;
+uniform vec3 shadow_pos;
 uniform sampler2D shadow_map;
 
 in VertexAttrs {
@@ -68,13 +74,20 @@ vec3 blinn_specular(vec3 color, float factory, vec3 dir, vec3 normal, vec3 camer
 	return color * specular * fac * factory;
 }
 
-float shadow_factor(vec3 normal, vec3 light) {
+float shadow_point(float bias) {
+    vec3 dir = vertex.pos - shadow_pos; 
+    float depth = texture(shadow_cube, dir).r;
+    depth *= VIEW_FAR;
+
+    return length(dir) - bias > depth  ? 0.0: 1.0;
+}
+
+float shadow_spot(float bias) {
     vec3 coords = shadow_scpos.xyz / shadow_scpos.w;
     coords = coords * 0.5 + 0.5;
     if (coords.z > 1.0)
         return 1.0;
 
-    float bias = max(0.001 * (1.0 - dot(normal, -light)), 0.0005);
     float shadow_total = 0.0;
     vec2 shadow_step = 1.0 / textureSize(shadow_map, 0);
     for(int x = -1; x <= 1; ++x) {
@@ -84,6 +97,14 @@ float shadow_factor(vec3 normal, vec3 light) {
         }
     }
     return shadow_total / 9.0;
+}
+
+float shadow_factor(vec3 normal, vec3 light) {
+    float bias = max(0.001 * (1.0 - dot(normal, -light)), 0.0005);
+    if (shadow_type == LIGHT_POINT)
+        return shadow_point(bias);
+    else if (shadow_type == LIGHT_SPOT)
+        return shadow_spot(bias);
 }
 
 vec3 calc_dir(Light light, vec3 camera_dir, vec3 normal, vec3 diffuse_color, vec3 specular_color) {
