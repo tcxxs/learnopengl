@@ -20,9 +20,12 @@ public:
 	static ptr create(const strcube& cube);
 	virtual ~Texture();
 
+	static GLuint getDefault(const GLenum type);
+
 	inline const val getValue() const { return {_tex, _type}; }
 
 private:
+	inline static std::map<GLenum, GLuint> _defaults;
 	GLuint _tex{0};
 	GLenum _type{0};
 	int _w{0}, _h{0}, _n{0};

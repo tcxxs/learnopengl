@@ -49,8 +49,8 @@ bool Shader::_loadShader(const std::string& ext, int type, GLuint& shader) {
 		GLchar infoLog[512];
 		glGetShaderInfoLog(shader, 512, nullptr, infoLog);
 		std::cout << "load shader: " << _name
-			<< ", compile fail: \n"
-			<< infoLog << std::endl;
+		          << ", compile fail: \n"
+		          << infoLog << std::endl;
 		return false;
 	}
 
@@ -82,7 +82,7 @@ bool Shader::_loadProgram() {
 		GLchar infoLog[512];
 		glGetProgramInfoLog(_prog, 512, nullptr, infoLog);
 		std::cout << "load program, link fail: \n"
-			<< infoLog << std::endl;
+		          << infoLog << std::endl;
 		return false;
 	}
 
@@ -141,10 +141,13 @@ bool Shader::_loadVertex() {
 bool Shader::_loadUniform() {
 	GLint resources;
 	std::string name(50, '\0');
-	GLuint tex{0};
+	std::string uname, vname;
+	size_t pos;
 
 	const GLenum props_uniform[] = {GL_TYPE, GL_LOCATION};
 	GLint values_uniform[2];
+	GLint tex{0};
+	GLenum type{0};
 	glGetProgramInterfaceiv(_prog, GL_UNIFORM, GL_ACTIVE_RESOURCES, &resources);
 	for (int i = 0; i < resources; ++i) {
 		glGetProgramResourceiv(_prog, GL_UNIFORM, i, 2, props_uniform, 2, nullptr, values_uniform);
@@ -152,24 +155,22 @@ bool Shader::_loadUniform() {
 			continue;
 
 		glGetProgramResourceName(_prog, GL_UNIFORM, i, (GLsizei)name.capacity(), nullptr, name.data());
-		std::string uname;
-		size_t pos;
 		pos = name.find('[');
 		if (pos == std::string::npos)
 			uname = name.c_str();
 		else
 			uname = name.substr(0, pos);
 
-		// 先分配好texture unit，不然都是默认0但是type不同会出错
-		// TODO: 绑定1x1默认
-		if (values_uniform[0] == GL_SAMPLER_2D || values_uniform[0] == GL_SAMPLER_CUBE) {
-			glProgramUniform1i(_prog, values_uniform[1], tex);
-			_vars.emplace(uname.c_str(), tex);
+		switch (values_uniform[0]) {
+		case GL_SAMPLER_2D: type = GL_TEXTURE_2D; break;
+		case GL_SAMPLER_CUBE: type = GL_TEXTURE_CUBE_MAP; break;
+		}
+
+		if (type) {
+			_samplers[values_uniform[1]] = std::make_pair(tex, type);
 			tex += 1;
 		}
-		else {
-			_vars.emplace(uname.c_str(), values_uniform[1]);
-		}
+		_vars[uname.c_str()] = values_uniform[1];
 	}
 
 	const GLenum props_block[]{GL_NUM_ACTIVE_VARIABLES}, props_active[]{GL_BUFFER_DATA_SIZE, GL_ACTIVE_VARIABLES}, props_var[]{GL_OFFSET};
@@ -183,8 +184,6 @@ bool Shader::_loadUniform() {
 		_vars.emplace(name.c_str(), bind);
 		++bind;
 
-		std::string uname, vname;
-		size_t pos;
 		pos = name.find('[');
 		if (pos == std::string::npos)
 			uname = name.c_str();
@@ -214,6 +213,10 @@ bool Shader::_loadUniform() {
 
 void Shader::use() {
 	glUseProgram(_prog);
+	for (const auto& it: _samplers) {
+		glBindTextureUnit(it.second.first, Texture::getDefault(it.second.second));
+		glUniform1i(it.first, it.second.first);
+	}
 }
 
 void Shader::setVar(const GLuint& loc, const std::any& var) {

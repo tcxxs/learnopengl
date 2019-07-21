@@ -67,3 +67,24 @@ Texture::~Texture() {
 		_tex = 0;
 	}
 }
+
+GLuint Texture::getDefault(const GLenum type) {
+	GLuint& tex = _defaults[type];
+	if (!tex) {
+		GLfloat data[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+		glCreateTextures(type, 1, &tex);
+		if (type == GL_TEXTURE_2D) {
+			glTextureStorage2D(tex, 1, GL_RGBA8, 1, 1);
+			glTextureSubImage2D(tex, 0, 0, 0, 1, 1, GL_RGBA, GL_FLOAT, data);
+		}
+		else if (type == GL_TEXTURE_CUBE_MAP) {
+			glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
+			for (GLuint i = 0; i < 6; ++i){
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_FLOAT, data);
+			}
+			glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+		}
+	}
+
+	return tex;
+}

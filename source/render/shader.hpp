@@ -50,8 +50,12 @@ public:
 		glUniformMatrix4fv(loc, (GLsizei)var.size(), GL_FALSE, glm::value_ptr(var[0]));
 	}
 	inline void setVar(const GLuint& loc, const Texture::val& var) {
-		glActiveTexture(GL_TEXTURE0 + loc);
-		glBindTexture(var.type, var.tex);
+		const auto& find = _samplers.find(loc);
+		if (find == _samplers.end()) {
+			std::printf("shader set var, texture not found , locale %d", loc);
+			return;
+		}
+		glBindTextureUnit(find->second.first, var.tex);
 	}
 	inline void setVars(const Attributes& attrs) {
 		for (const auto& it: attrs) {
@@ -77,6 +81,7 @@ private:
 private:
 	GLuint _prog{0};
 	std::map<std::string, GLuint> _vars;
+	std::map<GLuint, std::pair<GLuint, GLenum>> _samplers;
 	std::map<std::string, VertexInst::ptr> _verts;
 };
 
