@@ -1,5 +1,4 @@
 #include "frame.hpp"
-#include "event.hpp"
 #include "utils/utils.hpp"
 
 Frame::ptr Frame::create(const Config::node& conf) {

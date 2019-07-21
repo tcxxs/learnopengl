@@ -2,29 +2,26 @@ camera: eye
 cameras:
   eye:
     fov: 45.0
-    pos: [0.0, 1.0, 2.0]
+    pos: [0.0, 1.0, 1.0]
     target: [0.0, 0.0, -1.0]
 lights:
-  # - type: dir_ambient
-  #   dir: [0.0, -1.0, 1.0]
   - type: point
     name: light
-    pos: [0.1, 0.6, 0.2]
+    pos: [-0.2, 0.3, -0.2]
 models:
   - type: sky
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
   - type: land
-    pos: [0.0, -0.3, 0.0]
+    pos: [0.0, -0.5, 0.0]
     scale: 5.0
     material: phong_shadow
-  - type: lamp
-    pos: [0.0, 1.0, -1.0]
-    dir: [0.0, -1.0, 1.0]
-    scale: 0.01
+  - type: land
+    pos: [0.0, 5.0, 0.0]
+    scale: 5.0
+    material: phong_shadow
   - type: sun
-    name: model_point
-    pos: [0.1, 0.6, 0.2]
+    pos: [-0.2, 0.3, -0.2]
     scale: 0.01
   - type: nanosuit
     name: nanosuit
@@ -34,10 +31,12 @@ models:
     materials:
       shadow: shadow_point
   - type: aircraft
-    pos: [-0.3, 0.2, -0.5]
+    pos: [-0.3, 0.0, -0.5]
     scale: 0.1
     dir: [-1.0, -1.0, -1.0]
     material: phong_shadow
+    materials:
+      shadow: shadow_point
 frames:
   scene:
     attach: [texture, depst]
@@ -50,6 +49,7 @@ pass:
     states:
       clear: [color, depth, stencil]
       depth: [true]
+      face: front
     shaders:
       shadow_point:
         light_pos: [[light, light, pos]]

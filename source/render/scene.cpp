@@ -143,11 +143,10 @@ bool Scene::_initFrame(const Config::node& conf) {
 void Scene::draw() {
 	int width = EventMgr::inst().getWidth();
 	int height = EventMgr::inst().getHeight();
-	float scale;
 	CommandQueue cmds;
 	for (const auto& it: _pass) {
-		scale = it->getViewScale();
-		glViewport(0, 0, GLsizei(width * scale), GLsizei(height * scale));
+		std::pair<int, int> view = it->getView();
+		glViewport(0, 0, GLsizei(view.first), GLsizei(view.second));
 		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_BLEND);
 
@@ -330,7 +329,7 @@ std::any Scene::_genLight(const Config::node& conf) {
 				return proj * view;
 			case LightProto::LIGHT_POINT:
 				std::vector<glm::mat4> mats;
-				proj = glm::perspective(glm::radians(90.0f), aspect, PROJ_NEAR, PROJ_FAR);
+				proj = glm::perspective(glm::radians(90.0f), 1.0f, PROJ_NEAR, PROJ_FAR);
 				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
 				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
 				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));

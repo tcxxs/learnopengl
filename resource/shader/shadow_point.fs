@@ -4,13 +4,13 @@
 
 in VertexAttrs {
     vec3 pos;
-}vertex_in;
+}vertex;
 
 uniform vec3 light_pos;
 
 void main()
 {
-    float dis = length(vertex_in.pos - light_pos);
-    dis = dis / 100.0;
+    float dis = length(vertex.pos - light_pos);
+    dis = dis / VIEW_FAR;
     gl_FragDepth = dis;
 }

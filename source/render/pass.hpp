@@ -30,7 +30,12 @@ public:
 	using modelvec = std::vector<ModelInst::ptr>;
 	static ptr create(const Config::node& conf, const genfunc& gen);
 
-	inline float getViewScale() const { return _out ? _out->getSize() : 1.0f; }
+	inline std::pair<int, int> getView() const {
+		if (_out)
+			return _out->getView();
+		else
+			return {EventMgr::inst().getWidth(), EventMgr::inst().getHeight()};
+	}
 	inline const Camera::ptr& getCamera() const { return _cam; }
 	inline const std::set<Shader::ptr>& getShaders() const { return _shaders; }
 
