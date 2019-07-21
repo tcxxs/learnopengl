@@ -66,7 +66,6 @@ pass:
       phong_shadow:
         shadow_type: 2
         shadow_cube: [[frame, shadow_point, in]]
-        shadow_pos: [[light, light, pos]]
       color:
   - name: sky
     states:

@@ -79,19 +79,31 @@ vec3 blinn_specular(vec3 light_color, vec3 light_dir, vec3 normal, vec3 specular
 	return light_color * specular * fac;
 }
 
-float shadow_point(float bias) {
+float shadow_point(vec3 normal, Light light) {
     if (textureSize(shadow_cube, 0).x <= 1) {
         return 1.0;
     }
 
-    vec3 dir = vertex.pos - shadow_pos; 
-    float depth = texture(shadow_cube, dir).r;
-    depth *= VIEW_FAR;
-
-    return length(dir) - bias > depth  ? 0.0: 1.0;
+    vec3 dir = vertex.pos - light.pos;
+    float bias = max(0.001 * (1.0 - dot(normal, -dir)), 0.0005);
+    vec3 shadow_offset[20] = vec3[] (
+    vec3(1,  1,  1), vec3(1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+    vec3(1,  1, -1), vec3(1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+    vec3(1,  1,  0), vec3(1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+    vec3(1,  0,  1), vec3(-1,  0,  1), vec3(1,  0, -1), vec3(-1,  0, -1),
+    vec3(0,  1,  1), vec3(0, -1,  1), vec3(0, -1, -1), vec3(0,  1, -1)
+    );
+    float shadow_total = 0.0;
+    float shadow_step = (1.0 + (length(vertex.pos - scene.camera) / VIEW_FAR)) / (textureSize(shadow_cube, 0).x / 4);
+    for(int i = 0; i < 20; ++i) {
+        float depth = texture(shadow_cube, dir + shadow_offset[i] * shadow_step).r;
+        depth *= VIEW_FAR;
+        shadow_total += length(dir) - bias > depth ? 0.0: 1.0;
+    }
+    return shadow_total / 20.0;
 }
 
-float shadow_spot(float bias) {
+float shadow_spot(vec3 normal, Light light) {
     if (textureSize(shadow_map, 0).x <= 1) {
         return 1.0;
     }
@@ -101,6 +113,8 @@ float shadow_spot(float bias) {
     if (coords.z > 1.0)
         return 1.0;
 
+    vec3 dir = vertex.pos - light.pos;
+    float bias = max(0.001 * (1.0 - dot(normal, -dir)), 0.0005);
     float shadow_total = 0.0;
     vec2 shadow_step = 1.0 / textureSize(shadow_map, 0);
     for(int x = -1; x <= 1; ++x) {
@@ -110,14 +124,6 @@ float shadow_spot(float bias) {
         }
     }
     return shadow_total / 9.0;
-}
-
-float shadow_factor(vec3 normal, vec3 light) {
-    float bias = max(0.001 * (1.0 - dot(normal, -light)), 0.0005);
-    if (shadow_type == LIGHT_POINT)
-        return shadow_point(bias);
-    else if (shadow_type == LIGHT_SPOT)
-        return shadow_spot(bias);
 }
 
 LightArg calc_dir(Light light) {
@@ -168,23 +174,26 @@ void main()
 
 	vec3 color_total = vec3(0.0);
     LightArg light_arg;
+    float shadow_fac;
     for (int i = 0; i < scene.lights; ++i) {
         // TODO: 这里应该用subproduce来优化
         Light light = lights[i].light;
         switch (light.type) {
         case LIGHT_DIR:
             light_arg = calc_dir(light);
+            shadow_fac = 1.0;
             break;
         case LIGHT_POINT:
             light_arg = calc_point(light);
+            shadow_fac = shadow_point(normal, light);
             break;
         case LIGHT_SPOT:
             light_arg = calc_spot(light);
+            shadow_fac = shadow_spot(normal, light);
             break;
         }
 
         if (light_arg.factor > 0) {
-            float shadow_fac = shadow_factor(normal, light_arg.dir);
             vec3 color_per = phong_ambient(light.ambient, diffuse_color) * light_arg.factor;
             if (shadow_fac > 0) {
                 color_per += phong_diffuse(light.diffuse, light_arg.dir, normal, diffuse_color) * light_arg.factor * shadow_fac;
