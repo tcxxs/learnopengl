@@ -4,6 +4,9 @@ lamp:
 land:
   file: land/land.obj
   material: phong
+wall:
+  file: wall/wall.obj
+  material: phong
 sun:
   file: sun/sun.obj
   material: white

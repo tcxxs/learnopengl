@@ -4,6 +4,7 @@ Vertex:
     pos: vec3
     uv: vec2
     normal: vec3
+    tangent: vec3
 Instance:
   divisor: 1
   vars:

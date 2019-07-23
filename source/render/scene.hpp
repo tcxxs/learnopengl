@@ -12,6 +12,7 @@
 #include "render/pass.hpp"
 
 // TODO: 是不是该有个render context
+// TODO: 写插件从blender导出是正路
 class Scene: public Res<Scene> {
 public:
 	using genfunc = std::function<std::any(const Config::node&)>;

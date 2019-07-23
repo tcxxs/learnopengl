@@ -66,9 +66,10 @@ private:
 using VertexProtoMgr = ResMgr<VertexProto>;
 
 struct VertexBase {
-	GLfloat pos[3];
-	GLfloat uv[2];
-	GLfloat normal[3];
+	glm::vec3 pos;
+	glm::vec2 uv;
+	glm::vec3 normal;
+	glm::vec3 tangent;
 };
 
 struct VertexInstance {

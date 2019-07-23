@@ -7,6 +7,7 @@
 in vec3 pos;
 in vec2 uv;
 in vec3 normal;
+in vec3 tangent;
 
 uniform MatrixVP {
     mat4 view;

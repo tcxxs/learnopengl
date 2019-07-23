@@ -44,18 +44,18 @@ bool MeshProto::_loadRaw(const Config::node& conf) {
 	std::vector<VertexBase> verts(_vsize);
 	for (int i = 0; i < _vsize; ++i) {
 		if (_pos > 0) {
-			verts[i].pos[0] = vconf[i * layout].as<float>();
-			verts[i].pos[1] = vconf[i * layout + 1].as<float>();
-			verts[i].pos[2] = vconf[i * layout + 2].as<float>();
+			verts[i].pos.x = vconf[i * layout].as<float>();
+			verts[i].pos.y = vconf[i * layout + 1].as<float>();
+			verts[i].pos.z = vconf[i * layout + 2].as<float>();
 		}
 		if (_uv > 0) {
-			verts[i].uv[0] = vconf[i * layout + _pos].as<float>();
-			verts[i].uv[1] = vconf[i * layout + _pos + 1].as<float>();
+			verts[i].uv.x = vconf[i * layout + _pos].as<float>();
+			verts[i].uv.y = vconf[i * layout + _pos + 1].as<float>();
 		}
 		if (_normal > 0) {
-			verts[i].normal[0] = vconf[i * layout + _pos + _uv].as<float>();
-			verts[i].normal[1] = vconf[i * layout + _pos + _uv + 1].as<float>();
-			verts[i].normal[2] = vconf[i * layout + _pos + _uv + 2].as<float>();
+			verts[i].normal.x = vconf[i * layout + _pos + _uv].as<float>();
+			verts[i].normal.y = vconf[i * layout + _pos + _uv + 1].as<float>();
+			verts[i].normal.z = vconf[i * layout + _pos + _uv + 2].as<float>();
 		}
 	}
 
@@ -78,22 +78,19 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 	_vsize = mesh->mNumVertices;
 	std::vector<VertexBase> verts(_vsize);
 	for (int i = 0; i < _vsize; ++i) {
-		verts[i].pos[0] = mesh->mVertices[i].x;
-		verts[i].pos[1] = mesh->mVertices[i].y;
-		verts[i].pos[2] = mesh->mVertices[i].z;
+		verts[i].pos.x = mesh->mVertices[i].x;
+		verts[i].pos.y = mesh->mVertices[i].y;
+		verts[i].pos.z = mesh->mVertices[i].z;
 		if (_uv > 0) {
-			verts[i].uv[0] = mesh->mTextureCoords[0][i].x;
-			verts[i].uv[1] = mesh->mTextureCoords[0][i].y;
+			verts[i].uv.x = mesh->mTextureCoords[0][i].x;
+			verts[i].uv.y = mesh->mTextureCoords[0][i].y;
 		}
 		if (_normal > 0) {
-			verts[i].normal[0] = mesh->mNormals[i].x;
-			verts[i].normal[1] = mesh->mNormals[i].y;
-			verts[i].normal[2] = mesh->mNormals[i].z;
+			verts[i].normal.x = mesh->mNormals[i].x;
+			verts[i].normal.y = mesh->mNormals[i].y;
+			verts[i].normal.z = mesh->mNormals[i].z;
 		}
 	}
-
-	glCreateBuffers(1, &_vbo);
-	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexBase), verts.data(), GL_DYNAMIC_STORAGE_BIT);
 
 	std::vector<GLuint> inds;
 	for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
@@ -101,6 +98,36 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 		inds.insert(inds.end(), face.mIndices, face.mIndices + face.mNumIndices);
 	}
 	_isize = (int)inds.size();
+
+	std::vector<std::pair<glm::vec3, int>> tangents(_vsize);
+	for (int i = 0; i < inds.size() / 3; ++i) {
+		const VertexBase& v1 = verts[inds[i * 3]];
+		const VertexBase& v2 = verts[inds[i * 3 + 1]];
+		const VertexBase& v3 = verts[inds[i * 3 + 2]];
+		glm::vec3 e1 = v2.pos - v1.pos;
+		glm::vec3 e2 = v3.pos - v1.pos;
+		glm::vec2 d1 = v2.uv - v1.uv;
+		glm::vec2 d2 = v3.uv - v1.uv;
+
+		GLfloat f = 1.0f / (d1.x * d2.y - d2.x * d1.y);
+		glm::vec3 tangent{0.0f};
+		tangent.x = f * (d2.y * e1.x - d1.y * e2.x);
+		tangent.y = f * (d2.y * e1.y - d1.y * e2.y);
+		tangent.z = f * (d2.y * e1.z - d1.y * e2.z);
+		tangent = glm::normalize(tangent);
+
+		for (int j = 0; j < 3; ++j) {
+			tangents[inds[i * 3 + j]].first += tangent;
+			tangents[inds[i * 3 + j]].second += 1;
+		}
+	}
+	for (int i = 0; i < verts.size(); ++i) {
+		verts[i].tangent = tangents[i].first / (float)tangents[i].second;
+	}
+
+	glCreateBuffers(1, &_vbo);
+	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexBase), verts.data(), GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);
+
 	glCreateBuffers(1, &_ibo);
 	glNamedBufferStorage(_ibo, inds.size() * sizeof(GLuint), inds.data(), GL_DYNAMIC_STORAGE_BIT);
 
@@ -111,8 +138,9 @@ bool MeshProto::_loadMaterial(const std::filesystem::path& path, const aiMesh* m
 	aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 	if (!_loadTexture(path, mat, aiTextureType_DIFFUSE, "material.diffuse"))
 		return false;
-	// TODO: specular不一定有，会导致shader采样到随机贴图
 	if (!_loadTexture(path, mat, aiTextureType_SPECULAR, "material.specular"))
+		return false;
+	if (!_loadTexture(path, mat, aiTextureType_HEIGHT, "material.normal"))
 		return false;
 
 	return true;

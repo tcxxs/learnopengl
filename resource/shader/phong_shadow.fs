@@ -8,9 +8,10 @@
 #define VIEW_FAR 100.0
 
 struct Material {
+    float shininess;
     sampler2D diffuse;
     sampler2D specular;
-    float shininess;
+    sampler2D normal;    
 };
 
 struct Light {
@@ -169,8 +170,12 @@ void main()
         specular_enable = true;
         specular_color = texture(material.specular, vertex.uv).rgb;
     }
-    vec3 camera_dir = normalize(scene.camera - vertex.pos);
     vec3 normal = normalize(vertex.normal);
+    if (textureSize(material.normal, 0).x > 1) {
+        normal = texture(material.normal, vertex.uv).rgb;
+        normal = normal * 2.0 - 1.0;
+    }
+    vec3 camera_dir = normalize(scene.camera - vertex.pos);
 
 	vec3 color_total = vec3(0.0);
     LightArg light_arg;
