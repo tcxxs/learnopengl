@@ -51,6 +51,9 @@ in VertexAttrs {
     vec3 pos;
     vec2 uv;
     vec3 normal;
+    vec3 tgpos;
+    vec3 camera;
+    vec3 lights[LIGHT_MAX];
 }vertex;
 in vec4 shadow_scpos;
 out vec4 FragColor;
@@ -80,12 +83,12 @@ vec3 blinn_specular(vec3 light_color, vec3 light_dir, vec3 normal, vec3 specular
 	return light_color * specular * fac;
 }
 
-float shadow_point(vec3 normal, Light light) {
+float shadow_point(vec3 frag_pos, vec3 normal, Light light) {
     if (textureSize(shadow_cube, 0).x <= 1) {
         return 1.0;
     }
 
-    vec3 dir = vertex.pos - light.pos;
+    vec3 dir = frag_pos - light.pos;
     float bias = max(0.001 * (1.0 - dot(normal, -dir)), 0.0005);
     vec3 shadow_offset[20] = vec3[] (
     vec3(1,  1,  1), vec3(1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
@@ -95,7 +98,7 @@ float shadow_point(vec3 normal, Light light) {
     vec3(0,  1,  1), vec3(0, -1,  1), vec3(0, -1, -1), vec3(0,  1, -1)
     );
     float shadow_total = 0.0;
-    float shadow_step = (1.0 + (length(vertex.pos - scene.camera) / VIEW_FAR)) / (textureSize(shadow_cube, 0).x / 4);
+    float shadow_step = (1.0 + (length(frag_pos - scene.camera) / VIEW_FAR)) / (textureSize(shadow_cube, 0).x / 4);
     for(int i = 0; i < 20; ++i) {
         float depth = texture(shadow_cube, dir + shadow_offset[i] * shadow_step).r;
         depth *= VIEW_FAR;
@@ -104,7 +107,7 @@ float shadow_point(vec3 normal, Light light) {
     return shadow_total / 20.0;
 }
 
-float shadow_spot(vec3 normal, Light light) {
+float shadow_spot(vec3 frag_pos, vec3 normal, Light light) {
     if (textureSize(shadow_map, 0).x <= 1) {
         return 1.0;
     }
@@ -114,7 +117,7 @@ float shadow_spot(vec3 normal, Light light) {
     if (coords.z > 1.0)
         return 1.0;
 
-    vec3 dir = vertex.pos - light.pos;
+    vec3 dir = frag_pos - light.pos;
     float bias = max(0.001 * (1.0 - dot(normal, -dir)), 0.0005);
     float shadow_total = 0.0;
     vec2 shadow_step = 1.0 / textureSize(shadow_map, 0);
@@ -127,27 +130,27 @@ float shadow_spot(vec3 normal, Light light) {
     return shadow_total / 9.0;
 }
 
-LightArg calc_dir(Light light) {
+LightArg calc_dir(vec3 frag_pos, Light light) {
     LightArg arg;
     arg.dir = normalize(light.dir);
     return arg;
 }
 
-LightArg calc_point(Light light) {
+LightArg calc_point(vec3 frag_pos, Light light) {
     LightArg arg;
-    arg.dir = normalize(vertex.pos - light.pos);
-    float distance = length(light.pos - vertex.pos);
+    arg.dir = normalize(frag_pos - light.pos);
+    float distance = length(light.pos - frag_pos);
     arg.factor = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
     return arg;
 }
 
-LightArg calc_spot(Light light)
+LightArg calc_spot(vec3 frag_pos, Light light)
 {
     LightArg arg;
-    arg.dir = normalize(vertex.pos - light.pos);
+    arg.dir = normalize(frag_pos - light.pos);
     float theta = dot(arg.dir, normalize(light.dir));
     if(theta > light.outter) {       
-        float distance = length(light.pos - vertex.pos);
+        float distance = length(light.pos - frag_pos);
         float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
         float intensity = clamp((theta - light.outter) / (light.inner - light.outter), 0.0, 1.0);
         arg.factor = attenuation * intensity;
@@ -160,7 +163,10 @@ LightArg calc_spot(Light light)
 
 void main()
 {
-    vec3 diffuse_color = texture(material.diffuse, vertex.uv).rgb;
+    vec3 diffuse_color = vec3(1.0);
+    if (textureSize(material.diffuse, 0).x > 1) {
+        diffuse_color = texture(material.diffuse, vertex.uv).rgb;
+    }
     #if GAMMA_CORRCT
     diffuse_color = pow(diffuse_color, vec3(GAMMA_VAL));
     #endif
@@ -170,12 +176,17 @@ void main()
         specular_enable = true;
         specular_color = texture(material.specular, vertex.uv).rgb;
     }
+    bool normal_enable = false;
     vec3 normal = normalize(vertex.normal);
-    if (textureSize(material.normal, 0).x > 1) {
-        normal = texture(material.normal, vertex.uv).rgb;
-        normal = normal * 2.0 - 1.0;
-    }
+    vec3 frag_pos = vertex.pos;
     vec3 camera_dir = normalize(scene.camera - vertex.pos);
+    if (textureSize(material.normal, 0).x > 1) {
+        normal_enable = true;
+        normal = texture(material.normal, vertex.uv).rgb;
+        normal = normalize(normal * 2.0 - 1.0);
+        frag_pos = vertex.tgpos;
+        camera_dir = normalize(vertex.camera - vertex.tgpos);
+    }
 
 	vec3 color_total = vec3(0.0);
     LightArg light_arg;
@@ -183,18 +194,21 @@ void main()
     for (int i = 0; i < scene.lights; ++i) {
         // TODO: 这里应该用subproduce来优化
         Light light = lights[i].light;
+        if (normal_enable)
+            light.pos = vertex.lights[i];
+
         switch (light.type) {
         case LIGHT_DIR:
-            light_arg = calc_dir(light);
+            light_arg = calc_dir(frag_pos, light);
             shadow_fac = 1.0;
             break;
         case LIGHT_POINT:
-            light_arg = calc_point(light);
-            shadow_fac = shadow_point(normal, light);
+            light_arg = calc_point(frag_pos, light);
+            shadow_fac = shadow_point(frag_pos, normal, light);
             break;
         case LIGHT_SPOT:
-            light_arg = calc_spot(light);
-            shadow_fac = shadow_spot(normal, light);
+            light_arg = calc_spot(frag_pos, light);
+            shadow_fac = shadow_spot(frag_pos, normal, light);
             break;
         }
 

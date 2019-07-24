@@ -59,6 +59,27 @@ bool MeshProto::_loadRaw(const Config::node& conf) {
 		}
 	}
 
+	for (int i = 0; i < _vsize / 3; ++i) {
+		const VertexBase& v1 = verts[i * 3];
+		const VertexBase& v2 = verts[i * 3 + 1];
+		const VertexBase& v3 = verts[i * 3 + 2];
+		glm::vec3 e1 = v2.pos - v1.pos;
+		glm::vec3 e2 = v3.pos - v1.pos;
+		glm::vec2 d1 = v2.uv - v1.uv;
+		glm::vec2 d2 = v3.uv - v1.uv;
+
+		GLfloat f = 1.0f / (d1.x * d2.y - d2.x * d1.y);
+		glm::vec3 tangent{0.0f};
+		tangent.x = f * (d2.y * e1.x - d1.y * e2.x);
+		tangent.y = f * (d2.y * e1.y - d1.y * e2.y);
+		tangent.z = f * (d2.y * e1.z - d1.y * e2.z);
+		tangent = glm::normalize(tangent);
+
+		for (int j = 0; j < 3; ++j) {
+			verts[i * 3 + j].tangent = tangent;
+		}
+	}
+
 	glCreateBuffers(1, &_vbo);
 	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexBase), verts.data(), GL_DYNAMIC_STORAGE_BIT);
 
