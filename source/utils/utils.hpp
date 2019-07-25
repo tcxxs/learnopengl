@@ -20,6 +20,25 @@ inline std::string string_format(const std::string& format, Args... args) {
 	return std::string(buf.get(), buf.get() + size - 1);
 }
 
+class Logger {
+public:
+	inline static void enable(const std::string& type) {
+		_filter.insert(type);
+	}
+
+	template <typename... Args>
+	inline static void debug(const std::string& type, const std::string& format, Args... args) {
+		if (_filter.count(type) <= 0)
+			return;
+
+		std::string fmt = string_format("[%s] %s\n", type.c_str(), format.c_str());
+		std::printf(fmt.c_str(), args...);
+	}
+
+private:
+	inline static std::set<std::string> _filter;
+};
+
 using strcube = std::array<std::string, 6>;
 namespace YAML {
 template <>

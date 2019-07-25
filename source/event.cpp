@@ -22,6 +22,9 @@ bool Event::_initConfig() {
 		return false;
 	}
 
+	for (const auto& it: conf["log"]) {
+		Logger::enable(it.as<std::string>());
+	}
 	_debug = conf["debug"].as<bool>(false);
 	_fps = conf["fps"].as<int>(60);
 	_width = conf["width"].as<int>(1024);

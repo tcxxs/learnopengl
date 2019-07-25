@@ -7,7 +7,9 @@
 #include "config.hpp"
 #include "event.hpp"
 #include "utils/resource.hpp"
+#include "utils/utils.hpp"
 
+// TODO: 由于up一直是+y轴，所以镜头往下空翻的时候，会有点奇怪
 class Camera: public Res<Camera> {
 public:
 	static ptr create();
@@ -89,7 +91,7 @@ private:
 		_front.z = sin(_yaw) * cos(_pitch);
 		_front = glm::normalize(_front);
 
-		//std::cout << _yaw << "->" << glm::to_string(_front) << std::endl;
+		Logger::debug("camera", "%.2fyaw, %.2fpitch -> %s", _yaw, _pitch, glm::to_string(_front).c_str());
 	}
 
 public:
