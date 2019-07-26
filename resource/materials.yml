@@ -2,8 +2,8 @@ phong:
   shader: phong
   vars:
     material.specular_factor: 32.0
-phong_shadow:
-  shader: phong_shadow
+tangent:
+  shader: tangent
   vars:
     material.specular_factor: 32.0
 phong_ins:

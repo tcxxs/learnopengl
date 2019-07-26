@@ -12,22 +12,22 @@ models:
   - type: cube
     pos: [-0.5, 0.3, 0.0]
     scale: 0.1
-    material: phong_shadow
+    material: tangent
   - type: sky
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
   - type: wall
     pos: [0.0, -0.3, 0.0]
     scale: 1.0
-    material: phong_shadow
+    material: tangent
   - type: land
     pos: [0.0, -0.5, 0.0]
     scale: 5.0
-    material: phong_shadow
+    material: tangent
   - type: land
     pos: [0.0, 5.0, 0.0]
     scale: 5.0
-    material: phong_shadow
+    material: tangent
   - type: sun
     pos: [-0.2, 0.3, -0.2]
     scale: 0.01
@@ -35,14 +35,14 @@ models:
     name: nanosuit
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
-    material: phong_shadow
+    material: tangent
     materials:
       shadow: shadow_point
   - type: aircraft
     pos: [-0.3, 0.0, -0.5]
     scale: 0.1
     dir: [-1.0, -1.0, -1.0]
-    material: phong_shadow
+    material: tangent
     materials:
       shadow: shadow_point
 frames:
@@ -71,7 +71,7 @@ pass:
     shaders:
       phong:
       phong_ins:
-      phong_shadow:
+      tangent:
         shadow_type: 2
         shadow_cube: [[frame, shadow_point, in]]
       color:
