@@ -6,7 +6,7 @@ tangent:
   shader: tangent
   vars:
     material.specular_factor: 32.0
-    material.displace_factor: 0.02
+    material.displace_factor: 0.1
 phong_ins:
   shader: phong_ins
   vars:

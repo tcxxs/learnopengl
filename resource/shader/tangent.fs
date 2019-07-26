@@ -131,9 +131,29 @@ void check_displace() {
     if (!calc.tex.normal || !calc.tex.displace)
         return;
 
-    float displace =  texture(material.displace, vertex.uv).r;                                                                                                                         
-    vec2 scale = calc.camdir.xy / calc.camdir.z * (displace * material.displace_factor);
-    calc.uv = vertex.uv - scale;
+    const float layer_min = 8;
+    const float layer_max = 32;
+    float layers = mix(layer_max, layer_min, abs(dot(vec3(0.0, 0.0, 1.0), calc.camdir)));
+    float delta_depth = 1.0 / layers;
+    vec2 view = calc.camdir.xy * material.displace_factor; 
+    vec2 delta_uv = view / layers;
+
+    float check_depth = 0.0;
+    vec2  cur_uv = vertex.uv;
+    float cur_depth = texture(material.displace, cur_uv).r;
+    float prev_depth = cur_depth;
+    while(check_depth < cur_depth)
+    {
+        prev_depth = cur_depth;
+        cur_uv -= delta_uv;
+        cur_depth = texture(material.displace, cur_uv).r;  
+        check_depth += delta_depth;  
+    }
+
+    float after  = cur_depth - check_depth;
+    float before = prev_depth - check_depth + delta_depth;
+    float weight = after / (after - before);
+    calc.uv = (cur_uv + delta_uv) * weight + cur_uv * (1.0 - weight);
 }
 
 void sample_texture() {
