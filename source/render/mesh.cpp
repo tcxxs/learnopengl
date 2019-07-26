@@ -102,6 +102,9 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 		verts[i].pos.x = mesh->mVertices[i].x;
 		verts[i].pos.y = mesh->mVertices[i].y;
 		verts[i].pos.z = mesh->mVertices[i].z;
+		verts[i].tangent.x = mesh->mTangents[i].x;
+		verts[i].tangent.y = mesh->mTangents[i].y;
+		verts[i].tangent.z = mesh->mTangents[i].z;
 		if (_uv > 0) {
 			verts[i].uv.x = mesh->mTextureCoords[0][i].x;
 			verts[i].uv.y = mesh->mTextureCoords[0][i].y;
@@ -119,32 +122,6 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 		inds.insert(inds.end(), face.mIndices, face.mIndices + face.mNumIndices);
 	}
 	_isize = (int)inds.size();
-
-	std::vector<std::pair<glm::vec3, int>> tangents(_vsize);
-	for (int i = 0; i < inds.size() / 3; ++i) {
-		const VertexBase& v1 = verts[inds[i * 3]];
-		const VertexBase& v2 = verts[inds[i * 3 + 1]];
-		const VertexBase& v3 = verts[inds[i * 3 + 2]];
-		glm::vec3 e1 = v2.pos - v1.pos;
-		glm::vec3 e2 = v3.pos - v1.pos;
-		glm::vec2 d1 = v2.uv - v1.uv;
-		glm::vec2 d2 = v3.uv - v1.uv;
-
-		GLfloat f = 1.0f / (d1.x * d2.y - d2.x * d1.y);
-		glm::vec3 tangent{0.0f};
-		tangent.x = f * (d2.y * e1.x - d1.y * e2.x);
-		tangent.y = f * (d2.y * e1.y - d1.y * e2.y);
-		tangent.z = f * (d2.y * e1.z - d1.y * e2.z);
-		tangent = glm::normalize(tangent);
-
-		for (int j = 0; j < 3; ++j) {
-			tangents[inds[i * 3 + j]].first += tangent;
-			tangents[inds[i * 3 + j]].second += 1;
-		}
-	}
-	for (int i = 0; i < verts.size(); ++i) {
-		verts[i].tangent = tangents[i].first / (float)tangents[i].second;
-	}
 
 	glCreateBuffers(1, &_vbo);
 	glNamedBufferStorage(_vbo, verts.size() * sizeof(VertexBase), verts.data(), GL_DYNAMIC_STORAGE_BIT | GL_MAP_WRITE_BIT);

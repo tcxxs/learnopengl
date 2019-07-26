@@ -35,7 +35,7 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 bool ModelProto::_loadAssimp(const Config::node& conf) {
 	std::string name = conf["file"].as<std::string>();
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / name;
-	const aiScene* scene = _imp.ReadFile(path.string(), aiProcess_Triangulate);
+	const aiScene* scene = _imp.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_CalcTangentSpace);
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 		std::cout << "model assimp error, " << _imp.GetErrorString() << std::endl;
 		return false;

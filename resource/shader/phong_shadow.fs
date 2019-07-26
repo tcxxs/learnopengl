@@ -8,10 +8,12 @@
 #define VIEW_FAR 100.0
 
 struct Material {
-    float shininess;
     sampler2D diffuse;
+    float specular_factor;
     sampler2D specular;
-    sampler2D normal;    
+    sampler2D normal;
+    float displace_factor;
+    sampler2D displace;
 };
 
 struct Light {
@@ -28,10 +30,37 @@ struct Light {
     float outter;
 };
 
-struct LightArg {
-    vec3 dir;
-    float factor;
+struct TextureArg {
+    bool diffuse;
+    bool specular;
+    bool normal;
+    bool displace;
 };
+
+struct ColorArg {
+    vec3 diffuse;
+    vec3 specular;
+};
+
+struct LightArg {
+    int ind;
+    vec3 pos;
+    vec3 dir;
+    vec3 indir;
+    float factor;
+    float shadow;
+};
+
+struct CalcArg {
+    vec3 pos;
+    vec2 uv;
+    vec3 normal;
+    vec3 camera;
+    vec3 camdir;
+    TextureArg tex;
+    ColorArg color;
+    LightArg light;
+}calc;
 
 uniform Material material;
 uniform Scene {
@@ -51,10 +80,13 @@ in VertexAttrs {
     vec3 pos;
     vec2 uv;
     vec3 normal;
-    vec3 tgpos;
-    vec3 camera;
-    vec3 lights[LIGHT_MAX];
 }vertex;
+in TangentAttrs {
+    vec3 pos;
+    vec3 camera;
+    vec3 ltpos[LIGHT_MAX];
+    vec3 ltdir[LIGHT_MAX];
+}tangent;
 in vec4 shadow_scpos;
 out vec4 FragColor;
 
@@ -62,34 +94,100 @@ out vec4 FragColor;
 #define GAMMA_CORRCT 1
 #define GAMMA_VAL 2.2
 
-vec3 phong_ambient(vec3 light_color, vec3 diffuse) {
-    return light_color * diffuse;
+void init_calc() {
+    calc.pos = vertex.pos;
+    calc.uv = vertex.uv;
+    calc.normal = vertex.normal;
+    calc.camera = scene.camera;
+
+    calc.tex.diffuse = false;
+    if (textureSize(material.diffuse, 0).x > 1) {
+        calc.tex.diffuse = true;
+    }
+    calc.tex.specular = false;
+    if (textureSize(material.specular, 0).x > 1) {
+        calc.tex.specular = true;
+    }
+    calc.tex.normal = false;
+    if (textureSize(material.normal, 0).x > 1) {
+        calc.tex.normal = true;
+    }
+    calc.tex.displace = false;
+    if (textureSize(material.displace, 0).x > 1) {
+        calc.tex.displace = true;
+    }
 }
 
-vec3 phong_diffuse(vec3 light_color, vec3 light_dir, vec3 normal, vec3 diffuse) {
-    float fac = max(dot(-light_dir, normal), 0.0);
-	return light_color * diffuse * fac;
-}
-
-vec3 phong_specular(vec3 light_color, vec3 light_dir, vec3 normal, vec3 specular, vec3 camera_dir) {
-    vec3 reflect_dir = reflect(light_dir, normal);
-    float fac = pow(max(dot(camera_dir, reflect_dir), 0.0), material.shininess);
-	return light_color * specular * fac;
-}
-
-vec3 blinn_specular(vec3 light_color, vec3 light_dir, vec3 normal, vec3 specular, vec3 camera_dir) {
-    vec3 halfdir = normalize(-light_dir + camera_dir);
-    float fac = pow(max(dot(halfdir, normal), 0.0), material.shininess);
-	return light_color * specular * fac;
-}
-
-float shadow_point(vec3 frag_pos, vec3 normal, Light light) {
-    if (textureSize(shadow_cube, 0).x <= 1) {
-        return 1.0;
+void check_tangent() {
+    if (calc.tex.normal) {
+        calc.pos = tangent.pos;
+        calc.camera = tangent.camera;
     }
 
-    vec3 dir = frag_pos - light.pos;
-    float bias = max(0.001 * (1.0 - dot(normal, -dir)), 0.0005);
+    calc.camdir = normalize(calc.camera - calc.pos);
+}
+
+void check_displace() {
+    if (!calc.tex.normal || !calc.tex.displace)
+        return;
+
+    float displace =  texture(material.displace, vertex.uv).r;                                                                                                                         
+    vec2 scale = calc.camdir.xy / calc.camdir.z * (displace * material.displace_factor);
+    calc.uv = vertex.uv - scale;
+}
+
+void sample_texture() {
+    calc.color.diffuse = vec3(1.0);
+    if (calc.tex.diffuse) {
+        calc.color.diffuse = texture(material.diffuse, calc.uv).rgb;
+    }
+    #if GAMMA_CORRCT
+    calc.color.diffuse = pow(calc.color.diffuse, vec3(GAMMA_VAL));
+    #endif
+
+    calc.color.specular = vec3(0.0);
+    if (calc.tex.specular) {
+        calc.color.specular = texture(material.specular, calc.uv).rgb;
+    }
+
+    if (calc.tex.normal) {
+        calc.normal = texture(material.normal, calc.uv).rgb;
+        calc.normal = normalize(calc.normal * 2.0 - 1.0);
+    }
+}
+
+void calc_dir(Light light) {
+    calc.light.indir = normalize(calc.light.dir);
+}
+
+void calc_point(Light light) {
+    calc.light.indir = normalize(calc.pos - calc.light.pos);
+    float distance = length(calc.pos - calc.light.pos);
+    calc.light.factor = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+}
+
+void calc_spot(Light light)
+{
+    calc.light.indir = normalize(calc.pos - calc.light.pos);
+    float theta = dot(calc.light.indir, normalize(calc.light.dir));
+    if(theta > light.outter) {       
+        float distance = length(calc.pos - calc.light.pos);
+        float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
+        float intensity = clamp((theta - light.outter) / (light.inner - light.outter), 0.0, 1.0);
+        calc.light.factor = attenuation * intensity;
+    }
+    else {
+        calc.light.factor = 0.0;
+    }
+}
+
+void shadow_point(Light light) {
+    if (textureSize(shadow_cube, 0).x <= 1) {
+        calc.light.shadow = 1.0;
+        return;
+    }
+
+    float bias = max(0.001 * (1.0 - dot(calc.normal, -calc.light.indir)), 0.0005);
     vec3 shadow_offset[20] = vec3[] (
     vec3(1,  1,  1), vec3(1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
     vec3(1,  1, -1), vec3(1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
@@ -98,27 +196,34 @@ float shadow_point(vec3 frag_pos, vec3 normal, Light light) {
     vec3(0,  1,  1), vec3(0, -1,  1), vec3(0, -1, -1), vec3(0,  1, -1)
     );
     float shadow_total = 0.0;
-    float shadow_step = (1.0 + (length(frag_pos - scene.camera) / VIEW_FAR)) / (textureSize(shadow_cube, 0).x / 4);
-    for(int i = 0; i < 20; ++i) {
-        float depth = texture(shadow_cube, dir + shadow_offset[i] * shadow_step).r;
-        depth *= VIEW_FAR;
-        shadow_total += length(dir) - bias > depth ? 0.0: 1.0;
+    float shadow_step = (1.0 + (length(calc.camdir) / VIEW_FAR)) / (textureSize(shadow_cube, 0).x / 4);
+    // 不用normalize，因为要算长度
+    vec3 texdir = calc.pos - calc.light.pos;
+    if (calc.tex.normal) {
+        // cubemap由需要用世界坐标系采样
+        texdir = vertex.pos - lights[calc.light.ind].light.pos;
     }
-    return shadow_total / 20.0;
+    for(int i = 0; i < 20; ++i) {
+        float depth = texture(shadow_cube, (texdir + shadow_offset[i] * shadow_step)).r * VIEW_FAR;
+        shadow_total += length(texdir) - bias > depth ? 0.0: 1.0;
+    }
+    calc.light.shadow = shadow_total / 20.0;
 }
 
-float shadow_spot(vec3 frag_pos, vec3 normal, Light light) {
+void shadow_spot(Light light) {
     if (textureSize(shadow_map, 0).x <= 1) {
-        return 1.0;
+        calc.light.shadow = 1.0;
+        return;
     }
 
     vec3 coords = shadow_scpos.xyz / shadow_scpos.w;
     coords = coords * 0.5 + 0.5;
-    if (coords.z > 1.0)
-        return 1.0;
+    if (coords.z > 1.0) {
+        calc.light.shadow = 1.0;
+        return;
+    }
 
-    vec3 dir = frag_pos - light.pos;
-    float bias = max(0.001 * (1.0 - dot(normal, -dir)), 0.0005);
+    float bias = max(0.001 * (1.0 - dot(calc.normal, -calc.light.indir)), 0.0005);
     float shadow_total = 0.0;
     vec2 shadow_step = 1.0 / textureSize(shadow_map, 0);
     for(int x = -1; x <= 1; ++x) {
@@ -127,101 +232,79 @@ float shadow_spot(vec3 frag_pos, vec3 normal, Light light) {
             shadow_total += coords.z - bias > depth  ? 0.0: 1.0;
         }
     }
-    return shadow_total / 9.0;
+    calc.light.shadow = shadow_total / 9.0;
 }
 
-LightArg calc_dir(vec3 frag_pos, Light light) {
-    LightArg arg;
-    arg.dir = normalize(light.dir);
-    return arg;
+vec3 phong_ambient(vec3 light_color) {
+    return light_color * calc.color.diffuse;
 }
 
-LightArg calc_point(vec3 frag_pos, Light light) {
-    LightArg arg;
-    arg.dir = normalize(frag_pos - light.pos);
-    float distance = length(light.pos - frag_pos);
-    arg.factor = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-    return arg;
+vec3 phong_diffuse(vec3 light_color) {
+    float fac = max(dot(-calc.light.indir, calc.normal), 0.0);
+	return light_color * calc.color.diffuse * fac;
 }
 
-LightArg calc_spot(vec3 frag_pos, Light light)
-{
-    LightArg arg;
-    arg.dir = normalize(frag_pos - light.pos);
-    float theta = dot(arg.dir, normalize(light.dir));
-    if(theta > light.outter) {       
-        float distance = length(light.pos - frag_pos);
-        float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-        float intensity = clamp((theta - light.outter) / (light.inner - light.outter), 0.0, 1.0);
-        arg.factor = attenuation * intensity;
+vec3 phong_specular(vec3 light_color) {
+    vec3 reflect_dir = reflect(calc.light.indir, calc.normal);
+    float fac = pow(max(dot(calc.camdir, reflect_dir), 0.0), material.specular_factor);
+	return light_color * calc.color.specular * fac;
+}
+
+vec3 blinn_specular(vec3 light_color) {
+    vec3 halfdir = normalize(-calc.light.indir + calc.camdir);
+    float fac = pow(max(dot(halfdir, calc.normal), 0.0), material.specular_factor);
+	return light_color * calc.color.specular * fac;
+}
+
+vec3 phong_calc(Light light) {
+    // TODO: 这里应该用subproduce来优化
+    switch (light.type) {
+    case LIGHT_DIR:
+        calc_dir(light);
+        break;
+    case LIGHT_POINT:
+        calc_point(light);
+        shadow_point(light);
+        break;
+    case LIGHT_SPOT:
+        calc_spot(light);
+        shadow_spot(light);
+        break;
     }
-    else {
-        arg.factor = 0.0;
-    }
-    return arg;
+
+    vec3 color = vec3(0.0);
+    if (calc.light.factor <= 0)
+        return color;
+    color += phong_ambient(light.ambient) * calc.light.factor;
+    if (calc.light.shadow <= 0)
+        return color;
+    color += phong_diffuse(light.diffuse) * calc.light.factor * calc.light.shadow;
+    if (!calc.tex.specular)
+        return color;
+    color += SPECULAR_FUNC(light.specular) * calc.light.factor * calc.light.shadow;
+    return color;
 }
 
 void main()
 {
-    vec3 diffuse_color = vec3(1.0);
-    if (textureSize(material.diffuse, 0).x > 1) {
-        diffuse_color = texture(material.diffuse, vertex.uv).rgb;
-    }
-    #if GAMMA_CORRCT
-    diffuse_color = pow(diffuse_color, vec3(GAMMA_VAL));
-    #endif
-    bool specular_enable = false;
-    vec3 specular_color = vec3(0.0);
-    if (textureSize(material.specular, 0).x > 1) {
-        specular_enable = true;
-        specular_color = texture(material.specular, vertex.uv).rgb;
-    }
-    bool normal_enable = false;
-    vec3 normal = normalize(vertex.normal);
-    vec3 frag_pos = vertex.pos;
-    vec3 camera_dir = normalize(scene.camera - vertex.pos);
-    if (textureSize(material.normal, 0).x > 1) {
-        normal_enable = true;
-        normal = texture(material.normal, vertex.uv).rgb;
-        normal = normalize(normal * 2.0 - 1.0);
-        frag_pos = vertex.tgpos;
-        camera_dir = normalize(vertex.camera - vertex.tgpos);
-    }
+    init_calc();
+    check_tangent();
+    check_displace();
+    sample_texture();
 
 	vec3 color_total = vec3(0.0);
-    LightArg light_arg;
-    float shadow_fac;
     for (int i = 0; i < scene.lights; ++i) {
-        // TODO: 这里应该用subproduce来优化
-        Light light = lights[i].light;
-        if (normal_enable)
-            light.pos = vertex.lights[i];
-
-        switch (light.type) {
-        case LIGHT_DIR:
-            light_arg = calc_dir(frag_pos, light);
-            shadow_fac = 1.0;
-            break;
-        case LIGHT_POINT:
-            light_arg = calc_point(frag_pos, light);
-            shadow_fac = shadow_point(frag_pos, normal, light);
-            break;
-        case LIGHT_SPOT:
-            light_arg = calc_spot(frag_pos, light);
-            shadow_fac = shadow_spot(frag_pos, normal, light);
-            break;
+        calc.light.ind = i;
+        calc.light.pos = lights[i].light.pos;
+        calc.light.dir = lights[i].light.dir;
+        calc.light.indir = vec3(0.0);
+        calc.light.factor = 1.0;
+        calc.light.shadow = 1.0;
+        if (calc.tex.normal) {
+            calc.light.pos = tangent.ltpos[i];
+            calc.light.dir = tangent.ltdir[i];
         }
-
-        if (light_arg.factor > 0) {
-            vec3 color_per = phong_ambient(light.ambient, diffuse_color) * light_arg.factor;
-            if (shadow_fac > 0) {
-                color_per += phong_diffuse(light.diffuse, light_arg.dir, normal, diffuse_color) * light_arg.factor * shadow_fac;
-                if (specular_enable) {
-                    color_per += SPECULAR_FUNC(light.specular, light_arg.dir, normal, specular_color, camera_dir) * light_arg.factor * shadow_fac;
-                }
-            }
-            color_total += color_per;
-        }
+        color_total += phong_calc(lights[i].light);
     }
 
     #if GAMMA_CORRCT

@@ -44,30 +44,38 @@ out VertexAttrs {
     vec3 pos;
     vec2 uv;
     vec3 normal;
-    vec3 tgpos;
-    vec3 camera;
-    vec3 lights[LIGHT_MAX];
 }vertex;
+out TangentAttrs {
+    vec3 pos;
+    vec3 camera;
+    vec3 ltpos[LIGHT_MAX];
+    vec3 ltdir[LIGHT_MAX];
+}tgvert;
 out vec4 shadow_scpos;
 
 void main()
 {
     gl_Position = proj * view * model * vec4(pos, 1.0);
+
     mat3 matnor = mat3(transpose(inverse(model)));
     vertex.pos = vec3(model * vec4(pos, 1.0));
     vertex.uv = uv;
-    vertex.normal = matnor * normal;
-    if (shadow_type == LIGHT_SPOT)
-        shadow_scpos = shadow_vp * vec4(vertex.pos, 1.0);
+    vertex.normal = normalize(matnor * normal);
 
     vec3 n = normalize(vertex.normal);
     vec3 t = normalize(matnor * tangent);
     t = normalize(t - dot(t, n) * n);
-    vec3 b = cross(t, vertex.normal);
+    vec3 b = cross(vertex.normal, t);
     mat3 tbni = transpose(mat3(t, b, n));
 
-    vertex.tgpos = tbni * vertex.pos;
-    vertex.camera = tbni * scene.camera;
-    for (int i = 0; i < scene.lights; ++i)
-        vertex.lights[i] = tbni * lights[i].light.pos;
+    tgvert.pos = tbni * vertex.pos;
+    tgvert.camera = tbni * scene.camera;
+    for (int i = 0; i < scene.lights; ++i) {
+        tgvert.ltpos[i] = tbni * lights[i].light.pos;
+        tgvert.ltdir[i] = tbni * lights[i].light.dir;
+    }
+    
+    if (shadow_type == LIGHT_SPOT) {
+        shadow_scpos = shadow_vp * vec4(vertex.pos, 1.0);
+    }
 }
