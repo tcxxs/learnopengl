@@ -140,6 +140,8 @@ bool MeshProto::_loadMaterial(const std::filesystem::path& path, const aiMesh* m
 		return false;
 	if (!_loadTexture(path, mat, aiTextureType_HEIGHT, "material.normal"))
 		return false;
+	if (!_loadTexture(path, mat, aiTextureType_DISPLACEMENT, "material.displace"))
+		return false;
 
 	return true;
 }

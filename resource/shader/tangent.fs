@@ -88,7 +88,7 @@ in TangentAttrs {
     vec3 ltdir[LIGHT_MAX];
 }tangent;
 in vec4 shadow_scpos;
-out vec4 FragColor;
+out vec4 color_out;
 
 #define SPECULAR_FUNC blinn_specular
 #define GAMMA_CORRCT 1
@@ -310,5 +310,5 @@ void main()
     #if GAMMA_CORRCT
     color_total = pow(color_total, vec3(1.0/GAMMA_VAL));
     #endif
-    FragColor = vec4(color_total, 1.0);
+    color_out = vec4(color_total, 1.0);
 } 
