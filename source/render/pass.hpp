@@ -28,7 +28,7 @@ public:
 	using statefunc = std::function<void()>;
 	using framemap = std::map<std::string, Frame::ptr>;
 	using modelvec = std::vector<ModelInst::ptr>;
-	static ptr create(const Config::node& conf, const genfunc& gen);
+	static ptr create(const Config::node& conf);
 
 	inline std::pair<int, int> getView() const {
 		if (_out)
@@ -44,10 +44,10 @@ public:
 	int drawPass(CommandQueue& cmds, const modelvec& models);
 
 private:
-	bool _initConf(const Config::node& conf, const genfunc& gen);
-	bool _initShaderAttrs(const Config::node& conf, const genfunc& gen, const Shader::ptr& shader);
-	bool _initShader(const Config::node& conf, const genfunc& gen);
-	bool _initPost(const Config::node& conf, const genfunc& gen);
+	bool _initConf(const Config::node& conf);
+	bool _initShaderAttrs(const Config::node& conf, const Shader::ptr& shader);
+	bool _initShader(const Config::node& conf);
+	bool _initPost(const Config::node& conf);
 	bool _initState(const Config::node& conf);
 
 	void _stateClear(const Config::node& conf);

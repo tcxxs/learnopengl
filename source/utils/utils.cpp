@@ -91,6 +91,16 @@ const Config::node Config::visit(const Config::node& doc, const std::string& pat
 }
 
 std::any Config::guess(const Config::node& doc) {
+	// 由连续两层list组成
+	if (doc.IsSequence() && doc.size() == 1 && doc[0].IsSequence()) {
+		if (!gen) {
+			std::printf("config not gen func");
+			return {};
+		}
+
+		return gen(doc[0]);
+	}
+
 	if (doc.IsScalar()) {
 		const std::string& scalar = doc.Scalar();
 		if (std::isdigit(scalar[0]) || scalar[0] == '-') {

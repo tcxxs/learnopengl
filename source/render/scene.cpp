@@ -16,6 +16,9 @@ Scene::ptr Scene::create(const std::string& name) {
 	scene->_cfuncs.emplace("camera", std::bind(&Scene::_genCamera, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("light", std::bind(&Scene::_genLight, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("frame", std::bind(&Scene::_genFrame, scene.get(), std::placeholders::_1));
+	// TODO: 这个时机不算太好
+	Config::gen = std::bind(&Scene::generateConf, scene, std::placeholders::_1);
+
 	if (!scene->_initFrame(conf["frames"]))
 		return {};
 
@@ -100,7 +103,7 @@ bool Scene::addModel(const Config::node& conf) {
 }
 
 bool Scene::addPass(const Config::node& conf) {
-	Pass::ptr pass = Pass::create(conf, std::bind(&Scene::generateConf, this, std::placeholders::_1));
+	Pass::ptr pass = Pass::create(conf);
 	if (!pass)
 		return false;
 
@@ -263,17 +266,11 @@ void Scene::drawCommand(const Command& cmd) {
 
 // TODO: 现在是静态的，或许应该要支持动态
 std::any Scene::generateConf(const Config::node& conf) {
-	// 由连续两层list组成
-	if (!Config::generator(conf))
-		return {};
-	const Config::node gen = conf[0];
-	if (conf.size() < 1)
-		return {};
-	const auto& find = _cfuncs.find(gen[0].as<std::string>());
+	const auto& find = _cfuncs.find(conf[0].as<std::string>());
 	if (find == _cfuncs.end())
 		return {};
 
-	return find->second(gen);
+	return find->second(conf);
 }
 
 std::any Scene::_genCamera(const Config::node& conf) {

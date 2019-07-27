@@ -18,11 +18,12 @@ phong_debug:
 white:
   shader: color
   vars:
-    uf_color: [1.0, 1.0, 1.0]
-gray:
+    material.color: [1.0, 1.0, 1.0]
+light:
   shader: color
   vars:
-    uf_color: [0.2, 0.2, 0.2]
+    material.color: [20.0, 20.0, 20.0]
+    material.diffuse: oops.png
 sky:
   shader: sky
   vars:

@@ -226,6 +226,9 @@ void Shader::setVar(const GLuint& loc, const std::any& var) {
 	else if (var.type() == typeid(float)) {
 		setVar(loc, std::any_cast<const float&>(var));
 	}
+	else if (var.type() == typeid(std::string)) {
+		setVar(loc, std::any_cast<const std::string&>(var));
+	}
 	else if (var.type() == typeid(glm::vec3)) {
 		setVar(loc, std::any_cast<const glm::vec3&>(var));
 	}

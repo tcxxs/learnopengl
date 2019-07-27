@@ -121,12 +121,16 @@ ModelInst::~ModelInst() {
 
 void ModelInst::_addInstance(const Config::node& conf) {
 	glm::mat4& mat = _mats.emplace_back(1.0f);
-	glm::vec3 pos = conf["pos"].as<glm::vec3>();
+	
+	std::any val = Config::guess(conf["pos"]);
+	glm::vec3 pos = std::any_cast<glm::vec3>(val);
 	mat = glm::translate(mat, pos);
+
 	const Config::node scale = conf["scale"];
 	if (scale.IsDefined()) {
 		mat = glm::scale(mat, glm::vec3(scale.as<float>()));
 	}
+	
 	const Config::node rotate = conf["rotate"];
 	if (rotate.IsDefined()) {
 		float x = rotate[0].as<float>();

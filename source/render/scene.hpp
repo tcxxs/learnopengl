@@ -15,7 +15,6 @@
 // TODO: 写插件从blender导出是正路
 class Scene: public Res<Scene> {
 public:
-	using genfunc = std::function<std::any(const Config::node&)>;
 	static ptr create(const std::string& name);
 	virtual ~Scene();
 
@@ -46,7 +45,7 @@ public:
 	inline static ptr current{};
 
 private:
-	std::map<std::string, genfunc> _cfuncs;
+	std::map<std::string, Config::genfunc> _cfuncs;
 	Camera::ptr _cam;
 	std::map<std::string, Camera::ptr> _cams;
 	std::vector<LightInst::ptr> _lights;

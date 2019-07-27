@@ -9,15 +9,34 @@ lights:
     name: light
     pos: [-0.2, 0.3, -0.2]
   - type: spot_red
-    pos: [0.5, 0.0, 3.0]
+    name: light_red
+    pos: [0.5, 0.0, 0.5]
     dir: [0.0, -1.0, 0.0]
   - type: spot_green
-    pos: [0.0, 0.0, 3.5]
+    name: light_green
+    pos: [0.0, 0.0, 1.0]
     dir: [0.0, -1.0, 0.0]
   - type: spot_blue
-    pos: [-0.5, 0.0, 4.0]
+    name: light_blue
+    pos: [-0.5, 0.0, 1.5]
     dir: [0.0, -1.0, 0.0]
 models:
+  - type: cube
+    pos: [[light, light, pos]]
+    scale: 0.1
+    material: light
+  - type: cube
+    pos: [[light, light_red, pos]]
+    scale: 0.1
+    material: light
+  - type: cube
+    pos: [[light, light_green, pos]]
+    scale: 0.1
+    material: light
+  - type: cube
+    pos: [[light, light_blue, pos]]
+    scale: 0.1
+    material: light
   - type: cube
     pos: [-0.5, 0.3, 0.0]
     scale: 0.1
@@ -39,18 +58,6 @@ models:
     rotate: [90.0, 0.0, 0.0]
     scale: 1.0
     material: tangent
-  - type: sun
-    pos: [-0.2, 0.3, -0.2]
-    scale: 0.01
-  - type: sun
-    pos: [0.5, 0.0, 3.0]
-    scale: 0.01
-  - type: sun
-    pos: [0.0, 0.0, 3.5]
-    scale: 0.01
-  - type: sun
-    pos: [-0.5, 0.0, 4.0]
-    scale: 0.01
   - type: nanosuit
     name: nanosuit
     pos: [0.0, 0.0, 0.0]

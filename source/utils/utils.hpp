@@ -3,6 +3,7 @@
 #include <iostream>
 #include <any>
 #include <map>
+#include <functional>
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
@@ -107,10 +108,11 @@ struct convert<strcube> {
 class Config {
 public:
 	using node = YAML::Node;
+	using genfunc = std::function<std::any(const Config::node&)>;
+
 	static const node visit(const node& doc, const std::string& path);
 	static std::any guess(const node& doc);
 	inline static bool valid(const node& doc) { return doc.IsDefined() && !doc.IsNull(); }
-	inline static bool generator(const node& doc) { return doc.IsSequence() && doc.size() == 1 && doc[0].IsSequence(); }
 
 	bool load(const std::filesystem::path& path);
 	const node& root() const {
@@ -122,6 +124,7 @@ public:
 
 public:
 	inline static node empty{};
+	inline static genfunc gen;
 
 private:
 	node _doc;

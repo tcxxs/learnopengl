@@ -40,6 +40,14 @@ public:
 	inline void setVar(const GLuint& loc, const float& var) {
 		glUniform1f(loc, var);
 	}
+	inline void setVar(const GLuint& loc, const std::string& var) {
+		const Texture::ptr& tex = TextureMgr::inst().req(var);
+		if (!tex) {
+			std::printf("shader set var, texture not found, file %s", var.c_str());
+			return;
+		}
+		setVar(loc, tex->getValue());
+	}
 	inline void setVar(const GLuint& loc, const glm::vec3& var) {
 		glUniform3fv(loc, 1, glm::value_ptr(var));
 	}
