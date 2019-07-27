@@ -17,18 +17,16 @@ models:
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
   - type: wall
+    pos: [0.0, -0.3, 0.0]
+    scale: 1.0
+    material: tangent
+  - type: land
     pos: [0.0, -0.5, 0.0]
-    scale: 2.0
+    scale: 5.0
     material: tangent
-  - type: wall
-    pos: [1.0, 0.5, 0.0]
-    rotate: [0.0, 0.0, 90.0]
-    scale: 1.0
-    material: tangent
-  - type: wall
-    pos: [0.0, 0.5, -1.5]
-    rotate: [90.0, 0.0, 0.0]
-    scale: 1.0
+  - type: land
+    pos: [0.0, 5.0, 0.0]
+    scale: 5.0
     material: tangent
   - type: sun
     pos: [-0.2, 0.3, -0.2]
@@ -42,14 +40,14 @@ models:
       shadow: shadow_point
   - type: aircraft
     pos: [-0.3, 0.0, -0.5]
-    rotate: [30.0, -45.0, 0.0]
     scale: 0.1
+    dir: [-1.0, -1.0, -1.0]
     material: tangent
     materials:
       shadow: shadow_point
 frames:
   scene:
-    attach: [hdr, depst]
+    attach: [texture, depst]
   shadow_spot:
     attach: [depth]
   shadow_point:
@@ -77,19 +75,8 @@ pass:
         shadow_type: 2
         shadow_cube: [[frame, shadow_point, in]]
       color:
-    out: [[frame, scene, out]]
   - name: sky
     states:
       depth: [true, lesseq]
-      face: front
     shaders:
       sky:
-    out: [[frame, scene, out]]
-  - name: show
-    states:
-      clear: [color, depth, stencil]
-      depth: [false]
-      face: back
-    posts:
-      show:
-        frame: [[frame, scene, in]]

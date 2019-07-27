@@ -31,6 +31,7 @@ public:
 private:
 	bool _checkStatus();
 	bool _attachTexture();
+	bool _attachHDR();
 	bool _attachDepthStencil();
 	bool _attachRenderBuffer();
 	bool _attachDepth();

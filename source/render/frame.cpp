@@ -14,6 +14,8 @@ Frame::ptr Frame::create(const Config::node& conf) {
 		const std::string& attach = it.as<std::string>();
 		if (attach == "texture")
 			frame->_attachTexture();
+		else if (attach == "hdr")
+			frame->_attachHDR();
 		else if (attach == "depst")
 			frame->_attachDepthStencil();
 		else if (attach == "depth")
@@ -96,6 +98,56 @@ bool Frame::_attachTexture() {
 		glGenTextures(1, &_texblit);
 		glBindTexture(GL_TEXTURE_2D, _texblit);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, _fboblit);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texblit, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	return oglError();
+}
+
+bool Frame::_attachHDR() {
+	int msaa = EventMgr::inst().getMSAA();
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
+
+	_textype = GL_TEXTURE_2D;
+	GLenum type;
+	if (msaa > 0) {
+		type = GL_TEXTURE_2D_MULTISAMPLE;
+	}
+	else {
+		type = GL_TEXTURE_2D;
+	}
+	glGenTextures(1, &_tex);
+	glBindTexture(type, _tex);
+	if (msaa > 0) {
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaa, GL_RGBA16F, width, height, GL_TRUE);
+	}
+	else {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, type, _tex, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(type, 0);
+
+	if (msaa > 0) {
+		_blittype = GL_COLOR_BUFFER_BIT;
+		glGenTextures(1, &_texblit);
+		glBindTexture(GL_TEXTURE_2D, _texblit);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

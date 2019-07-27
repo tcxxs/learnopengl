@@ -1,4 +1,5 @@
 #include "model.hpp"
+#include "glm/gtx/transform.hpp"
 
 ModelProto::ptr ModelProto::create(const std::string& name) {
 	if (_confs.root().IsNull()) {
@@ -126,10 +127,14 @@ void ModelInst::_addInstance(const Config::node& conf) {
 	if (scale.IsDefined()) {
 		mat = glm::scale(mat, glm::vec3(scale.as<float>()));
 	}
-	const Config::node dir = conf["dir"];
-	if (dir.IsDefined()) {
-		glm::mat4 rot = glm::lookAt(pos, pos + dir.as<glm::vec3>(), Camera::up);
-		mat = mat * rot;
+	const Config::node rotate = conf["rotate"];
+	if (rotate.IsDefined()) {
+		float x = rotate[0].as<float>();
+		float y = rotate[1].as<float>();
+		float z = rotate[2].as<float>();
+		mat *= glm::rotate(glm::radians(x), glm::vec3(1.0, 0.0, 0.0));
+		mat *= glm::rotate(glm::radians(y), glm::vec3(0.0, 1.0, 0.0));
+		mat *= glm::rotate(glm::radians(z), glm::vec3(0.0, 0.0, 1.0));
 	}
 }
 
