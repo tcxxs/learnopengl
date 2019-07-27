@@ -2,3 +2,5 @@ post:
   material: post
 show:
   material: show
+hdr:
+  material: hdr

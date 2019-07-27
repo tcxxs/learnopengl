@@ -61,3 +61,7 @@ show:
   shader: show
 post:
   shader: post
+hdr:
+  shader: hdr
+  vars:
+    exposure: 0.5

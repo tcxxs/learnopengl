@@ -13,31 +13,44 @@ point:
   constant: 1.0
   linear: 0.09
   quadratic: 0.032
-point1:
+point_sun:
   ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.1, 0.1, 0.1]
-  specular: [0.1, 0.1, 0.1]
+  diffuse: [100.0, 100.0, 100.0]
+  specular: [200.0, 200.0, 200.0]
   constant: 1.0
-  linear: 0.09
-  quadratic: 0.032
-point2:
-  ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.2, 0.2, 0.2]
-  specular: [0.2, 0.2, 0.2]
-  constant: 1.0
-  linear: 0.09
-  quadratic: 0.032
-point3:
-  ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.3, 0.3, 0.3]
-  specular: [0.3, 0.3, 0.3]
-  constant: 1.0
-  linear: 0.09
-  quadratic: 0.032
+  linear: 0.35
+  quadratic: 0.44
 spot:
   ambient: [0.0, 0.0, 0.0]
   diffuse: [0.5, 0.5, 0.5]
   specular: [1.0, 1.0, 1.0]
+  constant: 1.0
+  linear: 0.09
+  quadratic: 0.032
+  inner: 25.0
+  outter: 40.0
+spot_red:
+  ambient: [0.0, 0.0, 0.0]
+  diffuse: [0.5, 0.0, 0.0]
+  specular: [1.0, 0.0, 0.0]
+  constant: 1.0
+  linear: 0.09
+  quadratic: 0.032
+  inner: 25.0
+  outter: 40.0
+spot_green:
+  ambient: [0.0, 0.0, 0.0]
+  diffuse: [0.0, 0.5, 0.0]
+  specular: [0.0, 1.0, 0.0]
+  constant: 1.0
+  linear: 0.09
+  quadratic: 0.032
+  inner: 25.0
+  outter: 40.0
+spot_blue:
+  ambient: [0.0, 0.0, 0.0]
+  diffuse: [0.0, 0.0, 0.5]
+  specular: [0.0, 0.0, 1.0]
   constant: 1.0
   linear: 0.09
   quadratic: 0.032
