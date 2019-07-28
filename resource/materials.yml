@@ -1,10 +1,17 @@
-phong:
-  shader: phong
+color:
+  shader: color
+  vars:
+    material.color: [1.0, 1.0, 1.0]
+learn:
+  shader: learn
   vars:
     material.specular_factor: 32.0
-tangent:
-  shader: tangent
+    material.displace_factor: 0.1
+learn_box:
+  shader: learn
   vars:
+    material.diffuse: box.png
+    material.specular: specular.png
     material.specular_factor: 32.0
     material.displace_factor: 0.1
 phong_ins:
@@ -15,14 +22,20 @@ phong_debug:
   shader: phong_debug
   vars:
     material.specular_factor: 32.0
-white:
+bloom_red:
   shader: color
   vars:
-    material.color: [1.0, 1.0, 1.0]
-light:
+    material.color: [20.0, 5.0, 5.0]
+    material.diffuse: oops.png
+bloom_green:
   shader: color
   vars:
-    material.color: [20.0, 20.0, 20.0]
+    material.color: [5.0, 15.0, 5.0]
+    material.diffuse: oops.png
+bloom_blue:
+  shader: color
+  vars:
+    material.color: [5.0, 5.0, 10.0]
     material.diffuse: oops.png
 sky:
   shader: sky
@@ -43,17 +56,6 @@ sky:
     #   skybox/front.jpg,
     #   skybox/back.jpg
     # ]
-reflect:
-  shader: reflect
-  vars:
-    uf_cube: [
-      sorbin/sorbin_ft.tga,
-      sorbin/sorbin_bk.tga,
-      sorbin/sorbin_up.tga,
-      sorbin/sorbin_dn.tga,
-      sorbin/sorbin_rt.tga,
-      sorbin/sorbin_lf.tga
-    ]
 shadow:
   shader: shadow
 shadow_point:

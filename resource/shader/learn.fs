@@ -71,7 +71,7 @@ uniform Lights {
     Light light;
 }lights[LIGHT_MAX];
 
-uniform int shadow_type;
+uniform int shadow_probe;
 uniform samplerCube shadow_cube;
 uniform vec3 shadow_pos;
 uniform sampler2D shadow_map;
@@ -284,11 +284,13 @@ vec3 phong_calc(Light light) {
         break;
     case LIGHT_POINT:
         calc_point(light);
-        shadow_point(light);
+        if (calc.light.ind == shadow_probe)
+            shadow_point(light);
         break;
     case LIGHT_SPOT:
         calc_spot(light);
-        shadow_spot(light);
+        if (calc.light.ind == shadow_probe)
+            shadow_spot(light);
         break;
     }
 

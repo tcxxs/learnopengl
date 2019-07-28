@@ -2,74 +2,84 @@ camera: eye
 cameras:
   eye:
     fov: 45.0
-    pos: [0.0, 1.0, 1.0]
+    pos: [0.5, 2.0, 3.0]
     target: [0.0, 0.0, -1.0]
 lights:
   - type: point_sun
     name: light
-    pos: [-0.2, 0.3, -0.2]
-  - type: spot_red
+    pos: [-0.2, 0.3, -1.2]
+  - type: point_red
     name: light_red
     pos: [0.5, 0.0, 0.5]
     dir: [0.0, -1.0, 0.0]
-  - type: spot_green
+  - type: point_green
     name: light_green
     pos: [0.0, 0.0, 1.0]
     dir: [0.0, -1.0, 0.0]
-  - type: spot_blue
+  - type: point_blue
     name: light_blue
     pos: [-0.5, 0.0, 1.5]
     dir: [0.0, -1.0, 0.0]
 models:
-  - type: cube
+  - type: sun
     pos: [[light, light, pos]]
-    scale: 0.1
-    material: light
+    scale: 0.02
   - type: cube
     pos: [[light, light_red, pos]]
     scale: 0.1
-    material: light
+    material: bloom_red
   - type: cube
     pos: [[light, light_green, pos]]
     scale: 0.1
-    material: light
+    material: bloom_green
   - type: cube
     pos: [[light, light_blue, pos]]
     scale: 0.1
-    material: light
+    material: bloom_blue
   - type: cube
-    pos: [-0.5, 0.3, 0.0]
-    scale: 0.1
-    material: tangent
-  - type: sky
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
+    material: sky
+  - type: cube
+    pos: [-0.2, 0.3, -0.1]
+    scale: 0.1
+    material: learn_box
+  - type: cube
+    pos: [-0.2, 0.5, 1.2]
+    scale: 0.4
+    rotate: [0.0, 0.0, 30.0]
+    material: learn_box
+  - type: cube
+    pos: [0.3, -0.1, 1.0]
+    scale: 0.2
+    rotate: [45.0, 0.0, 45.0]
+    material: learn_box
   - type: wall
     pos: [0.0, -0.5, 0.0]
     scale: 5.0
-    material: tangent
+    material: learn
   - type: wall
     pos: [1.0, 0.5, 0.0]
     rotate: [0.0, 0.0, 90.0]
     scale: 1.0
-    material: tangent
+    material: learn
   - type: wall
     pos: [0.0, 0.5, -1.5]
     rotate: [90.0, 0.0, 0.0]
     scale: 1.0
-    material: tangent
+    material: learn
   - type: nanosuit
     name: nanosuit
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
-    material: tangent
+    material: learn
     materials:
       shadow: shadow_point
   - type: aircraft
     pos: [-0.3, 0.0, -0.5]
     rotate: [30.0, -45.0, 0.0]
     scale: 0.1
-    material: tangent
+    material: learn
     materials:
       shadow: shadow_point
 frames:
@@ -96,10 +106,8 @@ pass:
       depth: [true]
       face: back
     shaders:
-      phong:
-      phong_ins:
-      tangent:
-        shadow_type: 2
+      learn:
+        shadow_probe: [[light, light, index]]
         shadow_cube: [[frame, shadow_point, in]]
       color:
     out: [[frame, scene, out]]

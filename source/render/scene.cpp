@@ -306,20 +306,24 @@ std::any Scene::_genLight(const Config::node& conf) {
 
 	const std::string& name = conf[1].as<std::string>();
 	const std::string& type = conf[2].as<std::string>();
-	for (const auto& it: _lights) {
-		if (it->getName() != name)
+	for (int i = 0; i < _lights.size(); ++i) {
+		const LightInst::ptr light = _lights[i];
+		if (light->getName() != name)
 			continue;
 
-		const glm::vec3 pos = it->getPos();
-		const glm::vec3 dir = it->getDir();
-		if (type == "pos") {
+		const glm::vec3 pos = light->getPos();
+		const glm::vec3 dir = light->getDir();
+		if (type == "index") {
+			return i; 
+		}
+		else if (type == "pos") {
 			return pos;
 		}
 		else if (type == "vp") {
 			const float aspect = (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight();
 			glm::mat4 proj, view;
 
-			switch (it->prototype()->getType()) {
+			switch (light->prototype()->getType()) {
 			case LightProto::LIGHT_SPOT:
 				proj = glm::perspective(glm::radians(_cam->getFov()), aspect, PROJ_NEAR, PROJ_FAR);
 				view = glm::lookAt(pos, pos + dir, Camera::up);

@@ -15,7 +15,7 @@ uniform MatrixVP {
     mat4 proj;
 };
 uniform mat4 model;
-uniform int shadow_type;
+uniform int shadow_probe;
 uniform mat4 shadow_vp;
 
 struct Light {
@@ -75,7 +75,7 @@ void main()
         tgvert.ltdir[i] = tbni * lights[i].light.dir;
     }
     
-    if (shadow_type == LIGHT_SPOT) {
+    if (lights[shadow_probe].light.type == LIGHT_SPOT) {
         shadow_scpos = shadow_vp * vec4(vertex.pos, 1.0);
     }
 }
