@@ -11,6 +11,8 @@ Shader::ptr Shader::create(const std::string& name) {
 		return {};
 	if (!shader->_loadUniform())
 		return {};
+	if (!shader->_loadOutput())
+		return {};
 
 	if (oglError())
 		return {};
@@ -206,6 +208,25 @@ bool Shader::_loadUniform() {
 			vars.emplace(vname, values_var[0]);
 		}
 		UniformProtoMgr::inst().req(uname, values_active[0], vars);
+	}
+
+	return true;
+}
+
+bool Shader::_loadOutput() {
+	GLint resources;
+	std::string name(50, '\0');
+
+	const GLenum props[] = {GL_LOCATION};
+	GLint values[1];
+	glGetProgramInterfaceiv(_prog, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &resources);
+	for (int i = 0; i < resources; ++i) {
+		glGetProgramResourceiv(_prog, GL_PROGRAM_OUTPUT, i, 1, props, 1, nullptr, values);
+		if (values[0] < 0)
+			continue;
+
+		glGetProgramResourceName(_prog, GL_PROGRAM_OUTPUT, i, (GLsizei)name.capacity(), nullptr, name.data());
+		_vars[name.c_str()] = values[0];
 	}
 
 	return true;
