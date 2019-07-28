@@ -83,12 +83,18 @@ models:
     materials:
       shadow: shadow_point
 frames:
-  scene:
-    attach: [hdr, depst]
   shadow_spot:
-    attach: [depth]
+    depth: depth
   shadow_point:
-    attach: [depcube]
+    square: true
+    depth: depcube
+  scene:
+    colors: [hdr: scene, hdr: bloom]
+    depth: depst
+  bloom_split:
+    colors: [hdr]
+  bloom_scene:
+    colors: [hdr]
 pass:
   - name: shadow
     states:
@@ -100,7 +106,7 @@ pass:
         light_pos: [[light, light, pos]]
         light_vp: [[light, light, vp]]
     out: [[frame, shadow_point, out]]
-  - name: scene
+  - name: scene_model
     states:
       clear: [color, depth, stencil]
       depth: [true]
@@ -111,18 +117,35 @@ pass:
         shadow_cube: [[frame, shadow_point, in]]
       color:
     out: [[frame, scene, out]]
-  - name: sky
+  - name: scene_sky
     states:
       depth: [true, lesseq]
       face: front
     shaders:
       sky:
     out: [[frame, scene, out]]
-  - name: show
+  - name: bloom_split
+    states:
+      clear: [color]
+      depth: [false]
+      face: back
+    posts:
+      bloom_split:
+        frame: [[frame, scene, in]]
+    out: [[frame, bloom_split, out]]
+  - name: bloom_blur
+    states:
+      clear: [color]
+    posts:
+      bloom_blur:
+        split: [[frame, bloom_split, in]]
+        scene: [[frame, scene, in]]
+    out: [[frame, bloom_scene, out]]
+  - name: hdr
     states:
       clear: [color, depth, stencil]
       depth: [false]
       face: back
     posts:
       hdr:
-        frame: [[frame, scene, in]]
+        frame: [[frame, bloom_scene, in]]

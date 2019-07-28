@@ -5,83 +5,117 @@ Frame::ptr Frame::create(const Config::node& conf) {
 	Frame::ptr frame = std::make_shared<Frame>();
 
 	glGenFramebuffers(1, &frame->_fbo);
-	if (EventMgr::inst().getMSAA() > 0) {
-		glGenFramebuffers(1, &frame->_fboblit);
+	frame->_size = conf["size"].as<float>(1.0f);
+	frame->_square = conf["square"].as<bool>(false);
+
+	std::string type;
+	if (Config::valid(conf["colors"])) {
+		for (const auto& it: conf["colors"]) {
+			Attachment& attach = frame->_colors.emplace_back();
+			attach.index = (int)frame->_colors.size() - 1;
+			if (it.IsMap()) {
+				type = it.begin()->first.as<std::string>();
+				attach.name = it.begin()->second.as<std::string>();
+			}
+			else {
+				type = it.as<std::string>();
+			}
+			if (type == "ldr")
+				frame->_attachLDR(attach);
+			else if (type == "hdr")
+				frame->_attachHDR(attach);
+		}
 	}
 
-	frame->_size = conf["size"].as<float>(1.0f);
-	for (const auto& it: conf["attach"]) {
-		const std::string& attach = it.as<std::string>();
-		if (attach == "texture")
-			frame->_attachTexture();
-		else if (attach == "hdr")
-			frame->_attachHDR();
-		else if (attach == "depst")
-			frame->_attachDepthStencil();
-		else if (attach == "depth")
-			frame->_attachDepth();
-		else if (attach == "depcube")
-			frame->_attachDepthCube();
+	if (Config::valid(conf["depth"])) {
+		const std::string& type = conf["depth"].as<std::string>();
+		if (type == "depst")
+			frame->_attachDepthStencil(frame->_depth);
+		else if (type == "depth")
+			frame->_attachDepth(frame->_depth);
+		else if (type == "depcube")
+			frame->_attachDepthCube(frame->_depth);
 	}
-	if (!frame->_checkStatus())
+
+	if (!frame->_completeFrame())
 		return {};
 
 	return frame;
 }
 
 Frame::~Frame() {
+	for (auto& it: _colors) {
+		deleteAttach(it);
+	}
+	deleteAttach(_depth);
+	deleteAttach(_stencil);
+
 	if (_fbo) {
 		glDeleteFramebuffers(1, &_fbo);
 	}
-	if (_fboblit) {
-		glDeleteFramebuffers(1, &_fboblit);
+}
+
+void Frame::deleteAttach(Attachment& attach) {
+	if (attach.tex) {
+		if (attach.type == GL_RENDERBUFFER)
+			glDeleteRenderbuffers(1, &attach.tex);
+		else
+			glDeleteTextures(1, &attach.tex);
+		attach.tex = 0;
 	}
-	if (_tex) {
-		glDeleteTextures(1, &_tex);
+	if (attach.blit_tex) {
+		glDeleteTextures(1, &attach.blit_tex);
+		attach.blit_tex = 0;
 	}
-	if (_texblit) {
-		glDeleteTextures(1, &_texblit);
-	}
-	if (_ds) {
-		glDeleteRenderbuffers(1, &_ds);
-	}
-	if (_rbo) {
-		glDeleteRenderbuffers(1, &_rbo);
+	if (attach.blit_fbo) {
+		glDeleteFramebuffers(1, &attach.blit_fbo);
+		attach.blit_fbo = 0;
 	}
 }
 
-bool Frame::_checkStatus() {
+bool Frame::_completeFrame() {
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	if (_colors.empty()) {
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+	}
+
 	GLenum ret = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	if (ret != GL_FRAMEBUFFER_COMPLETE) {
 		std::cout << "frame use, not complete" << std::endl;
 		return false;
 	}
-
 	return true;
 }
 
-bool Frame::_attachTexture() {
+bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 	int msaa = EventMgr::inst().getMSAA();
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
+	if (_square) {
+		width = std::max(width, height);
+		height = width;
+	}
+	
+	GLenum pixel;
+	switch (format) {
+	case GL_RGBA16F: pixel = GL_FLOAT; break;
+	default: pixel = GL_UNSIGNED_BYTE; break;
+	}
+	if (msaa > 0)
+		attach.type = GL_TEXTURE_2D_MULTISAMPLE;
+	else
+		attach.type = GL_TEXTURE_2D;
 
-	_textype = GL_TEXTURE_2D;
-	GLenum type;
+	glGenTextures(1, &attach.tex);
+	glBindTexture(attach.type, attach.tex);
 	if (msaa > 0) {
-		type = GL_TEXTURE_2D_MULTISAMPLE;
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaa, format, width, height, GL_TRUE);
 	}
 	else {
-		type = GL_TEXTURE_2D;
-	}
-	glGenTextures(1, &_tex);
-	glBindTexture(type, _tex);
-	if (msaa > 0) {
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaa, GL_RGBA, width, height, GL_TRUE);
-	}
-	else {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, pixel, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -89,22 +123,22 @@ bool Frame::_attachTexture() {
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, type, _tex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attach.index, attach.type, attach.tex, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(type, 0);
+	glBindTexture(attach.type, 0);
 
 	if (msaa > 0) {
-		_blittype = GL_COLOR_BUFFER_BIT;
-		glGenTextures(1, &_texblit);
-		glBindTexture(GL_TEXTURE_2D, _texblit);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glGenTextures(1, &attach.blit_tex);
+		glBindTexture(GL_TEXTURE_2D, attach.blit_tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, pixel, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, _fboblit);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texblit, 0);
+		glGenFramebuffers(1, &attach.blit_fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, attach.blit_fbo);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, attach.blit_tex, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -112,60 +146,14 @@ bool Frame::_attachTexture() {
 	return oglError();
 }
 
-bool Frame::_attachHDR() {
+bool Frame::_attachDepthStencil(Attachment& attach) {
 	int msaa = EventMgr::inst().getMSAA();
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
-
-	_textype = GL_TEXTURE_2D;
-	GLenum type;
-	if (msaa > 0) {
-		type = GL_TEXTURE_2D_MULTISAMPLE;
+	if (_square) {
+		width = std::max(width, height);
+		height = width;
 	}
-	else {
-		type = GL_TEXTURE_2D;
-	}
-	glGenTextures(1, &_tex);
-	glBindTexture(type, _tex);
-	if (msaa > 0) {
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaa, GL_RGBA16F, width, height, GL_TRUE);
-	}
-	else {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, type, _tex, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(type, 0);
-
-	if (msaa > 0) {
-		_blittype = GL_COLOR_BUFFER_BIT;
-		glGenTextures(1, &_texblit);
-		glBindTexture(GL_TEXTURE_2D, _texblit);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, _fboblit);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texblit, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	return oglError();
-}
-
-bool Frame::_attachDepthStencil() {
-	int msaa = EventMgr::inst().getMSAA();
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
 
 	//glGenTextures(1, &_ds);
 	//glBindTexture(GL_TEXTURE_2D, _ds);
@@ -174,43 +162,30 @@ bool Frame::_attachDepthStencil() {
 	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, _ds, 0);
 	//glBindTexture(GL_TEXTURE_2D, 0);
 
-	glGenRenderbuffers(1, &_rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, _rbo);
+	attach.type = GL_RENDERBUFFER;
+	glGenRenderbuffers(1, &attach.tex);
+	glBindRenderbuffer(GL_RENDERBUFFER, attach.tex);
 	glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, GL_DEPTH24_STENCIL8, width, height);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _rbo);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, attach.tex);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	return oglError();
 }
 
-bool Frame::_attachRenderBuffer() {
-	int msaa = EventMgr::inst().getMSAA();
+bool Frame::_attachDepth(Attachment& attach) {
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
+	if (_square) {
+		width = std::max(width, height);
+		height = width;
+	}
 
-	glGenRenderbuffers(1, &_rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, _rbo);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, msaa, GL_RGBA, width, height);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _rbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	return oglError();
-}
-
-bool Frame::_attachDepth() {
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
-
-	_textype = GL_TEXTURE_2D;
-	glGenTextures(1, &_tex);
-	glBindTexture(GL_TEXTURE_2D, _tex);
-
+	attach.type = GL_TEXTURE_2D;
+	glGenTextures(1, &attach.tex);
+	glBindTexture(GL_TEXTURE_2D, attach.tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
@@ -220,26 +195,26 @@ bool Frame::_attachDepth() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _tex, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, attach.tex, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return oglError();
 }
 
-bool Frame::_attachDepthCube() {
+bool Frame::_attachDepthCube(Attachment& attach) {
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
-	int size = std::max(width, height);
+	if (_square) {
+		width = std::max(width, height);
+		height = width;
+	}
 
-	_textype = GL_TEXTURE_CUBE_MAP;
-	glGenTextures(1, &_tex);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, _tex);
-
+	attach.type = GL_TEXTURE_CUBE_MAP;
+	glGenTextures(1, &attach.tex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, attach.tex);
 	for (GLuint i = 0; i < 6; ++i)
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -247,33 +222,38 @@ bool Frame::_attachDepthCube() {
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _tex, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, attach.tex, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	return oglError();
 }
 
-const Texture::val Frame::getTexture()
+const Texture::val Frame::_getTexture(Attachment& attach)
 {
+	if (!attach.type)
+		return {0};
+
 	int msaa = EventMgr::inst().getMSAA();
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
+	if (_square) {
+		width = std::max(width, height);
+		height = width;
+	}
 
-	if (msaa && _blittype) {
-		if (_blitdirty) {
-			_blitdirty = false;
+	if (attach.blit_fbo) {
+		if (attach.blit_dirty) {
+			attach.blit_dirty = false;
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, _fbo);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _fboblit);
-			glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, _blittype, GL_NEAREST);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, attach.blit_fbo);
+			glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 		}
-		return {_texblit, _textype};
+		return {attach.blit_tex, GL_TEXTURE_2D};
 	}
 	else {
-		return {_tex, _textype};
+		return {attach.tex, attach.type};
 	}
 }
