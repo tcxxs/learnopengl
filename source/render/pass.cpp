@@ -6,11 +6,13 @@ Pass::ptr Pass::create(const Config::node& conf) {
 
 	if (!pass->_initConf(conf))
 		return {};
+	if (!pass->_initState(conf["states"]))
+		return {};
 	if (!pass->_initShader(conf["shaders"]))
 		return {};
 	if (!pass->_initPost(conf["posts"]))
 		return {};
-	if (!pass->_initState(conf["states"]))
+	if (!pass->_initOutput(conf["output"]))
 		return {};
 	return pass;
 }
@@ -24,15 +26,6 @@ bool Pass::_initConf(const Config::node& conf) {
 			return false;
 		}
 		_cam = std::any_cast<Camera::ptr>(ret);
-	}
-	if (Config::valid(conf["out"])) {
-		std::any ret = Config::guess(conf["out"]);
-		if (!ret.has_value()) {
-			std::printf("pass %s, out %s, not valid\n", _name.c_str(), conf["out"].Scalar().c_str());
-			return false;
-		}
-		const auto& frame = std::any_cast<const frameinfo&>(ret);
-		_out = frame.second;
 	}
 
 	return true;
@@ -63,13 +56,9 @@ bool Pass::_initShaderAttrs(const Config::node& conf, const Shader::ptr& shader)
 			std::printf("pass %s, shader %s, uniform %s, value %s, not valid\n", _name.c_str(), shader->getName().c_str(), name.c_str(), it.second.Scalar().c_str());
 			return false;
 		}
-		if (val.type() == typeid(frameinfo)) {
-			const auto& frame = std::any_cast<const frameinfo&>(val);
-			if (frame.first == "in") {
-				attrs.ins[name] = frame.second;
-			}
-			else if (frame.first == "out") {
-			}
+		if (val.type() == typeid(ShaderAttrs::frameattach)) {
+			const auto& frame = std::any_cast<const ShaderAttrs::frameattach&>(val);
+			attrs.frames[name] = frame;
 		}
 		else {
 			attrs.attrs.setAttr(name, val);
@@ -113,6 +102,48 @@ bool Pass::_initPost(const Config::node& conf) {
 		_posts.insert(post);
 	}
 	return true;
+}
+
+bool Pass::_initOutput(const Config::node& conf) {
+	if (!Config::valid(conf))
+		return true;
+
+	std::any ret = Config::guess(conf["frame"]);
+	if (!ret.has_value()) {
+		std::printf("pass %s, output %s, not valid\n", _name.c_str(), conf["frame"].Scalar().c_str());
+		return false;
+	}
+	_outframe = std::any_cast<const Frame::ptr&>(ret);
+
+	if (Config::valid(conf["colors"])) {
+		for (const auto& it: conf["colors"]) {
+			const std::string& fname = it.first.as<std::string>();
+			const std::string& sname = it.second.as<std::string>();
+
+			const Frame::Attachment& attach = _outframe->getAttach(fname);
+			if (!attach.type) {
+				std::printf("pass %s, output %s, attach %s not found\n", _name.c_str(), _outframe->getName().c_str(), fname.c_str());
+				return false;
+			}
+			_outcolors[attach.index] = sname;
+			
+			//for (const auto& it: _shaders) {
+			//	if (floc != it->getVar(sname)) {
+			//		std::printf("pass %s, output %s, shader %s, %s(%d) -> %s(%d) color index error\n", _name.c_str(), it->getName().c_str(),
+			//			conf["frame"].Scalar().c_str(), sname.c_str(), it->getVar(sname), fname.c_str(), floc);
+			//		return false;
+			//	}
+			//}
+			//for (const auto& it: _posts) {
+			//	const Shader::ptr& shader = it->getMaterial()->getShader();
+			//	if (floc != shader->getVar(sname)) {
+			//		std::printf("pass %s, output %s, post %s, %s(%d) -> %s(%d) color index error\n", _name.c_str(), it->getName().c_str(),
+			//			conf["frame"].Scalar().c_str(), sname.c_str(), shader->getVar(sname), fname.c_str(), floc);
+			//		return false;
+			//	}
+			//}
+		}
+	}
 }
 
 bool Pass::_initState(const Config::node& conf) {
@@ -191,8 +222,14 @@ void Pass::_stateFace(const Config::node& conf) {
 }
 
 void Pass::drawBegin() {
-	if (_out)
-		glBindFramebuffer(GL_FRAMEBUFFER, _out->getFBO());
+	if (_outframe)
+		glBindFramebuffer(GL_FRAMEBUFFER, _outframe->getFBO());
+	//else {
+	//	std::vector<GLenum> attaches;
+	//	for (int i = 0; i < _colors.size(); ++i)
+	//		attaches.push_back(GL_COLOR_ATTACHMENT0 + i);
+	//	glDrawBuffers(attaches.size(), attaches.data());
+	//}
 	for (const auto& it: _states)
 		it();
 }
@@ -220,20 +257,53 @@ int Pass::drawPass(CommandQueue& cmds, const modelvec& models) {
 	// TODO: pass完成后需要设置回去？
 	std::map<Frame::ptr, GLuint> texcache;
 	for (auto& it: cmds) {
-		const std::string& shader = it.material->getShader()->getName();
-		const auto& find = _sattrs.find(shader);
-		if (find == _sattrs.end())
-			continue;
+		const Shader::ptr& shader = it.material->getShader();
 
-		const ShaderAttrs& attrs = find->second;
-		for (const auto& itin: attrs.ins) {
-			it.attrs.setAttr(itin.first, itin.second->getTexture());
+		const auto& find = _sattrs.find(shader->getName());
+		if (find != _sattrs.end()) {
+			const ShaderAttrs& attrs = find->second;
+			for (const auto& itf: attrs.frames) {
+				it.attrs.setAttr(itf.first, itf.second.first->getTexture(itf.second.second));
+			}
+			for (const auto& itin: attrs.attrs) {
+				it.attrs.updateAttrs(attrs.attrs);
+			}
 		}
-		for (const auto& itin: attrs.outs) {
-			// TODO: output texture
+
+		if (_outframe) {
+			if (_outcolors.empty()) {
+				// draw color0
+			}
+			else {
+				std::map<GLuint, GLenum> outs;
+				GLuint maxloc{0};
+				for (const auto& it: _outcolors) {
+					GLuint sloc = shader->getVar(it.second);
+					if (sloc >= 0) {
+						outs[sloc] = GL_COLOR_ATTACHMENT0 + it.first;
+						if (sloc > maxloc)
+							maxloc = sloc;
+					}
+				}
+
+				if (outs.empty()) {
+					// 无对应输出
+					it.buffs.push_back(GL_NONE);
+				}
+				else {
+					// 构造buffers列表
+					for (int i = 0; i < maxloc + 1; ++i) {
+						const auto& find = outs.find(i);
+						if (find == outs.end())
+							it.buffs.push_back(GL_NONE);
+						else
+							it.buffs.push_back(find->second);					
+					}
+				}
+			}
 		}
-		for (const auto& itin: attrs.attrs) {
-			it.attrs.updateAttrs(attrs.attrs);
+		else {
+			// draw backbuffer
 		}
 	}
 

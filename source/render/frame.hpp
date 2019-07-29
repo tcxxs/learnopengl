@@ -6,18 +6,18 @@
 #include "utils/resource.hpp"
 #include "render/texture.hpp"
 
-struct Attachment {
-	int index{0};
-	std::string name;
-	GLenum type{0};
-	GLuint tex{0};
-	GLuint blit_fbo{0};
-	GLuint blit_tex{0};
-	bool blit_dirty{false};
-};
-
 class Frame: public Res<Frame> {
 public:
+	struct Attachment {
+		int index{0};
+		std::string name;
+		GLenum type{0};
+		GLuint tex{0};
+		GLuint blit_fbo{0};
+		GLuint blit_tex{0};
+		bool blit_dirty{false};
+	};
+
 	static ptr create(const Config::node& conf);
 
 	virtual ~Frame();
@@ -35,19 +35,27 @@ public:
 	}
 
 	inline GLuint getFBO() const { return _fbo; }
+	Attachment& getAttach(const std::string& name);
+
+	const Texture::val getTexture(Attachment& attach);
 	inline const Texture::val getTexture(const std::string& name) {
-		Attachment& attach = _getAttach(name);
-		return _getTexture(attach);
+		Attachment& attach = getAttach(name);
+		return getTexture(attach);
+	}
+
+	inline void setDirty(Attachment& attach) {
+		if (attach.blit_fbo)
+			attach.blit_dirty = true;
 	}
 	inline void setDirty(const std::string& name) {
-		Attachment& attach = _getAttach(name);
-		_setDirty(attach);
+		Attachment& attach = getAttach(name);
+		setDirty(attach);
 	}
 	inline void setDirtyAll() {
 		for (auto& it: _colors)
-			_setDirty(it);
-		_setDirty(_depth);
-		_setDirty(_stencil);
+			setDirty(it);
+		setDirty(_depth);
+		setDirty(_stencil);
 	}
 
 private:
@@ -59,32 +67,6 @@ private:
 	bool _attachDepthStencil(Attachment& attach);
 	bool _attachDepth(Attachment& attach);
 	bool _attachDepthCube(Attachment& attach);
-
-	inline Attachment& _getAttach(const std::string& name) {
-		if (name == "depth")
-			return _depth;
-		else if (name == "stencil")
-			return _stencil;
-		else if (name == "color") {
-			if (_colors.empty())
-				return _empty;
-			else
-				return _colors[0];
-		}
-		else {
-			for (auto& it: _colors) {
-				if (it.name == name)
-					return it;
-			}
-		}
-
-		return _empty;
-	}
-	const Texture::val _getTexture(Attachment& attach);
-	inline void _setDirty(Attachment& attach) {
-		if (attach.blit_fbo)
-			attach.blit_dirty = true;
-	}
 
 private:
 	inline static Attachment _empty;

@@ -13,6 +13,7 @@ struct Command {
 	glm::mat4 model;
 	Material::ptr material;
 	Attributes attrs;
+	std::vector<GLenum> buffs;
 };
 
 using CommandQueue = std::vector<Command>;

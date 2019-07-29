@@ -13,8 +13,8 @@
 #include "render/camera.hpp"
 
 struct ShaderAttrs {
-	std::map<std::string, Frame::ptr> ins;
-	std::map<std::string, Frame::ptr> outs;
+	using frameattach = std::pair<Frame::ptr, std::string>;
+	std::map<std::string, frameattach> frames;
 	Attributes attrs;
 };
 
@@ -23,16 +23,13 @@ struct ShaderAttrs {
 class Pass: public Res<Pass> {
 public:
 	using genfunc = std::function<std::any(const Config::node&)>;
-	using frameinfo = std::pair<std::string, Frame::ptr>;
-
 	using statefunc = std::function<void()>;
-	using framemap = std::map<std::string, Frame::ptr>;
 	using modelvec = std::vector<ModelInst::ptr>;
 	static ptr create(const Config::node& conf);
 
 	inline std::pair<int, int> getView() const {
-		if (_out)
-			return _out->getView();
+		if (_outframe)
+			return _outframe->getView();
 		else
 			return {EventMgr::inst().getWidth(), EventMgr::inst().getHeight()};
 	}
@@ -40,15 +37,21 @@ public:
 	inline const std::set<Shader::ptr>& getShaders() const { return _shaders; }
 
 	void drawBegin();
-	inline void drawEnd() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+	inline void drawEnd() { 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// TODO: 可以只dirty用到的color
+		if (_outframe)
+			_outframe->setDirtyAll();
+	}
 	int drawPass(CommandQueue& cmds, const modelvec& models);
 
 private:
 	bool _initConf(const Config::node& conf);
+	bool _initState(const Config::node& conf);
 	bool _initShaderAttrs(const Config::node& conf, const Shader::ptr& shader);
 	bool _initShader(const Config::node& conf);
 	bool _initPost(const Config::node& conf);
-	bool _initState(const Config::node& conf);
+	bool _initOutput(const Config::node& conf);
 
 	void _stateClear(const Config::node& conf);
 	void _stateDepth(const Config::node& conf);
@@ -56,9 +59,10 @@ private:
 
 private:
 	Camera::ptr _cam;
+	std::vector<statefunc> _states;
 	std::set<Shader::ptr> _shaders;
 	std::set<Post::ptr> _posts;
 	std::map<std::string, ShaderAttrs> _sattrs;
-	Frame::ptr _out;
-	std::vector<statefunc> _states;
+	Frame::ptr _outframe;
+	std::map<GLuint, std::string> _outcolors;
 };

@@ -158,15 +158,11 @@ void Scene::draw() {
 		drawUniforms(it);
 		// TODO: 同shader、同attr应该合批
 		if (it->drawPass(cmds, _models) >= 0) {
-			for (auto& it: cmds) {
-				drawCommand(it);
+			for (auto& itc: cmds) {
+				drawCommand(itc);
 			}
 		}
 		it->drawEnd();
-
-		// TODO: 在msaa下，frame texture需要blit，怎么判断比较好？
-		for (auto& it: _frames)
-			it.second->setDirty();
 	}
 }
 
@@ -224,6 +220,18 @@ void Scene::drawUniforms(const Pass::ptr& pass) {
 }
 
 void Scene::drawCommand(const Command& cmd) {
+	if (cmd.buffs.empty()) {
+		// draw backbuffer or color0
+	}
+	else {
+		if (cmd.buffs.size() == 1 && cmd.buffs[0] == GL_NONE)
+			// draw none
+			return;
+		else
+			// draw buffers
+			glDrawBuffers(cmd.buffs.size(), cmd.buffs.data());
+	}
+
 	cmd.material->use();
 	const Shader::ptr& shader = cmd.material->getShader();
 
@@ -346,16 +354,18 @@ std::any Scene::_genLight(const Config::node& conf) {
 }
 
 std::any Scene::_genFrame(const Config::node& conf) {
-	if (conf.size() < 3)
+	if (conf.size() < 2)
 		return {};
 
 	const std::string& name = conf[1].as<std::string>();
-	const std::string& type = conf[2].as<std::string>();
-	if (type != "in" && type != "out")
-		return {};
 	const auto& find = _frames.find(name);
 	if (find == _frames.end())
 		return {};
 
-	return std::make_pair(type, find->second);
+	if (conf.size() > 2) {
+		const std::string& attach = conf[2].as<std::string>();
+		return std::make_pair(find->second, attach);
+	}
+	else
+		return find->second;
 }

@@ -11,7 +11,7 @@ Shader::ptr Shader::create(const std::string& name) {
 		return {};
 	if (!shader->_loadUniform())
 		return {};
-	if (!shader->_loadOutput())
+	if (!shader->_loadFragdata())
 		return {};
 
 	if (oglError())
@@ -213,7 +213,8 @@ bool Shader::_loadUniform() {
 	return true;
 }
 
-bool Shader::_loadOutput() {
+bool Shader::_loadFragdata()
+{
 	GLint resources;
 	std::string name(50, '\0');
 

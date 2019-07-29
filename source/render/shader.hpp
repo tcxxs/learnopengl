@@ -85,7 +85,7 @@ private:
 	bool _loadProgram();
 	bool _loadVertex();
 	bool _loadUniform();
-	bool _loadOutput();
+	bool _loadFragdata();
 
 private:
 	GLuint _prog{0};

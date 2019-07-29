@@ -229,7 +229,28 @@ bool Frame::_attachDepthCube(Attachment& attach) {
 	return oglError();
 }
 
-const Texture::val Frame::_getTexture(Attachment& attach)
+Frame::Attachment& Frame::getAttach(const std::string& name) {
+	if (name == "depth")
+		return _depth;
+	else if (name == "stencil")
+		return _stencil;
+	else if (name == "color") {
+		if (_colors.empty())
+			return _empty;
+		else
+			return _colors[0];
+	}
+	else {
+		for (auto& it: _colors) {
+			if (it.name == name)
+				return it;
+		}
+	}
+
+	return _empty;
+}
+
+const Texture::val Frame::getTexture(Attachment& attach)
 {
 	if (!attach.type)
 		return {0};
