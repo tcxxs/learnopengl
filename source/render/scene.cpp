@@ -229,7 +229,7 @@ void Scene::drawCommand(const Command& cmd) {
 			return;
 		else
 			// draw buffers
-			glDrawBuffers(cmd.buffs.size(), cmd.buffs.data());
+			glDrawBuffers((GLsizei)cmd.buffs.size(), cmd.buffs.data());
 	}
 
 	cmd.material->use();

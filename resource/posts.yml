@@ -2,5 +2,7 @@ post:
   material: post
 show:
   material: show
+bloom:
+  material: bloom
 hdr:
   material: hdr

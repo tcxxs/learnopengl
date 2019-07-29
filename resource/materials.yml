@@ -64,6 +64,8 @@ show:
   shader: show
 post:
   shader: post
+bloom:
+  shader: bloom
 hdr:
   shader: hdr
   vars:

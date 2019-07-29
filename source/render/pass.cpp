@@ -144,6 +144,8 @@ bool Pass::_initOutput(const Config::node& conf) {
 			//}
 		}
 	}
+
+	return true;
 }
 
 bool Pass::_initState(const Config::node& conf) {
@@ -292,7 +294,7 @@ int Pass::drawPass(CommandQueue& cmds, const modelvec& models) {
 				}
 				else {
 					// 构造buffers列表
-					for (int i = 0; i < maxloc + 1; ++i) {
+					for (int i = 0; i < (int)maxloc + 1; ++i) {
 						const auto& find = outs.find(i);
 						if (find == outs.end())
 							it.buffs.push_back(GL_NONE);
