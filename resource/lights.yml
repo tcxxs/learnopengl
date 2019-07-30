@@ -15,29 +15,29 @@ point:
   quadratic: 0.032
 point_sun:
   ambient: [0.0, 0.0, 0.0]
-  diffuse: [5.0, 5.0, 5.0]
-  specular: [10.0, 10.0, 10.0]
+  diffuse: [15.0, 15.0, 15.0]
+  specular: [25.0, 25.0, 25.0]
   constant: 1.0
   linear: 0.7
   quadratic: 0.9
 point_red:
   ambient: [0.0, 0.0, 0.0]
-  diffuse: [5.0, 0.0, 0.0]
-  specular: [10.0, 0.0, 0.0]
+  diffuse: [10.0, 0.0, 0.0]
+  specular: [15.0, 0.0, 0.0]
   constant: 1.0
   linear: 0.7
   quadratic: 0.9
 point_green:
   ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.0, 5.0, 0.0]
-  specular: [0.0, 10.0, 0.0]
+  diffuse: [0.0, 10.0, 0.0]
+  specular: [0.0, 15.0, 0.0]
   constant: 1.0
   linear: 0.7
   quadratic: 0.9
 point_blue:
   ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.0, 0.0, 5.0]
-  specular: [0.0, 0.0, 10.0]
+  diffuse: [0.0, 0.0, 10.0]
+  specular: [0.0, 0.0, 15.0]
   constant: 1.0
   linear: 0.7
   quadratic: 0.9

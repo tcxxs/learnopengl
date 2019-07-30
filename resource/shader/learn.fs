@@ -1,11 +1,16 @@
 #version 460 core
 
+#define VIEW_FAR 100.0
+#define GAMMA_CORRCT 1
+#define GAMMA_VAL 2.2
+
 #define LIGHT_MAX 10
 #define LIGHT_DIR 1
 #define LIGHT_POINT 2
 #define LIGHT_SPOT 3
 
-#define VIEW_FAR 100.0
+#define SPECULAR_FUNC blinn_specular
+#define BLOOM_LIMIT 1.0
 
 struct Material {
     sampler2D diffuse;
@@ -88,11 +93,9 @@ in TangentAttrs {
     vec3 ltdir[LIGHT_MAX];
 }tangent;
 in vec4 shadow_scpos;
-out vec4 color_out;
 
-#define SPECULAR_FUNC blinn_specular
-#define GAMMA_CORRCT 1
-#define GAMMA_VAL 2.2
+out vec4 color_out;
+out vec4 color_bloom;
 
 void init_calc() {
     calc.pos = vertex.pos;
@@ -307,8 +310,7 @@ vec3 phong_calc(Light light) {
     return color;
 }
 
-void main()
-{
+void main() {
     init_calc();
     check_tangent();
     check_displace();
@@ -329,8 +331,11 @@ void main()
         color_total += phong_calc(lights[i].light);
     }
 
-    #if GAMMA_CORRCT
-    color_total = pow(color_total, vec3(1.0/GAMMA_VAL));
-    #endif
+    // #if GAMMA_CORRCT
+    // color_total = pow(color_total, vec3(1.0/GAMMA_VAL));
+    // #endif
     color_out = vec4(color_total, 1.0);
+    float bright = dot(color_out.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if (bright > BLOOM_LIMIT)
+        color_bloom = color_out;
 } 

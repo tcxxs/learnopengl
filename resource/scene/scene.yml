@@ -91,7 +91,9 @@ frames:
   scene:
     colors: [hdr: scene, hdr: bloom]
     depth: depst
-  bloom:
+  bloom1:
+    colors: [hdr]
+  bloom2:
     colors: [hdr]
 pass:
   - name: shadow
@@ -131,20 +133,102 @@ pass:
       colors:
         scene: color_out
         bloom: color_bloom
-  - name: bloom
+  - name: bloom_hor
     states:
       clear: [color]
       depth: [false]
       face: back
     posts:
       bloom:
-        scene: [[frame, scene, scene]]
-        bloom: [[frame, scene, bloom]]
+        horizontal: 1
+        frame: [[frame, scene, bloom]]
     output:
-      frame: [[frame, bloom]]
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
   - name: hdr
     states:
       clear: [color, depth, stencil]
     posts:
       hdr:
-        frame: [[frame, bloom, color]]
+        scene: [[frame, scene, scene]]
+        bloom: [[frame, bloom2, color]]
