@@ -148,6 +148,7 @@ void Scene::draw() {
 	int height = EventMgr::inst().getHeight();
 	CommandQueue cmds;
 	for (const auto& it: _pass) {
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, string_format("pass %s", it->getName()).c_str());
 		std::pair<int, int> view = it->getView();
 		glViewport(0, 0, GLsizei(view.first), GLsizei(view.second));
 		glEnable(GL_STENCIL_TEST);
@@ -155,14 +156,22 @@ void Scene::draw() {
 
 		cmds.clear();
 		it->drawBegin();
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "uniforms");
 		drawUniforms(it);
+		glPopDebugGroup();
 		// TODO: 同shader、同attr应该合批
-		if (it->drawPass(cmds, _models) >= 0) {
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "collect");
+		int n = it->drawPass(cmds, _models);
+		glPopDebugGroup();
+		if (n >= 0) {
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "draw");
 			for (auto& itc: cmds) {
 				drawCommand(itc);
 			}
+			glPopDebugGroup();
 		}
 		it->drawEnd();
+		glPopDebugGroup();
 	}
 }
 
