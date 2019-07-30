@@ -113,7 +113,7 @@ pass:
     shaders:
       learn:
         shadow_probe: [[light, light, index]]
-        shadow_cube: [[frame, shadow_point, color]]
+        shadow_cube: [[frame, shadow_point, depth]]
       color:
     output:
       frame: [[frame, scene]]

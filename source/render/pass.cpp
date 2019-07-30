@@ -226,12 +226,6 @@ void Pass::_stateFace(const Config::node& conf) {
 void Pass::drawBegin() {
 	if (_outframe)
 		glBindFramebuffer(GL_FRAMEBUFFER, _outframe->getFBO());
-	//else {
-	//	std::vector<GLenum> attaches;
-	//	for (int i = 0; i < _colors.size(); ++i)
-	//		attaches.push_back(GL_COLOR_ATTACHMENT0 + i);
-	//	glDrawBuffers(attaches.size(), attaches.data());
-	//}
 	for (const auto& it: _states)
 		it();
 }
@@ -280,7 +274,7 @@ int Pass::drawPass(CommandQueue& cmds, const modelvec& models) {
 				std::map<GLuint, GLenum> outs;
 				GLuint maxloc{0};
 				for (const auto& it: _outcolors) {
-					GLuint sloc = shader->getVar(it.second);
+					GLint sloc = shader->getVar(it.second);
 					if (sloc >= 0) {
 						outs[sloc] = GL_COLOR_ATTACHMENT0 + it.first;
 						if (sloc > maxloc)
