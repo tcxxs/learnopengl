@@ -224,10 +224,29 @@ void Pass::_stateFace(const Config::node& conf) {
 }
 
 void Pass::drawBegin() {
-	if (_outframe)
+	if (_outframe) {
 		glBindFramebuffer(GL_FRAMEBUFFER, _outframe->getFBO());
+		if (_outcolors.size() > 1) {
+			std::vector<GLenum> buffs;
+			for (int i = 0; i < _outcolors.size(); ++i)
+				buffs.push_back(GL_COLOR_ATTACHMENT0 + i);
+			glDrawBuffers((GLsizei)_outcolors.size(), buffs.data());
+		}
+	}
+
 	for (const auto& it: _states)
 		it();
+}
+
+void Pass::drawEnd() {
+	// TODO: 可以只dirty用到的color
+	if (_outframe) {
+		if (_outcolors.size() > 1)
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		_outframe->setDirtyAll();
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 int Pass::drawPass(CommandQueue& cmds, const modelvec& models) {
@@ -272,7 +291,7 @@ int Pass::drawPass(CommandQueue& cmds, const modelvec& models) {
 			}
 			else {
 				std::map<GLuint, GLenum> outs;
-				GLuint maxloc{0};
+				GLint maxloc{0};
 				for (const auto& it: _outcolors) {
 					GLint sloc = shader->getVar(it.second);
 					if (sloc >= 0) {

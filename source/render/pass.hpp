@@ -37,12 +37,7 @@ public:
 	inline const std::set<Shader::ptr>& getShaders() const { return _shaders; }
 
 	void drawBegin();
-	inline void drawEnd() { 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		// TODO: 可以只dirty用到的color
-		if (_outframe)
-			_outframe->setDirtyAll();
-	}
+	void drawEnd();
 	int drawPass(CommandQueue& cmds, const modelvec& models);
 
 private:

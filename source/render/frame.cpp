@@ -266,7 +266,11 @@ const Texture::val Frame::getTexture(Attachment& attach)
 	if (attach.blit_fbo) {
 		if (attach.blit_dirty) {
 			attach.blit_dirty = false;
+			if (attach.index > 0)
+				glNamedFramebufferReadBuffer(_fbo, GL_COLOR_ATTACHMENT0 + attach.index);
 			glBlitNamedFramebuffer(_fbo, attach.blit_fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			if (attach.index > 0)
+				glNamedFramebufferReadBuffer(_fbo, GL_COLOR_ATTACHMENT0);
 		}
 		return {attach.blit_tex, GL_TEXTURE_2D};
 	}

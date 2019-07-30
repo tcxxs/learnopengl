@@ -25,6 +25,8 @@ void APIENTRY oglDebug(GLenum source, GLenum type, GLuint id, GLenum severity, G
 	// 忽略一些不重要的错误/警告代码
 	if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
 		return;
+	if (type == GL_DEBUG_TYPE_PUSH_GROUP || type == GL_DEBUG_TYPE_POP_GROUP)
+		return;
 
 	std::cout << "---------------" << std::endl;
 	std::cout << "Debug message (" << id << "): " << message << std::endl;
