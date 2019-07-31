@@ -57,29 +57,29 @@ models:
   - type: wall
     pos: [0.0, -0.5, 0.0]
     scale: 5.0
-    material: learn
+    material: forward
   - type: wall
     pos: [1.0, 0.5, 0.0]
     rotate: [0.0, 0.0, 90.0]
     scale: 1.0
-    material: learn
+    material: forward
   - type: wall
     pos: [0.0, 0.5, -1.5]
     rotate: [90.0, 0.0, 0.0]
     scale: 1.0
-    material: learn
+    material: forward
   - type: nanosuit
     name: nanosuit
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
-    material: learn
+    material: forward
     materials:
       shadow: shadow_point
   - type: aircraft
     pos: [-0.3, 0.0, -0.5]
     rotate: [30.0, -45.0, 0.0]
     scale: 0.1
-    material: learn
+    material: forward
     materials:
       shadow: shadow_point
 frames:
@@ -113,7 +113,7 @@ pass:
       depth: [true]
       face: back
     shaders:
-      learn:
+      forward:
         shadow_probe: [[light, light, index]]
         shadow_cube: [[frame, shadow_point, depth]]
       color:

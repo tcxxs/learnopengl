@@ -2,13 +2,13 @@ color:
   shader: color
   vars:
     material.color: [1.0, 1.0, 1.0]
-learn:
-  shader: learn
+forward:
+  shader: forward
   vars:
     material.specular_factor: 32.0
     material.displace_factor: 0.1
 learn_box:
-  shader: learn
+  shader: forward
   vars:
     material.diffuse: box.png
     material.specular: specular.png
