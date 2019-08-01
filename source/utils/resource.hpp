@@ -70,7 +70,7 @@ public:
 
 	template <typename ...ARGS>
 	inline typename I::ptr instance(ARGS... args) {
-		I::ptr inst = ResInst<P, I>::create(shared_from_this(), args...);
+		typename I::ptr inst = ResInst<P, I>::create(shared_from_this(), args...);
 		if (!inst)
 			return I::empty;
 		_insts[inst->getID()] = inst;

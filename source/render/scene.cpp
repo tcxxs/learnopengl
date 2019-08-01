@@ -149,20 +149,18 @@ void Scene::draw() {
 	CommandQueue cmds;
 	for (const auto& it: _pass) {
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, string_format("pass %s", it->getName()).c_str());
-		std::pair<int, int> view = it->getView();
-		glViewport(0, 0, GLsizei(view.first), GLsizei(view.second));
-		glEnable(GL_STENCIL_TEST);
-		glEnable(GL_BLEND);
-
 		cmds.clear();
 		it->drawBegin();
+
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "uniforms");
 		drawUniforms(it);
 		glPopDebugGroup();
+
 		// TODO: 同shader、同attr应该合批
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "collect");
 		int n = it->drawPass(cmds, _models);
 		glPopDebugGroup();
+
 		if (n >= 0) {
 			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "draw");
 			for (auto& itc: cmds) {
@@ -170,6 +168,7 @@ void Scene::draw() {
 			}
 			glPopDebugGroup();
 		}
+
 		it->drawEnd();
 		glPopDebugGroup();
 	}
@@ -185,40 +184,56 @@ void Scene::drawUniforms(const Pass::ptr& pass) {
 	matvp->setVar("view", cam->getView());
 	matvp->setVar("proj", cam->getProj());
 
+	float dark = 5.0f / 256.0f;
 	for (int i = 0; i < _lights.size(); ++i) {
 		UniformInst::ptr& uniform = _uniforms[string_format(UNIFORM_LIGHTS "[%d]", i)];
 		const LightInst::ptr& light = _lights[i];
 		const LightProto::ptr& proto = light->prototype();
 		const LightProto::lighttype type = proto->getType();
 
+		float constant = proto->attrs.getAttr<float>("constant");
+		float linear = proto->attrs.getAttr<float>("linear");
+		float quadratic = proto->attrs.getAttr<float>("quadratic");
+		glm::vec3 ambient = proto->attrs.getAttr<glm::vec3>("ambient");
+		glm::vec3 diffuse = proto->attrs.getAttr<glm::vec3>("diffuse");
+		glm::vec3 specular = proto->attrs.getAttr<glm::vec3>("specular");
+		GLfloat cmax{0.0f}, radius{0.0f};
 		uniform->setVar("light.type", (int)type);
-		switch (proto->getType()) {
+		switch (type) {
 		case LightProto::LIGHT_DIR:
 			uniform->setVar("light.dir", light->getDir());
-			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
-			uniform->setVar("light.diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
-			uniform->setVar("light.specular", proto->attrs.getAttr<glm::vec3>("specular"));
+			uniform->setVar("light.ambient", ambient);
+			uniform->setVar("light.diffuse", diffuse);
+			uniform->setVar("light.specular", specular);
 			break;
 		case LightProto::LIGHT_POINT:
 			uniform->setVar("light.pos", light->getPos());
-			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
-			uniform->setVar("light.diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
-			uniform->setVar("light.specular", proto->attrs.getAttr<glm::vec3>("specular"));
-			uniform->setVar("light.constant", proto->attrs.getAttr<float>("constant"));
-			uniform->setVar("light.linear", proto->attrs.getAttr<float>("linear"));
-			uniform->setVar("light.quadratic", proto->attrs.getAttr<float>("quadratic"));
+			uniform->setVar("light.ambient", ambient);
+			uniform->setVar("light.diffuse", diffuse);
+			uniform->setVar("light.specular", specular);
+			uniform->setVar("light.constant", constant);
+			uniform->setVar("light.linear", linear);
+			uniform->setVar("light.quadratic", quadratic);
+
+			cmax = std::fmaxf(std::fmaxf(diffuse.r, diffuse.g), diffuse.b);
+			radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - cmax / dark))) / (2 * quadratic);
+			//uniform->setVar("light.radius", quadratic);
 			break;
 		case LightProto::LIGHT_SPOT:
 			uniform->setVar("light.pos", light->getPos());
 			uniform->setVar("light.dir", light->getDir());
-			uniform->setVar("light.ambient", proto->attrs.getAttr<glm::vec3>("ambient"));
-			uniform->setVar("light.diffuse", proto->attrs.getAttr<glm::vec3>("diffuse"));
-			uniform->setVar("light.specular", proto->attrs.getAttr<glm::vec3>("specular"));
-			uniform->setVar("light.constant", proto->attrs.getAttr<float>("constant"));
-			uniform->setVar("light.linear", proto->attrs.getAttr<float>("linear"));
-			uniform->setVar("light.quadratic", proto->attrs.getAttr<float>("quadratic"));
+			uniform->setVar("light.ambient", ambient);
+			uniform->setVar("light.diffuse", diffuse);
+			uniform->setVar("light.specular", specular);
+			uniform->setVar("light.constant", constant);
+			uniform->setVar("light.linear", linear);
+			uniform->setVar("light.quadratic", quadratic);
 			uniform->setVar("light.inner", cos(glm::radians(proto->attrs.getAttr<float>("inner"))));
 			uniform->setVar("light.outter", cos(glm::radians(proto->attrs.getAttr<float>("outter"))));
+
+			cmax = std::fmaxf(std::fmaxf(diffuse.r, diffuse.g), diffuse.b);
+			radius = (-linear + std::sqrtf(linear * linear - 4 * quadratic * (constant - cmax / dark))) / (2 * quadratic);
+			//uniform->setVar("light.radius", quadratic);
 			break;
 		}
 	}
@@ -331,7 +346,7 @@ std::any Scene::_genLight(const Config::node& conf) {
 		const glm::vec3 pos = light->getPos();
 		const glm::vec3 dir = light->getDir();
 		if (type == "index") {
-			return i; 
+			return i;
 		}
 		else if (type == "pos") {
 			return pos;

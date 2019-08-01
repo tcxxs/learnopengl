@@ -11,8 +11,8 @@
 #include "render/uniform.hpp"
 #include "render/pass.hpp"
 
-// TODO: æ˜¯ä¸æ˜¯è¯¥æœ‰ä¸ªrender context
-// TODO: å†™æ’ä»¶ä»blenderå¯¼å‡ºæ˜¯æ­£è·¯
+// TODO: ÊÇ²»ÊÇ¸ÃÓĞ¸örender context
+// TODO: Ğ´²å¼ş´Óblenderµ¼³öÊÇÕıÂ·
 class Scene: public Res<Scene> {
 public:
 	static ptr create(const std::string& name);

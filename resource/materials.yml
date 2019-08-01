@@ -7,12 +7,26 @@ forward:
   vars:
     material.specular_factor: 32.0
     material.displace_factor: 0.1
-learn_box:
+defer_geo:
+  shader: defer_geo
+  vars:
+    material.displace_factor: 0.1
+defer_light:
+  shader: defer_light
+  vars:
+    material.specular_factor: 32.0
+box_forward:
   shader: forward
   vars:
     material.diffuse: box.png
     material.specular: specular.png
     material.specular_factor: 32.0
+    material.displace_factor: 0.1
+box_defer:
+  shader: defer_geo
+  vars:
+    material.diffuse: box.png
+    material.specular: specular.png
     material.displace_factor: 0.1
 phong_ins:
   shader: phong_ins

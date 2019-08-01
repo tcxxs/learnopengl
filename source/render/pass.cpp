@@ -4,6 +4,7 @@
 Pass::ptr Pass::create(const Config::node& conf) {
 	Pass::ptr pass = std::make_shared<Pass>();
 
+	// TODO: 可以支持generate和重复多次，针对bloom这种
 	if (!pass->_initConf(conf))
 		return {};
 	if (!pass->_initState(conf["states"]))
@@ -234,6 +235,13 @@ void Pass::drawBegin() {
 		}
 	}
 
+	std::pair<int, int> view = getView();
+	glViewport(0, 0, GLsizei(view.first), GLsizei(view.second));
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
+	glEnable(GL_BLEND);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	for (const auto& it: _states)
 		it();
 }

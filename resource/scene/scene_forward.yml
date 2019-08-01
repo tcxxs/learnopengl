@@ -1,0 +1,240 @@
+camera: eye
+cameras:
+  eye:
+    fov: 45.0
+    pos: [0.5, 2.0, 3.0]
+    target: [0.0, 0.0, -1.0]
+lights:
+  - type: point_sun
+    name: light
+    pos: [-0.2, 0.3, -1.2]
+  - type: point_red
+    name: light_red
+    pos: [0.5, 0.0, 0.5]
+    dir: [0.0, -1.0, 0.0]
+  - type: point_green
+    name: light_green
+    pos: [0.0, 0.0, 1.0]
+    dir: [0.0, -1.0, 0.0]
+  - type: point_blue
+    name: light_blue
+    pos: [-0.5, 0.0, 1.5]
+    dir: [0.0, -1.0, 0.0]
+models:
+  - type: sun
+    pos: [[light, light, pos]]
+    scale: 0.02
+  - type: cube
+    pos: [[light, light_red, pos]]
+    scale: 0.1
+    material: bloom_red
+  - type: cube
+    pos: [[light, light_green, pos]]
+    scale: 0.1
+    material: bloom_green
+  - type: cube
+    pos: [[light, light_blue, pos]]
+    scale: 0.1
+    material: bloom_blue
+  - type: cube
+    pos: [0.0, 0.0, 0.0]
+    scale: 50.0
+    material: sky
+  - type: cube
+    pos: [-0.2, 0.3, -0.1]
+    scale: 0.1
+    material: learn_box
+  - type: cube
+    pos: [-0.2, 0.5, 1.2]
+    scale: 0.4
+    rotate: [0.0, 0.0, 30.0]
+    material: learn_box
+  - type: cube
+    pos: [0.3, -0.1, 1.0]
+    scale: 0.2
+    rotate: [45.0, 0.0, 45.0]
+    material: learn_box
+  - type: wall
+    pos: [0.0, -0.5, 0.0]
+    scale: 5.0
+    material: forward
+  - type: wall
+    pos: [1.0, 0.5, 0.0]
+    rotate: [0.0, 0.0, 90.0]
+    scale: 1.0
+    material: forward
+  - type: wall
+    pos: [0.0, 0.5, -1.5]
+    rotate: [90.0, 0.0, 0.0]
+    scale: 1.0
+    material: forward
+  - type: nanosuit
+    name: nanosuit
+    pos: [0.0, 0.0, 0.0]
+    scale: 0.05
+    material: forward
+    materials:
+      shadow: shadow_point
+  - type: aircraft
+    pos: [-0.3, 0.0, -0.5]
+    rotate: [30.0, -45.0, 0.0]
+    scale: 0.1
+    material: forward
+    materials:
+      shadow: shadow_point
+frames:
+  shadow_spot:
+    depth: depth
+  shadow_point:
+    square: true
+    depth: depcube
+  scene:
+    colors: [hdr: scene, hdr: bloom]
+    depth: depst
+  bloom1:
+    colors: [hdr]
+  bloom2:
+    colors: [hdr]
+pass:
+  - name: shadow
+    states:
+      clear: [color, depth, stencil]
+      face: front
+    shaders:
+      shadow_point:
+        light_pos: [[light, light, pos]]
+        light_vp: [[light, light, vp]]
+    output:
+      frame: [[frame, shadow_point]]
+  - name: scene_model
+    states:
+      clear: [color, depth, stencil]
+    shaders:
+      forward:
+        shadow_probe: [[light, light, index]]
+        shadow_cube: [[frame, shadow_point, depth]]
+      color:
+    output:
+      frame: [[frame, scene]]
+      colors:
+        scene: color_out
+        bloom: color_bloom
+  - name: scene_sky
+    states:
+      depth: [true, lesseq]
+      face: front
+    shaders:
+      sky:
+    output:
+      frame: [[frame, scene]]
+      colors:
+        scene: color_out
+        bloom: color_bloom
+  - name: bloom_hor
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, scene, bloom]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      bloom:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: hdr
+    states:
+      clear: [color, depth, stencil]
+      depth: [false]
+    posts:
+      hdr:
+        scene: [[frame, scene, scene]]
+        bloom: [[frame, bloom2, color]]

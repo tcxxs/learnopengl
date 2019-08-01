@@ -43,43 +43,43 @@ models:
   - type: cube
     pos: [-0.2, 0.3, -0.1]
     scale: 0.1
-    material: learn_box
+    material: box_defer
   - type: cube
     pos: [-0.2, 0.5, 1.2]
     scale: 0.4
     rotate: [0.0, 0.0, 30.0]
-    material: learn_box
+    material: box_defer
   - type: cube
     pos: [0.3, -0.1, 1.0]
     scale: 0.2
     rotate: [45.0, 0.0, 45.0]
-    material: learn_box
+    material: box_defer
   - type: wall
     pos: [0.0, -0.5, 0.0]
     scale: 5.0
-    material: forward
+    material: defer_geo
   - type: wall
     pos: [1.0, 0.5, 0.0]
     rotate: [0.0, 0.0, 90.0]
     scale: 1.0
-    material: forward
+    material: defer_geo
   - type: wall
     pos: [0.0, 0.5, -1.5]
     rotate: [90.0, 0.0, 0.0]
     scale: 1.0
-    material: forward
+    material: defer_geo
   - type: nanosuit
     name: nanosuit
     pos: [0.0, 0.0, 0.0]
     scale: 0.05
-    material: forward
+    material: defer_geo
     materials:
       shadow: shadow_point
   - type: aircraft
     pos: [-0.3, 0.0, -0.5]
     rotate: [30.0, -45.0, 0.0]
     scale: 0.1
-    material: forward
+    material: defer_geo
     materials:
       shadow: shadow_point
 frames:
@@ -88,6 +88,9 @@ frames:
   shadow_point:
     square: true
     depth: depcube
+  gbuffer:
+    colors: [hdr: position, hdr: normal, ldr: albedo]
+    depth: depst
   scene:
     colors: [hdr: scene, hdr: bloom]
     depth: depst
@@ -99,7 +102,6 @@ pass:
   - name: shadow
     states:
       clear: [color, depth, stencil]
-      depth: [true]
       face: front
     shaders:
       shadow_point:
@@ -107,15 +109,37 @@ pass:
         light_vp: [[light, light, vp]]
     output:
       frame: [[frame, shadow_point]]
-  - name: scene_model
+  - name: defer_geo
     states:
       clear: [color, depth, stencil]
-      depth: [true]
-      face: back
     shaders:
-      forward:
+      defer_geo:
+    output:
+      frame: [[frame, gbuffer]]
+      colors:
+        position: color_pos
+        normal: color_normal
+        albedo: color_albedo
+  - name: defer_light
+    states:
+      clear: [color, depth]
+      depth: [true]
+    posts:
+      defer_light:
         shadow_probe: [[light, light, index]]
         shadow_cube: [[frame, shadow_point, depth]]
+        gbuffer.position: [[frame, gbuffer, position]]
+        gbuffer.normal: [[frame, gbuffer, normal]]
+        gbuffer.albedo: [[frame, gbuffer, albedo]]
+    output:
+      frame: [[frame, scene]]
+      colors:
+        scene: color_out
+        bloom: color_bloom
+  - name: scene_model
+    states:
+      depth: [true]
+    shaders:
       color:
     output:
       frame: [[frame, scene]]
@@ -137,7 +161,6 @@ pass:
     states:
       clear: [color]
       depth: [false]
-      face: back
     posts:
       bloom:
         horizontal: 1
@@ -147,6 +170,7 @@ pass:
   - name: bloom_ver
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 0
@@ -156,6 +180,7 @@ pass:
   - name: bloom_hor
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 1
@@ -165,6 +190,7 @@ pass:
   - name: bloom_ver
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 0
@@ -174,6 +200,7 @@ pass:
   - name: bloom_hor
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 1
@@ -183,6 +210,7 @@ pass:
   - name: bloom_ver
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 0
@@ -192,6 +220,7 @@ pass:
   - name: bloom_hor
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 1
@@ -201,6 +230,7 @@ pass:
   - name: bloom_ver
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 0
@@ -210,6 +240,7 @@ pass:
   - name: bloom_hor
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 1
@@ -219,6 +250,7 @@ pass:
   - name: bloom_ver
     states:
       clear: [color]
+      depth: [false]
     posts:
       bloom:
         horizontal: 0
@@ -228,6 +260,7 @@ pass:
   - name: hdr
     states:
       clear: [color, depth, stencil]
+      depth: [false]
     posts:
       hdr:
         scene: [[frame, scene, scene]]
