@@ -1,5 +1,9 @@
 #version 460 core
 
+#define SPACE_VIEW 1
+#define VIEW_NEAR 0.1
+#define VIEW_FAR 100.0
+
 #define GAMMA_CORRCT 1
 #define GAMMA_VAL 2.2
 
@@ -26,6 +30,7 @@ struct ColorArg {
 
 struct CalcArg {
     vec3 pos;
+    float depth;
     vec2 uv;
     vec3 normal;
     vec3 camera;
@@ -38,6 +43,9 @@ in VertexAttrs {
     vec3 pos;
     vec2 uv;
     vec3 normal;
+#if SPACE_VIEW
+    flat vec3 camera;
+#endif
 }vertex;
 in TangentAttrs {
     vec3 pos;
@@ -59,7 +67,11 @@ void init_calc() {
     calc.pos = vertex.pos;
     calc.uv = vertex.uv;
     calc.normal = vertex.normal;
+#if SPACE_VIEW
+    calc.camera = vertex.camera;
+#else
     calc.camera = scene.camera;
+#endif
     calc.camdir = normalize(calc.camera - calc.pos);
 
     calc.tex.diffuse = false;
@@ -131,12 +143,24 @@ void sample_texture() {
     }
 }
 
+void calc_depth() {
+    float z;
+#if SPACE_VIEW
+    z = gl_FragCoord.z * 2.0 - 1.0;
+    z = (2.0 * VIEW_NEAR * VIEW_FAR) / (VIEW_FAR + VIEW_NEAR - z * (VIEW_FAR - VIEW_NEAR));
+#else
+    z = gl_FragCoord.z;
+#endif
+    calc.depth = z;
+}
+
 void main() {
     init_calc();
     calc_displace();
     sample_texture();
+    calc_depth();
 
-    color_pos = vec4(calc.pos, gl_FragCoord.z);
+    color_pos = vec4(calc.pos, calc.depth);
     color_normal = vec4(calc.normal, 1.0);
     color_albedo = vec4(calc.color.diffuse, calc.color.specular.r);
 } 

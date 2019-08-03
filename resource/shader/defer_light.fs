@@ -1,6 +1,10 @@
 #version 460 core
 
+#define SPACE_VIEW 1
+
+#define VIEW_NEAR 0.1
 #define VIEW_FAR 100.0
+
 #define GAMMA_CORRCT 1
 #define GAMMA_VAL 2.2
 
@@ -62,6 +66,12 @@ struct CalcArg {
 
 in vec2 fg_uv;
 
+#if SPACE_VIEW
+uniform MatrixVP {
+    mat4 view;
+    mat4 proj;
+};
+#endif
 uniform Material material;
 uniform Scene {
     vec3 camera;
@@ -85,11 +95,24 @@ void init_calc() {
     vec4 position = texture(gbuffer.position, fg_uv);
     vec4 normal = texture(gbuffer.normal, fg_uv);
     vec4 albedo = texture(gbuffer.albedo, fg_uv);
+
+#if SPACE_VIEW
+    // 这里在geo中可能是空的点，需要判断下
+    if (length(position.rgb) < 0.0001 && abs(position.a - 1.0) < 0.0001)
+        discard;
+    float z = (VIEW_FAR + VIEW_NEAR - (2.0 * VIEW_NEAR * VIEW_FAR) / position.a) / (VIEW_FAR - VIEW_NEAR);
+    gl_FragDepth = (z + 1.0) / 2.0;
+#else
     gl_FragDepth = position.a;
+#endif
 
     calc.pos = position.rgb;
     calc.normal = normal.rgb;
+#if SPACE_VIEW
+    calc.camera = vec3(view * vec4(scene.camera, 1.0));
+#else
     calc.camera = scene.camera;
+#endif
     calc.camdir = normalize(calc.camera - calc.pos);
 
     calc.color.diffuse = albedo.rgb;
@@ -141,8 +164,13 @@ void shadow_point(Light light) {
     );
     float shadow_total = 0.0;
     float shadow_step = (1.0 + (length(calc.camdir) / VIEW_FAR)) / (textureSize(shadow_cube, 0).x / 4);
-    // 不用normalize，因为要算长度
-    vec3 texdir = calc.pos - calc.light.pos;
+    // 不用normalize，因为要算长度，需要世界空间
+    vec3 texdir;
+#if SPACE_VIEW
+    texdir = vec3(inverse(view) * vec4(calc.pos, 1.0)) - lights[calc.light.ind].light.pos;
+#else
+    texdir = calc.pos - calc.light.pos;
+#endif
     for(int i = 0; i < 20; ++i) {
         float depth = texture(shadow_cube, (texdir + shadow_offset[i] * shadow_step)).r * VIEW_FAR;
         shadow_total += length(texdir) - bias > depth ? 0.0: 1.0;
@@ -232,8 +260,13 @@ void main() {
 	vec3 color_total = vec3(0.0);
     for (int i = 0; i < scene.lights; ++i) {
         calc.light.ind = i;
+#if SPACE_VIEW
+        calc.light.pos = vec3(view * vec4(lights[i].light.pos, 1.0));
+        calc.light.dir = vec3(view * vec4(lights[i].light.dir, 1.0));
+#else
         calc.light.pos = lights[i].light.pos;
         calc.light.dir = lights[i].light.dir;
+#endif
         calc.light.indir = vec3(0.0);
         calc.light.factor = 1.0;
         calc.light.shadow = 1.0;
