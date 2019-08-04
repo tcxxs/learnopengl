@@ -1,8 +1,5 @@
 #version 460 core
 
-#define GAMMA_CORRCT 1
-#define GAMMA_VAL 2.2
-
 #define WINDOW_WIDTH 1600.0
 #define WINDOW_HEIGHT 900.0
 

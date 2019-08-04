@@ -78,8 +78,10 @@ show:
   shader: show
 post:
   shader: post
-ssao:
-  shader: ssao
+ssao_ao:
+  shader: ssao_ao
+ssao_blur:
+  shader: ssao_blur
 bloom:
   shader: bloom
 hdr:

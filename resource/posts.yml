@@ -4,8 +4,10 @@ show:
   material: show
 defer_light:
   material: defer_light
-ssao:
-  material: ssao
+ssao_ao:
+  material: ssao_ao
+ssao_blur:
+  material: ssao_blur
 bloom:
   material: bloom
 hdr:

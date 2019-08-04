@@ -94,7 +94,9 @@ frames:
   scene:
     colors: [hdr: scene, hdr: bloom]
     depth: depst
-  ssao:
+  ssao_ao:
+    colors: [rf]
+  ssao_blur:
     colors: [rf]
   bloom1:
     colors: [hdr]
@@ -122,18 +124,28 @@ pass:
         position: color_pos
         normal: color_normal
         albedo: color_albedo
-  - name: ssao
+  - name: ssao_ao
     states:
       clear: [color]
       depth: [false]
     posts:
-      ssao:
+      ssao_ao:
         samples: [[ssao, samples, 64]]
-        noise: [[ssao, noise, 8]]
+        noise: [[ssao, noise, 4]]
         gbuffer.position: [[frame, gbuffer, position]]
         gbuffer.normal: [[frame, gbuffer, normal]]
     output:
-      frame: [[frame, ssao]]
+      frame: [[frame, ssao_ao]]
+  - name: ssao_blur
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      ssao_blur:
+        noise: 4
+        frame: [[frame, ssao_ao, color]]
+    output:
+      frame: [[frame, ssao_blur]]
   - name: defer_light
     states:
       clear: [color, depth]
@@ -171,7 +183,7 @@ pass:
       colors:
         scene: color_out
         bloom: color_bloom
-  - name: bloom_hor
+  - name: bloom_first
     states:
       clear: [color]
       depth: [false]
@@ -201,76 +213,13 @@ pass:
         frame: [[frame, bloom2, color]]
     output:
       frame: [[frame, bloom1]]
-  - name: bloom_ver
-    states:
-      clear: [color]
-      depth: [false]
-    posts:
-      bloom:
-        horizontal: 0
-        frame: [[frame, bloom1, color]]
-    output:
-      frame: [[frame, bloom2]]
-  - name: bloom_hor
-    states:
-      clear: [color]
-      depth: [false]
-    posts:
-      bloom:
-        horizontal: 1
-        frame: [[frame, bloom2, color]]
-    output:
-      frame: [[frame, bloom1]]
-  - name: bloom_ver
-    states:
-      clear: [color]
-      depth: [false]
-    posts:
-      bloom:
-        horizontal: 0
-        frame: [[frame, bloom1, color]]
-    output:
-      frame: [[frame, bloom2]]
-  - name: bloom_hor
-    states:
-      clear: [color]
-      depth: [false]
-    posts:
-      bloom:
-        horizontal: 1
-        frame: [[frame, bloom2, color]]
-    output:
-      frame: [[frame, bloom1]]
-  - name: bloom_ver
-    states:
-      clear: [color]
-      depth: [false]
-    posts:
-      bloom:
-        horizontal: 0
-        frame: [[frame, bloom1, color]]
-    output:
-      frame: [[frame, bloom2]]
-  - name: bloom_hor
-    states:
-      clear: [color]
-      depth: [false]
-    posts:
-      bloom:
-        horizontal: 1
-        frame: [[frame, bloom2, color]]
-    output:
-      frame: [[frame, bloom1]]
-  - name: bloom_ver
-    states:
-      clear: [color]
-      depth: [false]
-    posts:
-      bloom:
-        horizontal: 0
-        frame: [[frame, bloom1, color]]
-    output:
-      frame: [[frame, bloom2]]
+  - {name: bloom_copy, copy: bloom_ver}
+  - {name: bloom_copy, copy: bloom_hor}
+  - {name: bloom_copy, copy: bloom_ver}
+  - {name: bloom_copy, copy: bloom_hor}
+  - {name: bloom_copy, copy: bloom_ver}
+  - {name: bloom_copy, copy: bloom_hor}
+  - {name: bloom_copy, copy: bloom_ver}
   - name: hdr
     states:
       clear: [color, depth, stencil]

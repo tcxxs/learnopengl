@@ -50,11 +50,8 @@ Scene::ptr Scene::create(const std::string& name) {
 			return {};
 	}
 
-	const auto pass = conf["pass"];
-	for (const auto& it: pass) {
-		if (!scene->addPass(it))
-			return {};
-	}
+	if (!scene->addPass(conf["pass"]))
+		return {};
 
 	// TODO: 因为uniform需要shader的布局信息，所以需要shader加载之后
 	// 1，用stdlaout自己算；2，用一个特殊shader触发
@@ -104,12 +101,35 @@ bool Scene::addModel(const Config::node& conf) {
 	return true;
 }
 
+// TODO: 这里只是一个简单的pass generator
 bool Scene::addPass(const Config::node& conf) {
-	Pass::ptr pass = Pass::create(conf);
-	if (!pass)
-		return false;
+	if (!Config::valid(conf))
+		return true;
 
-	_pass.push_back(pass);
+	std::map<std::string, int> names;
+	for (int i = 0; i < conf.size(); ++i) {
+		const Config::node& it = conf[i];
+		Pass::ptr pass;
+		if (Config::valid(it["copy"])) {
+			const auto& find = names.find(it["copy"].as<std::string>());
+			if (find == names.end()) {
+				std::printf("pass %d, copy not found\n", i);
+				return false;
+			}
+
+			const Config::node& copy = conf[find->second];
+			pass = Pass::create(copy);
+		}
+		else {
+			pass = Pass::create(it);
+			names[pass->getName()] = i;
+		}
+
+		if (!pass)
+			return false;
+		_pass.push_back(pass);
+	}
+
 	return true;
 }
 

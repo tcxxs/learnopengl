@@ -18,8 +18,8 @@ point_sun:
   diffuse: [15.0, 15.0, 15.0]
   specular: [25.0, 25.0, 25.0]
   constant: 1.0
-  linear: 0.7
-  quadratic: 0.9
+  linear: 0.34
+  quadratic: 0.44
 point_red:
   ambient: [0.0, 0.0, 0.0]
   diffuse: [10.0, 0.0, 0.0]
