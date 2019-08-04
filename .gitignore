@@ -2,3 +2,4 @@
 .vscode
 bin/
 *.code-workspace
+resource/download

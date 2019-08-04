@@ -5,9 +5,6 @@
 #define VIEW_NEAR 0.1
 #define VIEW_FAR 100.0
 
-#define GAMMA_CORRCT 1
-#define GAMMA_VAL 2.2
-
 #define LIGHT_MAX 10
 #define LIGHT_DIR 1
 #define LIGHT_POINT 2
@@ -43,6 +40,7 @@ struct Light {
 struct ColorArg {
     vec3 diffuse;
     float specular;
+    float ao;
 };
 
 struct LightArg {
@@ -87,6 +85,7 @@ uniform mat4 shadow_vp;
 uniform sampler2D shadow_map;
 
 uniform GBuffer gbuffer;
+uniform sampler2D ssao;
 
 out vec4 color_out;
 out vec4 color_bloom;
@@ -116,11 +115,11 @@ void init_calc() {
     calc.camdir = normalize(calc.camera - calc.pos);
 
     calc.color.diffuse = albedo.rgb;
-    #if GAMMA_CORRCT
-    calc.color.diffuse = pow(calc.color.diffuse, vec3(GAMMA_VAL));
-    #endif
-
     calc.color.specular = albedo.a;
+    calc.color.ao = 1.0;
+    if (textureSize(ssao, 0).x > 1) {
+        calc.color.ao = texture(ssao, fg_uv).r;
+    }
 }
 
 void calc_dir(Light light) {
@@ -246,7 +245,7 @@ vec3 phong_calc(Light light) {
     vec3 color = vec3(0.0);
     if (calc.light.factor <= 0)
         return color;
-    color += phong_ambient(light.ambient) * calc.light.factor;
+    color += phong_ambient(light.ambient) * calc.light.factor * calc.color.ao;
     if (calc.light.shadow <= 0)
         return color;
     color += phong_diffuse(light.diffuse) * calc.light.factor * calc.light.shadow;

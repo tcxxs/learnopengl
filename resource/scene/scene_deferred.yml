@@ -157,6 +157,7 @@ pass:
         gbuffer.position: [[frame, gbuffer, position]]
         gbuffer.normal: [[frame, gbuffer, normal]]
         gbuffer.albedo: [[frame, gbuffer, albedo]]
+        ssao: [[frame, ssao_blur, color]]
     output:
       frame: [[frame, scene]]
       colors:

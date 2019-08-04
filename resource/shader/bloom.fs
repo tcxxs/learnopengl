@@ -1,8 +1,5 @@
 #version 460 core
 
-#define GAMMA_CORRCT 1
-#define GAMMA_VAL 2.2
-
 in vec2 fg_uv;
 
 uniform sampler2D frame;
