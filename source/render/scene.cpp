@@ -1,3 +1,4 @@
+#include <random>
 #include "scene.hpp"
 #include "event.hpp"
 #include "render/command.hpp"
@@ -16,6 +17,7 @@ Scene::ptr Scene::create(const std::string& name) {
 	scene->_cfuncs.emplace("camera", std::bind(&Scene::_genCamera, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("light", std::bind(&Scene::_genLight, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("frame", std::bind(&Scene::_genFrame, scene.get(), std::placeholders::_1));
+	scene->_cfuncs.emplace("ssao", std::bind(&Scene::_genSSAO, scene.get(), std::placeholders::_1));
 	// TODO: 这个时机不算太好
 	Config::gen = std::bind(&Scene::generateConf, scene, std::placeholders::_1);
 
@@ -392,4 +394,56 @@ std::any Scene::_genFrame(const Config::node& conf) {
 	}
 	else
 		return find->second;
+}
+
+std::any Scene::_genSSAO(const Config::node& conf) {
+	if (conf.size() < 2)
+		return {};
+
+	static std::random_device rand_d;
+	static std::uniform_real_distribution<GLfloat> rand_float(0.0, 1.0);
+	static std::default_random_engine rand_gen(rand_d());
+
+	const std::string& name = conf[1].as<std::string>();
+	int num = conf[2].as<int>();
+	if (name == "samples") {
+
+		GLfloat scale;
+		std::vector<glm::vec3> kernel;
+		for (int i = 0; i < num; ++i) {
+			glm::vec3 sample{rand_float(rand_gen) * 2.0 - 1.0,
+			                 rand_float(rand_gen) * 2.0 - 1.0,
+			                 rand_float(rand_gen)};
+			scale = i / float(num);
+			scale = 0.1f + (1.0f - 0.1f) * scale * scale;
+			sample = glm::normalize(sample) * rand_float(rand_gen) * scale;
+			kernel.push_back(sample);
+		}
+
+		return {kernel};
+	}
+	else if (name == "noise") {
+		static GLuint tex{0};
+		if (!tex) {
+			std::vector<glm::vec3> noise;
+			for (int i = 0; i < num * num; i++) {
+				glm::vec3 vec{rand_float(rand_gen) * 2.0 - 1.0,
+				              rand_float(rand_gen) * 2.0 - 1.0,
+					rand_float(rand_gen) * 2.0 - 1.0};
+				noise.push_back(vec);
+			}
+
+			glGenTextures(1, &tex);
+			glBindTexture(GL_TEXTURE_2D, tex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, num, num, 0, GL_RGB, GL_FLOAT, &noise[0]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		}
+
+		return Texture::val(tex);
+	}
+
+	return {};
 }

@@ -51,6 +51,9 @@ public:
 	inline void setVar(const GLuint& loc, const glm::vec3& var) {
 		glUniform3fv(loc, 1, glm::value_ptr(var));
 	}
+	inline void setVar(const GLuint& loc, const std::vector<glm::vec3>& var) {
+		glUniform3fv(loc, (GLsizei)var.size(), glm::value_ptr(var[0]));
+	}
 	inline void setVar(const GLuint& loc, const glm::mat4& var) {
 		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(var));
 	}

@@ -254,6 +254,9 @@ void Shader::setVar(const GLuint& loc, const std::any& var) {
 	else if (var.type() == typeid(glm::vec3)) {
 		setVar(loc, std::any_cast<const glm::vec3&>(var));
 	}
+	else if (var.type() == typeid(std::vector<glm::vec3>)) {
+		setVar(loc, std::any_cast<const std::vector<glm::vec3>&>(var));
+	}
 	else if (var.type() == typeid(glm::mat4)) {
 		setVar(loc, std::any_cast<const glm::mat4&>(var));
 	}

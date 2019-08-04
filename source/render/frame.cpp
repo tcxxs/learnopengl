@@ -24,6 +24,8 @@ Frame::ptr Frame::create(const Config::node& conf) {
 				frame->_attachLDR(attach);
 			else if (type == "hdr")
 				frame->_attachHDR(attach);
+			else if (type == "rf")
+				frame->_attachRF(attach);
 		}
 	}
 
@@ -99,11 +101,6 @@ bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 		height = width;
 	}
 	
-	GLenum pixel;
-	switch (format) {
-	case GL_RGBA16F: pixel = GL_FLOAT; break;
-	default: pixel = GL_UNSIGNED_BYTE; break;
-	}
 	if (msaa > 0)
 		attach.type = GL_TEXTURE_2D_MULTISAMPLE;
 	else
@@ -115,7 +112,7 @@ bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaa, format, width, height, GL_TRUE);
 	}
 	else {
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, pixel, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -130,7 +127,7 @@ bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 	if (msaa > 0) {
 		glGenTextures(1, &attach.blit_tex);
 		glBindTexture(GL_TEXTURE_2D, attach.blit_tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, pixel, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

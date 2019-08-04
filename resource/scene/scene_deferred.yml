@@ -2,7 +2,7 @@ camera: eye
 cameras:
   eye:
     fov: 45.0
-    pos: [0.5, 2.0, 3.0]
+    pos: [0.5, 1.0, 1.0]
     target: [0.0, 0.0, -1.0]
 lights:
   - type: point_sun
@@ -94,6 +94,8 @@ frames:
   scene:
     colors: [hdr: scene, hdr: bloom]
     depth: depst
+  ssao:
+    colors: [rf]
   bloom1:
     colors: [hdr]
   bloom2:
@@ -120,6 +122,18 @@ pass:
         position: color_pos
         normal: color_normal
         albedo: color_albedo
+  - name: ssao
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      ssao:
+        samples: [[ssao, samples, 64]]
+        noise: [[ssao, noise, 8]]
+        gbuffer.position: [[frame, gbuffer, position]]
+        gbuffer.normal: [[frame, gbuffer, normal]]
+    output:
+      frame: [[frame, ssao]]
   - name: defer_light
     states:
       clear: [color, depth]

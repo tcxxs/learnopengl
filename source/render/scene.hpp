@@ -40,6 +40,7 @@ private:
 	std::any _genCamera(const Config::node& conf);
 	std::any _genLight(const Config::node& conf);
 	std::any _genFrame(const Config::node& conf);
+	std::any _genSSAO(const Config::node& conf);
 
 public:
 	inline static ptr current{};
