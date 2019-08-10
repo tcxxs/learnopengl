@@ -7,6 +7,12 @@ sun:
 wall:
   file: wall/wall.obj
   material: color
+ball:
+  file: ball/ball.obj
+  material: pbr_geo
+  vars:
+    material.metallic: ball/rustediron2_metallic.png
+    material.roughness: ball/rustediron2_roughness.png
 nanosuit:
   file: nanosuit/nanosuit.obj
   material: color

@@ -4,6 +4,8 @@ show:
   material: show
 defer_light:
   material: defer_light
+pbr_light:
+  material: pbr_light
 ssao_ao:
   material: ssao_ao
 ssao_blur:

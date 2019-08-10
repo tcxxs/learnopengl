@@ -1,52 +1,11 @@
 dir:
-  ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.1, 0.1, 0.1]
-  specular: [0.3, 0.3, 0.3]
-dir_ambient:
-  ambient: [0.01, 0.01, 0.01]
-  diffuse: [0.0, 0.0, 0.0]
-  specular: [0.0, 0.0, 0.0]
+  type: dir
+  color: [0.2, 0.2, 0.2]
 point:
-  ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.5, 0.5, 0.5]
-  specular: [1.0, 1.0, 1.0]
-  constant: 1.0
-  linear: 0.09
-  quadratic: 0.032
-point_sun:
-  ambient: [2.0, 2.0, 2.0]
-  diffuse: [15.0, 15.0, 15.0]
-  specular: [25.0, 25.0, 25.0]
-  constant: 1.0
-  linear: 0.34
-  quadratic: 0.44
-point_red:
-  ambient: [0.0, 0.0, 0.0]
-  diffuse: [10.0, 0.0, 0.0]
-  specular: [15.0, 0.0, 0.0]
-  constant: 1.0
-  linear: 0.7
-  quadratic: 0.9
-point_green:
-  ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.0, 10.0, 0.0]
-  specular: [0.0, 15.0, 0.0]
-  constant: 1.0
-  linear: 0.7
-  quadratic: 0.9
-point_blue:
-  ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.0, 0.0, 10.0]
-  specular: [0.0, 0.0, 15.0]
-  constant: 1.0
-  linear: 0.7
-  quadratic: 0.9
+  type: point
+  color: [1.0, 1.0, 1.0]
 spot:
-  ambient: [0.0, 0.0, 0.0]
-  diffuse: [0.5, 0.5, 0.5]
-  specular: [1.0, 1.0, 1.0]
-  constant: 1.0
-  linear: 0.09
-  quadratic: 0.032
+  type: spot
+  color: [2.0, 2.0, 2.0]
   inner: 25.0
   outter: 40.0

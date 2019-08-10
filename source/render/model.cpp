@@ -30,6 +30,11 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 	if (!model->_initMaterial(conf))
 		return {};
 
+	if (Config::valid(conf["vars"])) {
+		if (!model->_initAttrs(conf["vars"]))
+			return {};
+	}
+
 	return model;
 }
 
@@ -81,6 +86,27 @@ bool ModelProto::_initMaterial(const Config::node& conf) {
 	return true;
 }
 
+bool ModelProto::_initAttrs(const Config::node& conf) {
+	if (!attrs.updateConf(conf))
+		return false;
+	for (auto& it: attrs) {
+		if (it.second.type() == typeid(std::string)) {
+			const auto& tex = TextureMgr::inst().req(std::any_cast<std::string&>(it.second));
+			if (!tex)
+				return false;
+			it.second = tex->getValue();
+		}
+		else if (it.second.type() == typeid(strcube)) {
+			const auto& tex = TextureMgr::inst().create(std::any_cast<strcube&>(it.second));
+			if (!tex)
+				return false;
+			it.second = tex->getValue();
+		}
+	}
+
+	return true;
+}
+
 ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::node& conf) {
 	ModelInst::ptr model = ModelInst::ptr(new ModelInst());
 	model->_proto = proto;
@@ -89,6 +115,10 @@ ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::nod
 
 	if (!model->_initMaterial(conf))
 		return {};
+	if (Config::valid(conf["vars"])) {
+		if (!model->_initAttrs(conf["vars"]))
+			return {};
+	}
 
 	const Config::node ins = conf["instance"];
 	if (ins.IsDefined()) {
@@ -121,7 +151,7 @@ ModelInst::~ModelInst() {
 
 void ModelInst::_addInstance(const Config::node& conf) {
 	glm::mat4& mat = _mats.emplace_back(1.0f);
-	
+
 	std::any val = Config::guess(conf["pos"]);
 	glm::vec3 pos = std::any_cast<glm::vec3>(val);
 	mat = glm::translate(mat, pos);
@@ -130,7 +160,7 @@ void ModelInst::_addInstance(const Config::node& conf) {
 	if (scale.IsDefined()) {
 		mat = glm::scale(mat, glm::vec3(scale.as<float>()));
 	}
-	
+
 	const Config::node rotate = conf["rotate"];
 	if (rotate.IsDefined()) {
 		float x = rotate[0].as<float>();
@@ -161,6 +191,27 @@ bool ModelInst::_initMaterial(const Config::node& conf) {
 			if (!mate)
 				return false;
 			_mates[pass] = mate;
+		}
+	}
+
+	return true;
+}
+
+bool ModelInst::_initAttrs(const Config::node& conf) {
+	if (!attrs.updateConf(conf))
+		return false;
+	for (auto& it: attrs) {
+		if (it.second.type() == typeid(std::string)) {
+			const auto& tex = TextureMgr::inst().req(std::any_cast<std::string&>(it.second));
+			if (!tex)
+				return false;
+			it.second = tex->getValue();
+		}
+		else if (it.second.type() == typeid(strcube)) {
+			const auto& tex = TextureMgr::inst().create(std::any_cast<strcube&>(it.second));
+			if (!tex)
+				return false;
+			it.second = tex->getValue();
 		}
 	}
 
@@ -217,6 +268,7 @@ int ModelInst::draw(CommandQueue& cmds, const std::string& pass, const std::set<
 			cmd.model = _mats[0];
 		}
 		cmd.material = mate;
+		cmd.attrs.updateAttrs(prototype()->attrs);
 		cmd.attrs.updateAttrs(attrs);
 	}
 

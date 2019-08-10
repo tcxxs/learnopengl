@@ -15,6 +15,12 @@ defer_light:
   shader: defer_light
   vars:
     material.specular_factor: 32.0
+pbr_geo:
+  shader: pbr_geo
+  vars:
+    material.displace_factor: 0.1
+pbr_light:
+  shader: pbr_light
 box_forward:
   shader: forward
   vars:

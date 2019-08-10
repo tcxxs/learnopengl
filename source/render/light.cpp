@@ -20,12 +20,16 @@ LightProto::ptr LightProto::create(const std::string& name) {
 	if (!proto->attrs.updateConf(conf)) {
 		return {};
 	}
-	if (proto->attrs.hasAttr("inner"))
-		proto->_type = LIGHT_SPOT;
-	else if (proto->attrs.hasAttr("constant"))
-		proto->_type = LIGHT_POINT;
-	else
+
+	const std::string& type = conf["type"].as<std::string>();
+	if (type == "dir")
 		proto->_type = LIGHT_DIR;
+	else if (type == "point")
+		proto->_type = LIGHT_POINT;
+	else if (type == "spot")
+		proto->_type = LIGHT_SPOT;
+	else
+		return {};
 
 	return proto;
 }

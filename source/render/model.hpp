@@ -30,6 +30,7 @@ public:
 private:
 	void _addInstance(const Config::node& conf);
 	bool _initMaterial(const Config::node& conf);
+	bool _initAttrs(const Config::node& conf);
 	bool _initInstance();
 
 public:
@@ -58,6 +59,10 @@ protected:
 	bool _loadNode(const Config::node& conf, aiNode* node, const aiScene* scene);
 	bool _loadVertex(const Config::node& conf);
 	bool _initMaterial(const Config::node& conf);
+	bool _initAttrs(const Config::node& conf);
+
+public:
+	Attributes attrs;
 
 private:
 	inline static Config _confs;

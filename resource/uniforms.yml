@@ -8,11 +8,6 @@ Lights:
   light.type: int
   light.pos: vec3
   light.dir: vec3
-  light.ambient: vec3
-  light.diffuse: vec3
-  light.specular: vec3
-  light.constant: float
-  light.linear: float
-  light.quadratic: float
+  light.color: vec3
   light.inner: float
   light.outter: float
