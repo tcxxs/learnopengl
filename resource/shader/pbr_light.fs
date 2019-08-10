@@ -216,9 +216,9 @@ float G_smith() {
 }
 
 vec3 pbr_radiance() {
-    vec3 fac_f = F_schlick();       
-    float fac_d = D_ggx();        
-    float fac_g = G_smith();      
+    vec3 fac_f = F_schlick();
+    float fac_d = D_ggx();
+    float fac_g = G_smith();
 
     vec3 ks = fac_f;
     vec3 kd = (vec3(1.0) - ks) * (1.0 - calc.color.metallic);
@@ -233,7 +233,7 @@ vec3 pbr_radiance() {
 void pbr_light(Light light) {
 #if SPACE_VIEW
     calc.light.pos = vec3(view * vec4(light.pos, 1.0));
-    calc.light.dir = normalize(vec3(view * vec4(light.dir, 1.0)));
+    calc.light.dir = normalize(vec3(view * vec4(light.dir, 1.0) - view * vec4(0.0, 0.0, 0.0, 1.0)));
 #else
     calc.light.pos = light.pos;
     calc.light.dir = normalize(light.dir);
@@ -248,15 +248,18 @@ void pbr_light(Light light) {
         break;
     case LIGHT_POINT:
         calc.light.indir = normalize(calc.light.pos - calc.pos);
+        calc.light.distance = length(calc.pos - calc.light.pos);
+        calc.light.factor = 1 / (calc.light.distance * calc.light.distance);
         if (calc.light.ind == shadow_probe)
             shadow_point(light);
         break;
     case LIGHT_SPOT:
         calc.light.indir = normalize(calc.light.pos - calc.pos);
+        calc.light.distance = length(calc.pos - calc.light.pos);
         float theta = dot(calc.light.indir, normalize(calc.light.dir));
         if(theta > light.outter) {
             float intensity = clamp((theta - light.outter) / (light.inner - light.outter), 0.0, 1.0);
-            calc.light.factor = intensity;
+            calc.light.factor = intensity / (calc.light.distance * calc.light.distance);
         }
         else {
             calc.light.factor = 0.0;
@@ -267,9 +270,7 @@ void pbr_light(Light light) {
     }
 
     calc.light.inhalf = normalize(calc.camdir + calc.light.indir);
-    calc.light.distance = length(calc.pos - calc.light.pos);
-    calc.light.radiance = light.color / (calc.light.distance * calc.light.distance);
-    calc.light.radiance *= calc.light.factor * calc.light.shadow;
+    calc.light.radiance = light.color * calc.light.factor * calc.light.shadow;
 }
 
 void main() {
@@ -279,7 +280,7 @@ void main() {
     for (int i = 0; i < scene.lights; ++i) {
         calc.light.ind = i;
         pbr_light(lights[i].light);
-        if (calc.light.radiance.r > 0 && calc.light.radiance.g > 0 && calc.light.radiance.b > 0)
+        if (calc.light.radiance.r > 0 || calc.light.radiance.g > 0 || calc.light.radiance.b > 0)
             lo += pbr_radiance();
     }
     vec3 ambient = vec3(PBR_AMBIENT) * calc.color.diffuse * calc.color.ao;
