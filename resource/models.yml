@@ -13,6 +13,32 @@ ball:
   vars:
     material.metallic: ball/rustediron2_metallic.png
     material.roughness: ball/rustediron2_roughness.png
+ball2:
+  file: ball/ball3.obj
+  material: pbr_geo
+  vars:
+    material.diffuse: ball/rustediron2_basecolor.png
+    material.metallic: ball/rustediron2_metallic.png
+    material.roughness: ball/rustediron2_roughness.png
+    material.normal: ball/rustediron2_normal.png
+    # material.diffuse: ball/copper-rock1-alb.png
+    # material.metallic: ball/copper-rock1-metal.png
+    # material.roughness: ball/copper-rock1-rough.png
+    # material.ao: ball/copper-rock1-ao.png
+    # material.normal: ball/copper-rock1-normal.png
+    # material.displace: ball/copper-rock1-height.png
+balld:
+  file: ball/balld.obj
+  material: pbr_geo
+gun:
+  file: gun/gun.obj
+  material: pbr_geo
+  vars:
+    material.diffuse: gun/Cerberus_A.tga
+    material.metallic: gun/Cerberus_M.tga
+    material.roughness: gun/Cerberus_R.tga
+    material.ao: gun/Cerberus_AO.tga
+    material.normal: gun/Cerberus_N.tga
 nanosuit:
   file: nanosuit/nanosuit.obj
   material: color

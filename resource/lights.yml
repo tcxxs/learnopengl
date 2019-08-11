@@ -1,9 +1,9 @@
 dir:
   type: dir
-  color: [0.2, 0.2, 0.2]
+  color: [1.0, 1.0, 1.0]
 point:
   type: point
-  color: [1.0, 1.0, 1.0]
+  color: [5.0, 5.0, 5.0]
 spot:
   type: spot
   color: [2.0, 2.0, 2.0]

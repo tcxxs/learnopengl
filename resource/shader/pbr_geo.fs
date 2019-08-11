@@ -157,6 +157,9 @@ void sample_texture() {
     if (calc.tex.ao) {
         calc.color.ao = texture(material.ao, calc.uv).r;
     }
+    #if GAMMA_CORRCT
+    calc.color.ao = pow(calc.color.ao, GAMMA_VAL);
+    #endif
 
     if (calc.tex.normal) {
         calc.normal = texture(material.normal, calc.uv).rgb;
