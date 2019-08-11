@@ -1,6 +1,7 @@
 #version 460 core
 
 #define MATH_PI 3.14159265359
+#define MATH_EPS 0.0001
 
 #define SPACE_VIEW 1
 
@@ -102,7 +103,7 @@ void init_calc() {
 
 #if SPACE_VIEW
     // 这里在geo中可能是空的点，需要判断下
-    if (length(position.rgb) < 0.0001 && abs(position.a - 1.0) < 0.0001)
+    if (length(position.rgb) < MATH_EPS && abs(position.a - 1.0) < MATH_EPS)
         discard;
     float z = (VIEW_FAR + VIEW_NEAR - (2.0 * VIEW_NEAR * VIEW_FAR) / position.a) / (VIEW_FAR - VIEW_NEAR);
     gl_FragDepth = (z + 1.0) / 2.0;
@@ -192,7 +193,7 @@ vec3 F_schlick() {
 
 float D_ggx() {
     float a = calc.color.roughness * calc.color.roughness;
-    float a2 = a * a;
+    float a2 = a * a + MATH_EPS;
     float theta  = max(dot(calc.normal, calc.light.inhalf), 0.0);
     float theta2 = theta * theta;
     float denom = (theta2 * (a2 - 1.0) + 1.0);
@@ -226,7 +227,7 @@ vec3 pbr_radiance() {
     float theta_l = max(dot(calc.normal, calc.light.indir), 0.0);
 
     vec3 diffuse = kd * calc.color.diffuse / MATH_PI;
-    vec3 specular = (fac_f * fac_d * fac_g) / (4.0 * theta_v * theta_l + 0.0001);
+    vec3 specular = (fac_f * fac_d * fac_g) / (4.0 * theta_v * theta_l + MATH_EPS);
     return (diffuse + specular) * calc.light.radiance * theta_l;
 }
 
