@@ -166,21 +166,42 @@ bool Pass::_initState(const Config::node& conf) {
 }
 
 void Pass::_stateClear(const Config::node& conf) {
-	const glm::vec3& bgcolor = EventMgr::inst().getBGColor();
-	GLbitfield flags = 0;
+	GLbitfield flags{0};
+	glm::vec3 color{0.0f};
+	float depth{1.0f};
 	for (const auto& it: conf) {
-		const std::string& arg = it.as<std::string>();
-		if (arg == "color")
-			flags |= GL_COLOR_BUFFER_BIT;
-		else if (arg == "depth")
-			flags |= GL_DEPTH_BUFFER_BIT;
-		else if (arg == "stencil")
-			flags |= GL_STENCIL_BUFFER_BIT;
+		if (it.IsSequence()) {
+			const std::string& arg = it[0].as<std::string>();
+			if (arg == "color") {
+				flags |= GL_COLOR_BUFFER_BIT;
+				color = it[1].as<glm::vec3>();
+			}
+			else if (arg == "depth") {
+				flags |= GL_DEPTH_BUFFER_BIT;
+				depth = it[1].as<float>();
+			}
+			else if (arg == "stencil")
+				flags |= GL_STENCIL_BUFFER_BIT;
+		}
+		else {
+			const std::string& arg = it.as<std::string>();
+			if (arg == "color") {
+				flags |= GL_COLOR_BUFFER_BIT;
+				color = EventMgr::inst().getBGColor();
+			}
+			else if (arg == "depth")
+				flags |= GL_DEPTH_BUFFER_BIT;
+			else if (arg == "stencil")
+				flags |= GL_STENCIL_BUFFER_BIT;
+		}
 	}
 
-	_states.emplace_back([flags, bgcolor] {
+	_states.emplace_back([flags, color, depth] {
 		if (flags & GL_COLOR_BUFFER_BIT) {
-			glClearColor(bgcolor.x, bgcolor.y, bgcolor.z, 1.0f);
+			glClearColor(color.x, color.y, color.z, 1.0f);
+		}
+		if (flags & GL_DEPTH_BUFFER_BIT) {
+			glClearDepth(depth);
 		}
 		glClear(flags);
 	});
