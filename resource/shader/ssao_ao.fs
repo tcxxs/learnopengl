@@ -1,7 +1,13 @@
 #version 460 core
 
+#define MATH_EPS 0.0001
+
 #define WINDOW_WIDTH 1600.0
 #define WINDOW_HEIGHT 900.0
+
+#define SPACE_VIEW 1
+#define VIEW_NEAR 0.1
+#define VIEW_FAR 100.0
 
 #define SAMPLE_SIZE 64
 #define SAMPLE_RADIUS 0.2
@@ -38,6 +44,13 @@ void main() {
     vec3 b = cross(normal, t);
     mat3 tbn = mat3(t, b, normal);
 
+    float maxdep;
+    #if SPACE_VIEW
+        maxdep = VIEW_FAR;
+    #else
+        maxdep = 1.0;
+    #endif
+
     float occlusion = 0.0;
     for(int i = 0; i < SAMPLE_SIZE; ++i) {
         vec3 sp = tbn * samples[i];
@@ -48,7 +61,11 @@ void main() {
         offset.xyz /= offset.w;
         offset.xyz = offset.xyz * 0.5 + 0.5;
 
-        float sdep = -texture(gbuffer.position, offset.xy).a;
+        vec4 spos = texture(gbuffer.position, offset.xy);
+        float sdep = -spos.a;
+        // 可能场景并没有绘制完全
+        if (length(spos.rgb) < MATH_EPS && abs(spos.a - 1.0) < MATH_EPS)
+            sdep = -maxdep;
         float range = smoothstep(0.0, 1.0, SAMPLE_RADIUS / abs(pos.z - sdep));
         occlusion += (sdep >= sp.z ? 1.0 : 0.0) * range; 
     }
