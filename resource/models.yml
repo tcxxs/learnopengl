@@ -11,16 +11,10 @@ ball:
   file: ball/ball.obj
   material: pbr_geo
   vars:
-    material.metallic: ball/rustediron2_metallic.png
-    material.roughness: ball/rustediron2_roughness.png
-ball2:
-  file: ball/ball3.obj
-  material: pbr_geo
-  vars:
     material.diffuse: ball/rustediron2_basecolor.png
     material.metallic: ball/rustediron2_metallic.png
     material.roughness: ball/rustediron2_roughness.png
-    material.normal: ball/rustediron2_normal.png
+    # material.normal: ball/rustediron2_normal.png
     # material.diffuse: ball/copper-rock1-alb.png
     # material.metallic: ball/copper-rock1-metal.png
     # material.roughness: ball/copper-rock1-rough.png
