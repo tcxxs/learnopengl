@@ -170,6 +170,12 @@ void ModelInst::_addInstance(const Config::node& conf) {
 		mat *= glm::rotate(glm::radians(y), glm::vec3(0.0, 1.0, 0.0));
 		mat *= glm::rotate(glm::radians(z), glm::vec3(0.0, 0.0, 1.0));
 	}
+
+	const Config::node faceto = conf["faceto"];
+	if (faceto.IsDefined()) {
+		glm::mat4 rot = glm::lookAt(pos, pos + faceto.as<glm::vec3>(), Camera::up);
+		mat = mat * rot;
+	}
 }
 
 bool ModelInst::_initMaterial(const Config::node& conf) {
