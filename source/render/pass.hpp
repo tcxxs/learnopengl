@@ -50,7 +50,7 @@ private:
 
 	void _stateClear(const Config::node& conf);
 	void _stateDepth(const Config::node& conf);
-	void _stateFace(const Config::node& conf);
+	void _stateCull(const Config::node& conf);
 
 private:
 	Camera::ptr _cam;

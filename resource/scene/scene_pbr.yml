@@ -32,6 +32,14 @@ models:
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
     material: sky
+  - type: cube
+    pos: [0.0, 0.0, 0.0]
+    scale: 1.0
+    material: ibl_cube
+  - type: cube
+    pos: [0.0, 0.0, 2.0]
+    scale: 0.5
+    material: cube
   - type: ball
     pos: [0.0, 0.0, 0.0]
     scale: 0.12
@@ -104,6 +112,9 @@ models:
       shadow_point: shadow_point
       shadow_spot: shadow_spot
 frames:
+  ibl_cube:
+    square: true
+    colors: [cubef]
   shadow_point:
     square: true
     depth: depcube
@@ -124,20 +135,32 @@ frames:
   bloom2:
     colors: [hdr]
 pass:
+  - name: ibl_cube
+    run: once
+    states:
+      clear: [color]
+      depth: [false]
+      cull: front
+    shaders:
+      ibl_cube:
+        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
+        frame: ibl/MonValley_A_LookoutPoint_2k.hdr
+    output:
+      frame: [[frame, ibl_cube]]
   - name: shadow_point
     states:
       clear: [color, depth, stencil]
-      face: front
+      cull: front
     shaders:
       shadow_point:
         light_pos: [[light, light_main, pos]]
-        light_vp: [[light, light_main, vp]]
+        light_vp: [[base, cubevp, [[light, light_main, pos]]]]
     output:
       frame: [[frame, shadow_point]]
   - name: shadow_spot
     states:
       clear: [color, depth, stencil]
-      face: front
+      cull: front
     shaders:
       shadow_spot:
         light: [[light, spot, vp]]
@@ -202,6 +225,8 @@ pass:
       depth: [true]
     shaders:
       color:
+      cube:
+        cube: [[frame, ibl_cube, color]]
     output:
       frame: [[frame, scene]]
       colors:
@@ -210,7 +235,7 @@ pass:
   - name: scene_sky
     states:
       depth: [true, lesseq]
-      face: front
+      cull: front
     shaders:
       sky:
     output:

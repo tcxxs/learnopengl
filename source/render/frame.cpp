@@ -21,11 +21,15 @@ Frame::ptr Frame::create(const Config::node& conf) {
 				type = it.as<std::string>();
 			}
 			if (type == "ldr")
-				frame->_attachLDR(attach);
+				frame->_attachTexture(attach, GL_RGBA);
 			else if (type == "hdr")
-				frame->_attachHDR(attach);
+				frame->_attachTexture(attach, GL_RGBA16F);
 			else if (type == "rf")
-				frame->_attachRF(attach);
+				frame->_attachTexture(attach, GL_R16F);
+			else if (type == "cube")
+				frame->_attachTextureCube(attach, GL_RGBA);
+			else if (type == "cubef")
+				frame->_attachTextureCube(attach, GL_RGBA16F);
 		}
 	}
 
@@ -140,6 +144,33 @@ bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+
+	return oglError();
+}
+
+bool Frame::_attachTextureCube(Attachment& attach, GLenum format) {
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
+	if (_square) {
+		width = std::max(width, height);
+		height = width;
+	}
+
+	attach.type = GL_TEXTURE_CUBE_MAP;
+	glGenTextures(1, &attach.tex);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, attach.tex);
+	for (GLuint i = 0; i < 6; ++i)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attach.index, attach.tex, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
 	return oglError();
 }

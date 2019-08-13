@@ -157,8 +157,8 @@ bool Pass::_initState(const Config::node& conf) {
 				_stateClear(it.second);
 			else if (key == "depth")
 				_stateDepth(it.second);
-			else if (key == "face")
-				_stateFace(it.second);
+			else if (key == "cull")
+				_stateCull(it.second);
 		}
 	}
 
@@ -233,7 +233,7 @@ void Pass::_stateDepth(const Config::node& conf) {
 	});
 }
 
-void Pass::_stateFace(const Config::node& conf) {
+void Pass::_stateCull(const Config::node& conf) {
 	const std::string& name = conf.as<std::string>();
 	GLenum face = GL_BACK;
 	if (name == "front")

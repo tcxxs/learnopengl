@@ -62,9 +62,7 @@ private:
 	// TODO: color支持msaa，可以配合depst用；其余可读的depth不支持msaa
 	bool _completeFrame();
 	bool _attachTexture(Attachment& attach, GLenum format);
-	inline bool _attachLDR(Attachment& attach) { return _attachTexture(attach, GL_RGBA); }
-	inline bool _attachHDR(Attachment& attach) { return _attachTexture(attach, GL_RGBA16F); }
-	inline bool _attachRF(Attachment& attach) { return _attachTexture(attach, GL_R16F); }
+	bool _attachTextureCube(Attachment& attach, GLenum format);
 	bool _attachDepthStencil(Attachment& attach);
 	bool _attachDepth(Attachment& attach);
 	bool _attachDepthCube(Attachment& attach);

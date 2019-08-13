@@ -14,6 +14,7 @@ Scene::ptr Scene::create(const std::string& name) {
 		return {};
 	}
 
+	scene->_cfuncs.emplace("base", std::bind(&Scene::_genBase, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("camera", std::bind(&Scene::_genCamera, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("light", std::bind(&Scene::_genLight, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("frame", std::bind(&Scene::_genFrame, scene.get(), std::placeholders::_1));
@@ -206,6 +207,7 @@ void Scene::drawUniforms(const Pass::ptr& pass) {
 	matvp->setVar("view", cam->getView());
 	matvp->setVar("proj", cam->getProj());
 
+	// TODO: 支持多光源shadow
 	float dark = 5.0f / 256.0f;
 	for (int i = 0; i < _lights.size(); ++i) {
 		UniformInst::ptr& uniform = _uniforms[string_format(UNIFORM_LIGHTS "[%d]", i)];
@@ -310,6 +312,36 @@ std::any Scene::generateConf(const Config::node& conf) {
 	return find->second(conf);
 }
 
+std::any Scene::_genBase(const Config::node& conf) {
+	if (conf.size() < 2)
+		return {};
+
+	const std::string& type = conf[1].as<std::string>();
+	if (type == "cubevp") {
+		if (conf.size() < 3)
+			return {};
+
+		const std::any ret = Config::guess(conf[2]);
+		if (!ret.has_value())
+			return {};
+		if (ret.type() != typeid(glm::vec3))
+			return {};
+
+		const glm::vec3 pos = std::any_cast<glm::vec3>(ret);
+		std::vector<glm::mat4> mats;
+		glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, PROJ_NEAR, PROJ_FAR);
+		mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+		return mats;
+	}
+
+	return {};
+}
+
 std::any Scene::_genCamera(const Config::node& conf) {
 	if (conf.size() < 3)
 		return {};
@@ -358,24 +390,9 @@ std::any Scene::_genLight(const Config::node& conf) {
 		}
 		else if (type == "vp") {
 			const float aspect = (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight();
-			glm::mat4 proj, view;
-
-			switch (light->prototype()->getType()) {
-			case LightProto::LIGHT_SPOT:
-				proj = glm::perspective(glm::radians(_cam->getFov()), aspect, PROJ_NEAR, PROJ_FAR);
-				view = glm::lookAt(pos, pos + dir, Camera::up);
-				return proj * view;
-			case LightProto::LIGHT_POINT:
-				std::vector<glm::mat4> mats;
-				proj = glm::perspective(glm::radians(90.0f), 1.0f, PROJ_NEAR, PROJ_FAR);
-				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-				mats.push_back(proj * glm::lookAt(pos, pos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
-				return mats;
-			}
+			glm::mat4 proj = glm::perspective(glm::radians(_cam->getFov()), aspect, PROJ_NEAR, PROJ_FAR);
+			glm::mat4 view = glm::lookAt(pos, pos + dir, Camera::up);
+			return proj * view;
 		}
 	}
 
@@ -432,7 +449,7 @@ std::any Scene::_genSSAO(const Config::node& conf) {
 			for (int i = 0; i < num * num; i++) {
 				glm::vec3 vec{rand_float(rand_gen) * 2.0 - 1.0,
 				              rand_float(rand_gen) * 2.0 - 1.0,
-					rand_float(rand_gen) * 2.0 - 1.0};
+				              rand_float(rand_gen) * 2.0 - 1.0};
 				noise.push_back(vec);
 			}
 

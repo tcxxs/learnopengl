@@ -37,6 +37,7 @@ private:
 	bool _initUniform(const std::string& name, int count = 1);
 	bool _initFrame(const Config::node& conf);
 
+	std::any _genBase(const Config::node& conf);
 	std::any _genCamera(const Config::node& conf);
 	std::any _genLight(const Config::node& conf);
 	std::any _genFrame(const Config::node& conf);

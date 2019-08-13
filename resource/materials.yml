@@ -2,6 +2,8 @@ color:
   shader: color
   vars:
     material.color: [1.0, 1.0, 1.0]
+cube:
+  shader: cube
 forward:
   shader: forward
   vars:
@@ -68,6 +70,8 @@ sky:
     #   skybox/front.jpg,
     #   skybox/back.jpg
     # ]
+ibl_cube:
+  shader: ibl_cube
 shadow_point:
   shader: shadow_point
 shadow_spot:

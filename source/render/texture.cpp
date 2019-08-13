@@ -7,26 +7,40 @@ Texture::ptr Texture::create(const std::string& name, const std::filesystem::pat
 	Texture::ptr texture = std::make_shared<Texture>();
 	texture->setName(name);
 
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load(path.string().c_str(), &texture->_w, &texture->_h, &texture->_n, 4);
-	if (!data) {
-		std::cout << "stb image: " << path.string() << ", error: " << stbi_failure_reason() << std::endl;
-		return {};
-	}
-	
+	texture->_type = GL_TEXTURE_2D;
 	glGenTextures(1, &texture->_tex);
 	glBindTexture(GL_TEXTURE_2D, texture->_tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->_w, texture->_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
 
-	stbi_image_free(data);
+	bool hdr = false;
+	const std::string ext = path.extension().string();
+	if (ext == ".hdr")
+		hdr = true;
+	stbi_set_flip_vertically_on_load(true);
+	if (hdr) {
+		float* data = stbi_loadf(path.string().c_str(), &texture->_w, &texture->_h, &texture->_n, 3);
+		if (!data) {
+			std::cout << "stb image: " << path.string() << ", error: " << stbi_failure_reason() << std::endl;
+			return {};
+		}
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, texture->_w, texture->_h, 0, GL_RGB, GL_FLOAT, data);
+		stbi_image_free(data);
+	}
+	else {
+		unsigned char* data = stbi_load(path.string().c_str(), &texture->_w, &texture->_h, &texture->_n, 4);
+		if (!data) {
+			std::cout << "stb image: " << path.string() << ", error: " << stbi_failure_reason() << std::endl;
+			return {};
+		}
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->_w, texture->_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
 	
-	texture->_type = GL_TEXTURE_2D;
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);	
 	return texture;
 }
 
