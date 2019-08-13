@@ -1,7 +1,7 @@
 #version 460 core
 
 #define MATH_PI 3.14159265359
-#define MATH_EPS 0.0001
+#define MATH_EPS 0.00001
 
 #define SPACE_VIEW 1
 
@@ -121,7 +121,7 @@ void init_calc() {
     calc.camdir = normalize(calc.camera - calc.pos);
 
     calc.color.metallic = albedo.a;
-    calc.color.roughness = pbr.r;
+    calc.color.roughness = pbr.r + MATH_EPS;
     calc.color.diffuse = albedo.rgb * (1 - calc.color.metallic);
     calc.color.specular = mix(PBR_BASEF0, albedo.rgb, calc.color.metallic);
     calc.color.ao = pbr.g;
@@ -193,7 +193,7 @@ vec3 F_schlick() {
 
 float D_ggx() {
     float a = calc.color.roughness * calc.color.roughness;
-    float a2 = a * a + MATH_EPS;
+    float a2 = a * a;
     float theta  = max(dot(calc.normal, calc.light.inhalf), 0.0);
     float theta2 = theta * theta;
     float denom = (theta2 * (a2 - 1.0) + 1.0);
@@ -257,7 +257,7 @@ void pbr_light(Light light) {
     case LIGHT_SPOT:
         calc.light.indir = normalize(calc.light.pos - calc.pos);
         calc.light.distance = length(calc.pos - calc.light.pos);
-        float theta = dot(calc.light.indir, normalize(calc.light.dir));
+        float theta = dot(calc.light.indir, normalize(-calc.light.dir));
         if(theta > light.outter) {
             float intensity = clamp((theta - light.outter) / (light.inner - light.outter), 0.0, 1.0);
             calc.light.factor = intensity / (calc.light.distance * calc.light.distance);
