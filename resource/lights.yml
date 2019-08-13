@@ -1,11 +1,14 @@
 dir:
   type: dir
-  color: [1.0, 1.0, 1.0]
+  color: [0.2, 0.2, 0.2]
 point:
   type: point
   color: [5.0, 5.0, 5.0]
+point_blue:
+  type: point
+  color: [0.0, 0.0, 1.0]
 spot:
   type: spot
-  color: [2.0, 2.0, 2.0]
-  inner: 25.0
-  outter: 40.0
+  color: [20.0, 20.0, 20.0]
+  inner: 15.0
+  outter: 25.0

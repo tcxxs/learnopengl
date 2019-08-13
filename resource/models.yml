@@ -11,16 +11,55 @@ ball:
   file: ball/ball.obj
   material: pbr_geo
   vars:
-    material.diffuse: ball/rustediron2_basecolor.png
+    material.diffuse: ball/rustediron2_albedo.png
     material.metallic: ball/rustediron2_metallic.png
     material.roughness: ball/rustediron2_roughness.png
-    # material.normal: ball/rustediron2_normal.png
-    # material.diffuse: ball/copper-rock1-alb.png
-    # material.metallic: ball/copper-rock1-metal.png
-    # material.roughness: ball/copper-rock1-rough.png
-    # material.ao: ball/copper-rock1-ao.png
-    # material.normal: ball/copper-rock1-normal.png
-    # material.displace: ball/copper-rock1-height.png
+    material.normal: ball/rustediron2_normal.png
+ball2:
+  file: ball/ball.obj
+  material: pbr_geo
+  vars:
+    material.diffuse: ball/copper-rock1-albedo.png
+    material.metallic: ball/copper-rock1-metallic.png
+    material.roughness: ball/copper-rock1-roughness.png
+    material.ao: ball/copper-rock1-ao.png
+    material.normal: ball/copper-rock1-normal.png
+    material.displace: ball/copper-rock1-height.png
+ball3:
+  file: ball/ball.obj
+  material: pbr_geo
+  vars:
+    material.diffuse: ball/bamboo-wood-semigloss-albedo.png
+    material.metallic: ball/bamboo-wood-semigloss-metallic.png
+    material.roughness: ball/bamboo-wood-semigloss-roughness.png
+    material.ao: ball/bamboo-wood-semigloss-ao.png
+    material.normal: ball/bamboo-wood-semigloss-normal.png
+ball4:
+  file: ball/ball.obj
+  material: pbr_geo
+  vars:
+    material.diffuse: ball/gold-scuffed_albedo.png
+    material.metallic: ball/gold-scuffed_metallic.png
+    material.roughness: ball/gold-scuffed_roughness.png
+    material.normal: ball/gold-scuffed_normal.png
+ball5:
+  file: ball/ball.obj
+  material: pbr_geo
+  vars:
+    material.diffuse: ball/rustediron2_albedo.png
+    material.metallic: ball/rustediron2_metallic.png
+    material.roughness: ball/rustediron2_roughness.png
+    material.normal: ball/rustediron2_normal.png
+ball6:
+  file: ball/ball.obj
+  material: pbr_geo
+  vars:
+    material.diffuse: ball/slipperystonework-albedo.png
+    material.metallic: ball/slipperystonework-metallic.png
+    material.roughness: ball/slipperystonework-roughness.png
+    material.ao: ball/slipperystonework-ao.png
+    material.normal: ball/slipperystonework-normal.png
+    material.displace: ball/slipperystonework-height.png
 balld:
   file: ball/balld.obj
   material: pbr_geo

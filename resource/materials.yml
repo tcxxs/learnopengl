@@ -34,6 +34,13 @@ box_defer:
     material.diffuse: box.png
     material.specular: specular.png
     material.displace_factor: 0.1
+box_pbr:
+  shader: pbr_geo
+  vars:
+    material.diffuse: box.png
+    material.metallic: specular.png
+    #material.roughness: specular.png
+    material.displace_factor: 0.1
 phong_ins:
   shader: phong_ins
   vars:

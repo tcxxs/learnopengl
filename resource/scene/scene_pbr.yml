@@ -6,85 +6,99 @@ cameras:
     target: [0.0, 0.0, -1.0]
 lights:
   - type: point
-    name: light
-    pos: [-0.2, 0.3, 0.5]
-  # - type: point_red
-  #   name: light_red
-  #   pos: [0.5, 0.0, 0.5]
-  #   dir: [0.0, -1.0, 0.0]
-  # - type: point_green
-  #   name: light_green
-  #   pos: [0.0, 0.0, 1.0]
-  #   dir: [0.0, -1.0, 0.0]
-  # - type: point_blue
-  #   name: light_blue
-  #   pos: [-0.5, 0.0, 1.5]
-  #   dir: [0.0, -1.0, 0.0]
+    name: light_main
+    pos: [0.0, 0.3, 0.8]
+  - type: point_blue
+    name: light_blue
+    pos: [0.0, 1.0, 0.0]
+  - type: spot
+    name: spot
+    pos: [-1.0, 0.0, 0.0]
+    dir: [1.0, 0.0, 0.5]
+  - type: dir
+    dir: [-0.5, 0.0, 0.5]
 models:
   - type: sun
-    pos: [[light, light, pos]]
+    pos: [[light, light_main, pos]]
     scale: 0.02
-  # - type: cube
-  #   pos: [[light, light_red, pos]]
-  #   scale: 0.1
-  #   material: bloom_red
-  # - type: cube
-  #   pos: [[light, light_green, pos]]
-  #   scale: 0.1
-  #   material: bloom_green
-  # - type: cube
-  #   pos: [[light, light_blue, pos]]
-  #   scale: 0.1
-  #   material: bloom_blue
+  - type: sun
+    pos: [[light, light_blue, pos]]
+    scale: 0.02
+  - type: lamp
+    pos: [[light, spot, pos]]
+    faceto: [-1.0, 0.0, 0.5]
+    scale: 0.02
   - type: cube
     pos: [0.0, 0.0, 0.0]
     scale: 50.0
     material: sky
   - type: ball
     pos: [0.0, 0.0, 0.0]
+    scale: 0.12
+  - type: ball2
+    pos: [0.4, 0.0, 0.0]
+    scale: 0.12
+  - type: ball3
+    pos: [-0.4, 0.0, 0.0]
+    scale: 0.12
+    materials:
+      shadow: shadow_point
+  - type: ball4
+    pos: [-0.4, 0.0, 0.4]
+    scale: 0.12
+  - type: ball5
+    pos: [-0.4, 0.0, 0.8]
+    scale: 0.12
+  - type: ball6
+    pos: [0.4, 0.0, 0.4]
+    scale: 0.12
+  - type: gun
+    pos: [1.0, 0.0, 1.0]
+    scale: 1.0
+    materials:
+      shadow: shadow_point
+  - type: cube
+    pos: [-0.2, 0.4, -0.1]
     scale: 0.1
-  # - type: cube
-  #   pos: [-0.2, 0.3, -0.1]
-  #   scale: 0.1
-  #   material: box_defer
-  # - type: cube
-  #   pos: [-0.2, 0.5, 1.2]
-  #   scale: 0.4
-  #   rotate: [0.0, 0.0, 30.0]
-  #   material: box_defer
-  # - type: cube
-  #   pos: [0.3, -0.1, 1.0]
-  #   scale: 0.2
-  #   rotate: [45.0, 0.0, 45.0]
-  #   material: box_defer
-  # - type: wall
-  #   pos: [0.0, -0.5, 0.0]
-  #   scale: 5.0
-  #   material: defer_geo
-  # - type: wall
-  #   pos: [1.0, 0.5, 0.0]
-  #   rotate: [0.0, 0.0, 90.0]
-  #   scale: 1.0
-  #   material: defer_geo
-  # - type: wall
-  #   pos: [0.0, 0.5, -1.5]
-  #   rotate: [90.0, 0.0, 0.0]
-  #   scale: 1.0
-  #   material: defer_geo
-  # - type: nanosuit
-  #   name: nanosuit
-  #   pos: [0.0, 0.0, 0.0]
-  #   scale: 0.05
-  #   material: defer_geo
-  #   materials:
-  #     shadow: shadow_point
-  # - type: aircraft
-  #   pos: [-0.3, 0.0, -0.5]
-  #   rotate: [30.0, -45.0, 0.0]
-  #   scale: 0.1
-  #   material: defer_geo
-  #   materials:
-  #     shadow: shadow_point
+    material: box_pbr
+  - type: cube
+    pos: [-0.8, 0.5, 1.2]
+    scale: 0.4
+    rotate: [0.0, 0.0, 30.0]
+    material: box_pbr
+  - type: cube
+    pos: [0.3, -0.1, 1.0]
+    scale: 0.2
+    rotate: [45.0, 0.0, 45.0]
+    material: box_pbr
+  - type: wall
+    pos: [0.0, -1.0, 0.0]
+    scale: 3.0
+    material: pbr_geo
+  - type: wall
+    pos: [2.0, 0.5, 0.0]
+    rotate: [0.0, 0.0, 90.0]
+    scale: 1.0
+    material: pbr_geo
+  - type: wall
+    pos: [0.0, 0.5, -1.5]
+    rotate: [90.0, 0.0, 0.0]
+    scale: 1.0
+    material: pbr_geo
+  - type: nanosuit
+    name: nanosuit
+    pos: [0.5, -0.2, -0.3]
+    scale: 0.05
+    material: pbr_geo
+    materials:
+      shadow: shadow_point
+  - type: aircraft
+    pos: [-0.3, 0.0, -0.5]
+    rotate: [30.0, -45.0, 0.0]
+    scale: 0.1
+    material: pbr_geo
+    materials:
+      shadow: shadow_point
 frames:
   shadow_spot:
     depth: depth
@@ -112,8 +126,8 @@ pass:
       face: front
     shaders:
       shadow_point:
-        light_pos: [[light, light, pos]]
-        light_vp: [[light, light, vp]]
+        light_pos: [[light, light_main, pos]]
+        light_vp: [[light, light_main, vp]]
     output:
       frame: [[frame, shadow_point]]
   - name: defer_geo
@@ -156,7 +170,7 @@ pass:
       depth: [true]
     posts:
       pbr_light:
-        shadow_probe: [[light, light, index]]
+        shadow_probe: [[light, light_main, index]]
         shadow_cube: [[frame, shadow_point, depth]]
         gbuffer.position: [[frame, gbuffer, position]]
         gbuffer.normal: [[frame, gbuffer, normal]]
