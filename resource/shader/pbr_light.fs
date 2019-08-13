@@ -21,6 +21,13 @@ struct Material {
     float specular_factor;
 };
 
+struct Shadow {
+    int probe;
+    samplerCube point;
+    mat4 spot_vp;
+    sampler2D spot_map;
+};
+
 struct GBuffer {
     sampler2D position;
     sampler2D normal;
@@ -75,7 +82,6 @@ uniform MatrixVP {
     mat4 proj;
 };
 #endif
-uniform Material material;
 uniform Scene {
     vec3 camera;
     int lights;
@@ -84,11 +90,8 @@ uniform Lights {
     Light light;
 }lights[LIGHT_MAX];
 
-uniform int shadow_probe;
-uniform samplerCube shadow_cube;
-uniform mat4 shadow_vp;
-uniform sampler2D shadow_map;
-
+uniform Material material;
+uniform Shadow shadow;
 uniform GBuffer gbuffer;
 uniform sampler2D ssao;
 
@@ -131,7 +134,7 @@ void init_calc() {
 }
 
 void shadow_point(Light light) {
-    if (textureSize(shadow_cube, 0).x <= 1) {
+    if (textureSize(shadow.point, 0).x <= 1) {
         calc.light.shadow = 1.0;
         return;
     }
@@ -145,7 +148,7 @@ void shadow_point(Light light) {
     vec3(0,  1,  1), vec3(0, -1,  1), vec3(0, -1, -1), vec3(0,  1, -1)
     );
     float shadow_total = 0.0;
-    float shadow_step = (1.0 + (length(calc.camdir) / VIEW_FAR)) / (textureSize(shadow_cube, 0).x / 4);
+    float shadow_step = (1.0 + (length(calc.camdir) / VIEW_FAR)) / (textureSize(shadow.point, 0).x / 4);
     // 不用normalize，因为要算长度，需要世界空间
     vec3 texdir;
 #if SPACE_VIEW
@@ -154,19 +157,20 @@ void shadow_point(Light light) {
     texdir = calc.pos - calc.light.pos;
 #endif
     for(int i = 0; i < 20; ++i) {
-        float depth = texture(shadow_cube, (texdir + shadow_offset[i] * shadow_step)).r * VIEW_FAR;
+        float depth = texture(shadow.point, (texdir + shadow_offset[i] * shadow_step)).r * VIEW_FAR;
         shadow_total += length(texdir) - bias > depth ? 0.0: 1.0;
     }
     calc.light.shadow = shadow_total / 20.0;
 }
 
 void shadow_spot(Light light) {
-    if (textureSize(shadow_map, 0).x <= 1) {
+    if (textureSize(shadow.spot_map, 0).x <= 1) {
         calc.light.shadow = 1.0;
         return;
     }
 
-    vec4 scpos = shadow_vp * vec4(calc.pos, 1.0);
+    // 转移到spot空间
+    vec4 scpos = shadow.spot_vp * inverse(view) * vec4(calc.pos, 1.0);
     vec3 coords = scpos.xyz / scpos.w;
     coords = coords * 0.5 + 0.5;
     if (coords.z > 1.0) {
@@ -176,10 +180,10 @@ void shadow_spot(Light light) {
 
     float bias = max(0.001 * (1.0 - dot(calc.normal, -calc.light.indir)), 0.0005);
     float shadow_total = 0.0;
-    vec2 shadow_step = 1.0 / textureSize(shadow_map, 0);
+    vec2 shadow_step = 1.0 / textureSize(shadow.spot_map, 0);
     for(int x = -1; x <= 1; ++x) {
         for(int y = -1; y <= 1; ++y) {
-            float depth = texture(shadow_map, coords.xy + vec2(x, y) * shadow_step).r; 
+            float depth = texture(shadow.spot_map, coords.xy + vec2(x, y) * shadow_step).r; 
             shadow_total += coords.z - bias > depth  ? 0.0: 1.0;
         }
     }
@@ -251,7 +255,7 @@ void pbr_light(Light light) {
         calc.light.indir = normalize(calc.light.pos - calc.pos);
         calc.light.distance = length(calc.pos - calc.light.pos);
         calc.light.factor = 1 / (calc.light.distance * calc.light.distance);
-        if (calc.light.ind == shadow_probe)
+        if (calc.light.ind == shadow.probe)
             shadow_point(light);
         break;
     case LIGHT_SPOT:
@@ -265,7 +269,7 @@ void pbr_light(Light light) {
         else {
             calc.light.factor = 0.0;
         }
-        if (calc.light.ind == shadow_probe)
+        if (calc.light.ind == shadow.probe)
             shadow_spot(light);
         break;
     }

@@ -49,21 +49,6 @@ phong_debug:
   shader: phong_debug
   vars:
     material.specular_factor: 32.0
-bloom_red:
-  shader: color
-  vars:
-    material.color: [20.0, 5.0, 5.0]
-    material.diffuse: oops.png
-bloom_green:
-  shader: color
-  vars:
-    material.color: [5.0, 15.0, 5.0]
-    material.diffuse: oops.png
-bloom_blue:
-  shader: color
-  vars:
-    material.color: [5.0, 5.0, 10.0]
-    material.diffuse: oops.png
 sky:
   shader: sky
   vars:
@@ -83,10 +68,10 @@ sky:
     #   skybox/front.jpg,
     #   skybox/back.jpg
     # ]
-shadow:
-  shader: shadow
 shadow_point:
   shader: shadow_point
+shadow_spot:
+  shader: shadow_spot
 show:
   shader: show
 post:
