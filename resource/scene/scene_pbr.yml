@@ -149,6 +149,7 @@ pass:
       ibl_cube:
         cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         frame: ibl/MonValley_A_LookoutPoint_2k.hdr
+        #frame: ibl/Newport_Loft_Ref.hdr
     output:
       frame: [[frame, ibl_cube]]
   - name: ibl_env
