@@ -30,16 +30,15 @@ models:
     scale: 0.02
   - type: cube
     pos: [0.0, 0.0, 0.0]
-    scale: 50.0
-    material: sky
-  - type: cube
-    pos: [0.0, 0.0, 0.0]
     scale: 1.0
     material: ibl_cube
+    materials:
+      ibl_cube: ibl_cube
+      ibl_env: ibl_env
   - type: cube
-    pos: [0.0, 0.0, 2.0]
-    scale: 0.5
-    material: cube
+    pos: [0.0, 0.0, 0.0]
+    scale: 90.0
+    material: sky
   - type: ball
     pos: [0.0, 0.0, 0.0]
     scale: 0.12
@@ -116,6 +115,10 @@ frames:
     square: true
     size: 0.5
     colors: [cubef]
+  ibl_env:
+    square: true
+    size: 0.05
+    colors: [cubef]
   shadow_point:
     square: true
     depth: depcube
@@ -148,6 +151,18 @@ pass:
         frame: ibl/MonValley_A_LookoutPoint_2k.hdr
     output:
       frame: [[frame, ibl_cube]]
+  - name: ibl_env
+    run: once
+    states:
+      clear: [color]
+      depth: [false]
+      cull: front
+    shaders:
+      ibl_env:
+        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
+        cube: [[frame, ibl_cube, color]]
+    output:
+      frame: [[frame, ibl_env]]
   - name: shadow_point
     states:
       clear: [color, depth, stencil]
@@ -239,6 +254,7 @@ pass:
       cull: front
     shaders:
       sky:
+        uf_cube: [[frame, ibl_cube, color]]
     output:
       frame: [[frame, scene]]
       colors:
