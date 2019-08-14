@@ -15,7 +15,6 @@
 
 #define BLOOM_LIMIT 1.0
 #define PBR_BASEF0 vec3(0.04)
-#define PBR_AMBIENT 0.03
 
 struct Material {
     float specular_factor;
@@ -93,6 +92,7 @@ uniform Lights {
 uniform Material material;
 uniform Shadow shadow;
 uniform GBuffer gbuffer;
+uniform samplerCube ibl;
 uniform sampler2D ssao;
 
 out vec4 color_out;
@@ -150,11 +150,10 @@ void shadow_point(Light light) {
     float shadow_total = 0.0;
     float shadow_step = (1.0 + (length(calc.camdir) / VIEW_FAR)) / (textureSize(shadow.point, 0).x / 4);
     // 不用normalize，因为要算长度，需要世界空间
-    vec3 texdir;
 #if SPACE_VIEW
-    texdir = vec3(inverse(view) * vec4(calc.pos, 1.0)) - lights[calc.light.ind].light.pos;
+    vec3 texdir = vec3(inverse(view) * vec4(calc.pos, 1.0)) - lights[calc.light.ind].light.pos;
 #else
-    texdir = calc.pos - calc.light.pos;
+    vec3 texdir = calc.pos - calc.light.pos;
 #endif
     for(int i = 0; i < 20; ++i) {
         float depth = texture(shadow.point, (texdir + shadow_offset[i] * shadow_step)).r * VIEW_FAR;
@@ -195,6 +194,12 @@ vec3 F_schlick() {
     return calc.color.specular + (1.0 - calc.color.specular) * pow(1.0 - theta, 5.0);
 }
 
+vec3 F_schlick_roughness() {
+    float theta = max(dot(calc.normal, calc.camdir), 0.0);
+    vec3 falloff = max(vec3(1.0 - calc.color.roughness), calc.color.specular);
+    return calc.color.specular + (falloff - calc.color.specular) * pow(1.0 - theta, 5.0);
+}
+
 float D_ggx() {
     float a = calc.color.roughness * calc.color.roughness;
     float a2 = a * a;
@@ -220,7 +225,7 @@ float G_smith() {
     return ggx1 * ggx2;
 }
 
-vec3 pbr_radiance() {
+vec3 light_radiance() {
     vec3 fac_f = F_schlick();
     float fac_d = D_ggx();
     float fac_g = G_smith();
@@ -235,7 +240,7 @@ vec3 pbr_radiance() {
     return (diffuse + specular) * calc.light.radiance * theta_l;
 }
 
-void pbr_light(Light light) {
+void light_arg(Light light) {
 #if SPACE_VIEW
     calc.light.pos = vec3(view * vec4(light.pos, 1.0));
     calc.light.dir = normalize(vec3(view * vec4(light.dir, 1.0) - view * vec4(0.0, 0.0, 0.0, 1.0)));
@@ -278,19 +283,31 @@ void pbr_light(Light light) {
     calc.light.radiance = light.color * calc.light.factor * calc.light.shadow;
 }
 
+vec3 env_diffuse() {
+#if SPACE_VIEW
+    vec3 normal = normalize(vec3(inverse(view) * vec4(calc.normal, 1.0)));
+#else
+    vec3 normal = calc.normal;
+#endif
+    vec3 kd = 1.0 - F_schlick_roughness();
+    vec3 radiance = calc.color.diffuse * texture(ibl, normal).rgb;
+    return (kd * radiance) * calc.color.ao;
+}
+
 void main() {
     init_calc();
 
-	vec3 lo = vec3(0.0);
+	vec3 light = vec3(0.0);
     for (int i = 0; i < scene.lights; ++i) {
         calc.light.ind = i;
-        pbr_light(lights[i].light);
+        light_arg(lights[i].light);
         if (calc.light.radiance.r > 0 || calc.light.radiance.g > 0 || calc.light.radiance.b > 0)
-            lo += pbr_radiance();
+            light += light_radiance();
     }
-    vec3 ambient = vec3(PBR_AMBIENT) * calc.color.diffuse * calc.color.ao;
 
-    color_out = vec4(ambient + lo, 1.0);
+    vec3 env = env_diffuse();
+
+    color_out = vec4(env + light, 1.0);
     float bright = dot(color_out.rgb, vec3(0.2126, 0.7152, 0.0722));
     if (bright > BLOOM_LIMIT)
         color_bloom = color_out;
