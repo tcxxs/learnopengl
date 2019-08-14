@@ -37,9 +37,13 @@ bool Pass::_initConf(const Config::node& conf) {
 bool Pass::_initRun(const Config::node& conf) {
 	if (!Config::valid(conf))
 		return true;
+	if (!conf.IsSequence() || conf.size() < 1) {
+		std::printf("pass %s, run arguments error", _name.c_str());
+		return false;
+	}
 
-	const std::string& run = conf.as<std::string>();
-	if (run == "once") {
+	const std::string& type = conf[0].as<std::string>();
+	if (type == "once") {
 		_run = [this]() -> bool {
 			if (_run_once) {
 				_run_once = false;
@@ -47,6 +51,17 @@ bool Pass::_initRun(const Config::node& conf) {
 			}
 			else
 				return false;
+		};
+	}
+	else if (type == "if") {
+		if (conf.size() < 2) {
+			std::printf("pass %s, run if arguments error", _name.c_str());
+			return false;
+		}
+
+		bool ret = Config::guess(conf[1]).has_value();
+		_run = [ret] {
+			return ret;
 		};
 	}
 

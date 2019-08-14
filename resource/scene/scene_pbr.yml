@@ -140,7 +140,7 @@ frames:
     colors: [hdr]
 pass:
   - name: ibl_cube
-    run: once
+    run: [once]
     states:
       clear: [color]
       depth: [false]
@@ -153,7 +153,7 @@ pass:
     output:
       frame: [[frame, ibl_cube]]
   - name: ibl_env
-    run: once
+    run: [once]
     states:
       clear: [color]
       depth: [false]
@@ -165,6 +165,7 @@ pass:
     output:
       frame: [[frame, ibl_env]]
   - name: shadow_point
+    run: [if, [[light, light_main, ind]]]
     states:
       clear: [color, depth, stencil]
       cull: front
@@ -175,6 +176,7 @@ pass:
     output:
       frame: [[frame, shadow_point]]
   - name: shadow_spot
+    run: [if, [[light, spot, ind]]]
     states:
       clear: [color, depth, stencil]
       cull: front
@@ -231,6 +233,7 @@ pass:
         gbuffer.normal: [[frame, gbuffer, normal]]
         gbuffer.albedo: [[frame, gbuffer, albedo]]
         gbuffer.pbr: [[frame, gbuffer, pbr]]
+        ibl: [[frame, ibl_env, color]]
         ssao: [[frame, ssao_blur, color]]
     output:
       frame: [[frame, scene]]
