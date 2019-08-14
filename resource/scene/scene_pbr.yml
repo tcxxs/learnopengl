@@ -114,6 +114,7 @@ models:
 frames:
   ibl_cube:
     square: true
+    size: 0.5
     colors: [cubef]
   shadow_point:
     square: true

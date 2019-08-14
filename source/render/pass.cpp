@@ -7,6 +7,8 @@ Pass::ptr Pass::create(const Config::node& conf) {
 	// TODO: 可以支持generate和重复多次，针对bloom这种
 	if (!pass->_initConf(conf))
 		return {};
+	if (!pass->_initRun(conf["run"]))
+		return {};
 	if (!pass->_initState(conf["states"]))
 		return {};
 	if (!pass->_initShader(conf["shaders"]))
@@ -27,6 +29,25 @@ bool Pass::_initConf(const Config::node& conf) {
 			return false;
 		}
 		_cam = std::any_cast<Camera::ptr>(ret);
+	}
+
+	return true;
+}
+
+bool Pass::_initRun(const Config::node& conf) {
+	if (!Config::valid(conf))
+		return true;
+
+	const std::string& run = conf.as<std::string>();
+	if (run == "once") {
+		_run = [this]() -> bool {
+			if (_run_once) {
+				_run_once = false;
+				return true;
+			}
+			else
+				return false;
+		};
 	}
 
 	return true;

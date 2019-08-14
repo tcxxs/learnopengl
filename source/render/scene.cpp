@@ -171,6 +171,9 @@ void Scene::draw() {
 	int height = EventMgr::inst().getHeight();
 	CommandQueue cmds;
 	for (const auto& it: _pass) {
+		if (!it->getRun())
+			continue;
+
 		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, string_format("pass %s", it->getName()).c_str());
 		cmds.clear();
 		it->drawBegin();

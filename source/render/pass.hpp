@@ -24,9 +24,16 @@ class Pass: public Res<Pass> {
 public:
 	using genfunc = std::function<std::any(const Config::node&)>;
 	using statefunc = std::function<void()>;
+	using runfunc = std::function<bool()>;
 	using modelvec = std::vector<ModelInst::ptr>;
 	static ptr create(const Config::node& conf);
 
+	inline bool getRun() const {
+		if (_run)
+			return _run();
+		else
+			return true;
+	}
 	inline std::pair<int, int> getView() const {
 		if (_outframe)
 			return _outframe->getView();
@@ -42,6 +49,7 @@ public:
 
 private:
 	bool _initConf(const Config::node& conf);
+	bool _initRun(const Config::node& conf);
 	bool _initState(const Config::node& conf);
 	bool _initShaderAttrs(const Config::node& conf, const Shader::ptr& shader);
 	bool _initShader(const Config::node& conf);
@@ -53,6 +61,8 @@ private:
 	void _stateCull(const Config::node& conf);
 
 private:
+	runfunc _run;
+	bool _run_once{true};
 	Camera::ptr _cam;
 	std::vector<statefunc> _states;
 	std::set<Shader::ptr> _shaders;
