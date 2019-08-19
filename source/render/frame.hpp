@@ -61,8 +61,9 @@ public:
 private:
 	// TODO: color支持msaa，可以配合depst用；其余可读的depth不支持msaa
 	bool _completeFrame();
+	bool _attachColor(const Config::node& conf);
 	bool _attachTexture(Attachment& attach, GLenum format);
-	bool _attachTextureCube(Attachment& attach, GLenum format);
+	bool _attachCubemap(Attachment& attach, GLenum format);
 	bool _attachDepthStencil(Attachment& attach);
 	bool _attachDepth(Attachment& attach);
 	bool _attachDepthCube(Attachment& attach);

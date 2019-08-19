@@ -8,28 +8,10 @@ Frame::ptr Frame::create(const Config::node& conf) {
 	frame->_size = conf["size"].as<float>(1.0f);
 	frame->_square = conf["square"].as<bool>(false);
 
-	std::string type;
 	if (Config::valid(conf["colors"])) {
 		for (const auto& it: conf["colors"]) {
-			Attachment& attach = frame->_colors.emplace_back();
-			attach.index = (int)frame->_colors.size() - 1;
-			if (it.IsMap()) {
-				type = it.begin()->first.as<std::string>();
-				attach.name = it.begin()->second.as<std::string>();
-			}
-			else {
-				type = it.as<std::string>();
-			}
-			if (type == "ldr")
-				frame->_attachTexture(attach, GL_RGBA);
-			else if (type == "hdr")
-				frame->_attachTexture(attach, GL_RGBA16F);
-			else if (type == "rf")
-				frame->_attachTexture(attach, GL_R16F);
-			else if (type == "cube")
-				frame->_attachTextureCube(attach, GL_RGBA);
-			else if (type == "cubef")
-				frame->_attachTextureCube(attach, GL_RGBA16F);
+			if (!frame->_attachColor(it))
+				return {};
 		}
 	}
 
@@ -96,6 +78,50 @@ bool Frame::_completeFrame() {
 	return true;
 }
 
+bool Frame::_attachColor(const Config::node& conf) {
+	Attachment& attach = _colors.emplace_back();
+	attach.index = (int)_colors.size() - 1;
+
+	Config::node type;
+	if (conf.IsMap()) {
+		attach.name = conf.begin()->first.as<std::string>();
+		type = conf.begin()->second;
+	}
+	else {
+		type = conf;
+	}
+
+	if (!type.IsSequence() || type.size() < 2) {
+		std::printf("frame type error, line %d", type.Mark().line);
+		return false;
+	}
+	const std::string& base = type[0].as<std::string>();
+	const std::string& pixel = type[1].as<std::string>();
+	bool mip{false};
+	if (type.size() > 2)
+		mip = type[2].as<bool>();
+
+	GLenum pf{GL_RGBA};
+	if (pixel == "rgba8")
+		pf = GL_RGBA;
+	else if (pixel == "rgba16f")
+		pf = GL_RGBA16F;
+	else if (pixel == "r16f")
+		pf = GL_R16F;
+	else {
+		std::printf("frame color pixel format error, %s", pixel.c_str());
+		return false;
+	}
+
+	if (base == "tex")
+		return _attachTexture(attach, pf);
+	else if (base == "cube")
+		return _attachCubemap(attach, pf);
+
+	std::printf("frame base type error, %s", base.c_str());
+	return false;
+}
+
 bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 	int msaa = EventMgr::inst().getMSAA();
 	int width = int(EventMgr::inst().getWidth() * _size);
@@ -104,7 +130,7 @@ bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 		width = std::max(width, height);
 		height = width;
 	}
-	
+
 	if (msaa > 0)
 		attach.type = GL_TEXTURE_2D_MULTISAMPLE;
 	else
@@ -145,10 +171,10 @@ bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	return oglError();
+	return true;
 }
 
-bool Frame::_attachTextureCube(Attachment& attach, GLenum format) {
+bool Frame::_attachCubemap(Attachment& attach, GLenum format) {
 	int width = int(EventMgr::inst().getWidth() * _size);
 	int height = int(EventMgr::inst().getHeight() * _size);
 	if (_square) {
@@ -172,7 +198,7 @@ bool Frame::_attachTextureCube(Attachment& attach, GLenum format) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-	return oglError();
+	return true;
 }
 
 bool Frame::_attachDepthStencil(Attachment& attach) {
@@ -279,8 +305,7 @@ Frame::Attachment& Frame::getAttach(const std::string& name) {
 	return _empty;
 }
 
-const Texture::val Frame::getTexture(Attachment& attach)
-{
+const Texture::val Frame::getTexture(Attachment& attach) {
 	if (!attach.type)
 		return {0};
 

@@ -114,30 +114,36 @@ frames:
   ibl_cube:
     square: true
     size: 0.5
-    colors: [cubef]
+    colors: [[cube, rgba16f]]
   ibl_env:
     square: true
     size: 0.05
-    colors: [cubef]
+    colors: [[cube, rgba16f]]
   shadow_point:
     square: true
     depth: depcube
   shadow_spot:
     depth: depth
   gbuffer:
-    colors: [hdr: position, hdr: normal, ldr: albedo, ldr: pbr]
+    colors:
+      - position: [tex, rgba16f]
+      - normal: [tex, rgba16f]
+      - albedo: [tex, rgba8]
+      - pbr: [tex, rgba8]
     depth: depst
   scene:
-    colors: [hdr: scene, hdr: bloom]
+    colors:
+      - scene: [tex, rgba16f]
+      - bloom: [tex, rgba16f]
     depth: depst
   ssao_ao:
-    colors: [rf]
+    colors: [[tex, r16f]]
   ssao_blur:
-    colors: [rf]
+    colors: [[tex, r16f]]
   bloom1:
-    colors: [hdr]
+    colors: [[tex, rgba16f]]
   bloom2:
-    colors: [hdr]
+    colors: [[tex, rgba16f]]
 pass:
   - name: ibl_cube
     run: [once]
