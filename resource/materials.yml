@@ -72,8 +72,8 @@ sky:
     # ]
 ibl_cube:
   shader: ibl_cube
-ibl_env:
-  shader: ibl_env
+ibl_diffuse:
+  shader: ibl_diffuse
 shadow_point:
   shader: shadow_point
 shadow_spot:

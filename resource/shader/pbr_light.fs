@@ -92,7 +92,9 @@ uniform Lights {
 uniform Material material;
 uniform Shadow shadow;
 uniform GBuffer gbuffer;
-uniform samplerCube ibl;
+uniform samplerCube ibl_diffuse;
+uniform samplerCube ibl_speccube;
+uniform samplerCube ibl_speclut;
 uniform sampler2D ssao;
 
 out vec4 color_out;
@@ -290,7 +292,7 @@ vec3 env_diffuse() {
     vec3 normal = calc.normal;
 #endif
     vec3 kd = 1.0 - F_schlick_roughness();
-    vec3 radiance = calc.color.diffuse * texture(ibl, normal).rgb;
+    vec3 radiance = calc.color.diffuse * texture(ibl_diffuse, normal).rgb;
     return (kd * radiance) * calc.color.ao;
 }
 
