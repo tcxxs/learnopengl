@@ -284,12 +284,15 @@ void Pass::_stateCull(const Config::node& conf) {
 void Pass::drawBegin() {
 	if (_outframe) {
 		glBindFramebuffer(GL_FRAMEBUFFER, _outframe->getFBO());
-		if (_outcolors.size() > 1) {
-			std::vector<GLenum> buffs;
-			for (int i = 0; i < _outcolors.size(); ++i)
-				buffs.push_back(GL_COLOR_ATTACHMENT0 + i);
-			glDrawBuffers((GLsizei)_outcolors.size(), buffs.data());
+		if (_outcolors.empty()) {
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		}
+		else {
+			// cmd decide draw buffers
+		}
+	}
+	else {
+		glDrawBuffer(GL_BACK);
 	}
 
 	std::pair<int, int> view = getView();
@@ -306,8 +309,6 @@ void Pass::drawBegin() {
 void Pass::drawEnd() {
 	// TODO: 可以只dirty用到的color
 	if (_outframe) {
-		if (_outcolors.size() > 1)
-			glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		_outframe->setDirtyAll();
 	}
 

@@ -97,9 +97,6 @@ bool Frame::_attachColor(const Config::node& conf) {
 	}
 	const std::string& base = type[0].as<std::string>();
 	const std::string& pixel = type[1].as<std::string>();
-	bool mip{false};
-	if (type.size() > 2)
-		mip = type[2].as<bool>();
 
 	GLenum pf{GL_RGBA};
 	if (pixel == "rgba8")
@@ -113,13 +110,20 @@ bool Frame::_attachColor(const Config::node& conf) {
 		return false;
 	}
 
-	if (base == "tex")
-		return _attachTexture(attach, pf);
-	else if (base == "cube")
-		return _attachCubemap(attach, pf);
+	if (base == "tex") {
+		if (!_attachTexture(attach, pf))
+			return false;
+	}
+	else if (base == "cube") {
+		if (!_attachCubemap(attach, pf))
+			return false;
+	}
+	else {
+		std::printf("frame base type error, %s", base.c_str());
+		return false;
+	}
 
-	std::printf("frame base type error, %s", base.c_str());
-	return false;
+	return true;
 }
 
 bool Frame::_attachTexture(Attachment& attach, GLenum format) {
@@ -143,7 +147,7 @@ bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 	}
 	else {
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		// TODO: 比如bloom中，可能会因为边缘采样到repeat，产生错误
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -187,7 +191,7 @@ bool Frame::_attachCubemap(Attachment& attach, GLenum format) {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, attach.tex);
 	for (GLuint i = 0; i < 6; ++i)
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
@@ -284,6 +288,87 @@ bool Frame::_attachDepthCube(Attachment& attach) {
 	return oglError();
 }
 
+int Frame::_genMipmap(const std::string& name) {
+	size_t begin = name.find('[');
+	size_t end = name.find(']');
+	if (begin == std::string::npos || end == std::string::npos)
+		return -1;
+
+	std::string mipname = name.substr(0, begin);
+	std::string miplvl = name.substr(begin + 1, end - begin - 1);
+	for (auto& it: _colors) {
+		if (it.name != mipname)
+			continue;
+
+		int width = int(EventMgr::inst().getWidth() * _size);
+		int height = int(EventMgr::inst().getHeight() * _size);
+		int max = int(std::floor(std::log2(std::max(width, height))));
+		int mip = std::stoi(miplvl);
+		if (mip == 0) {
+			return it.index;
+		}
+		else if (mip > max) {
+			std::printf("frame color %s, mipmap level too high", name.c_str());
+			return -1;
+		}
+
+		// 标记自己有mipmap了
+		if (it.mip_index < 0) {
+			it.mip_index = it.index;
+			glBindTexture(it.type, it.tex);
+			glGenerateMipmap(it.type);
+			glTexParameteri(it.type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glBindTexture(it.type, 0);
+		}
+		Attachment attach;
+		attach.index = (int)_colors.size();
+		attach.name = name;
+		attach.type = it.type;
+		attach.mip_index = it.index;
+		attach.mip_level = mip;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attach.index, it.tex, attach.mip_level);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// 在colors内，更改元素，最后返回的时候做，避免it错误
+		_colors.push_back(attach);
+		return attach.index;
+	}
+
+	return -1;
+}
+
+void Frame::_cleanDirty(Attachment& attach) {
+	if (!attach.dirty)
+		return;
+	if (attach.mip_level > 0)
+		return;
+
+	attach.dirty = false;
+	// 重新生成mipmap
+	if (attach.mip_index >= 0) {
+		glBindTexture(attach.type, attach.tex);
+		glGenerateMipmap(attach.type);
+		glBindTexture(attach.type, 0);
+	}
+	// 重新拷贝msaa
+	if (attach.blit_fbo) {
+		int width = int(EventMgr::inst().getWidth() * _size);
+		int height = int(EventMgr::inst().getHeight() * _size);
+		if (_square) {
+			width = std::max(width, height);
+			height = width;
+		}
+
+		if (attach.index > 0)
+			glNamedFramebufferReadBuffer(_fbo, GL_COLOR_ATTACHMENT0 + attach.index);
+		glBlitNamedFramebuffer(_fbo, attach.blit_fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		if (attach.index > 0)
+			glNamedFramebufferReadBuffer(_fbo, GL_COLOR_ATTACHMENT0);
+	}
+}
+
 Frame::Attachment& Frame::getAttach(const std::string& name) {
 	if (name == "depth")
 		return _depth;
@@ -300,6 +385,10 @@ Frame::Attachment& Frame::getAttach(const std::string& name) {
 			if (it.name == name)
 				return it;
 		}
+
+		int index = _genMipmap(name);
+		if (index >= 0)
+			return _colors[index];
 	}
 
 	return _empty;
@@ -309,26 +398,12 @@ const Texture::val Frame::getTexture(Attachment& attach) {
 	if (!attach.type)
 		return {0};
 
-	int msaa = EventMgr::inst().getMSAA();
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
-	if (_square) {
-		width = std::max(width, height);
-		height = width;
-	}
-
-	if (attach.blit_fbo) {
-		if (attach.blit_dirty) {
-			attach.blit_dirty = false;
-			if (attach.index > 0)
-				glNamedFramebufferReadBuffer(_fbo, GL_COLOR_ATTACHMENT0 + attach.index);
-			glBlitNamedFramebuffer(_fbo, attach.blit_fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			if (attach.index > 0)
-				glNamedFramebufferReadBuffer(_fbo, GL_COLOR_ATTACHMENT0);
-		}
+	if (attach.mip_level > 0)
+		return getTexture(_colors[attach.mip_index]);
+	
+	_cleanDirty(attach);
+	if (attach.blit_fbo)
 		return {attach.blit_tex, GL_TEXTURE_2D};
-	}
-	else {
+	else
 		return {attach.tex, attach.type};
-	}
 }

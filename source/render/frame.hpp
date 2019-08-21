@@ -13,9 +13,11 @@ public:
 		std::string name;
 		GLenum type{0};
 		GLuint tex{0};
+		bool dirty{false};
+		int mip_index{-1};
+		int mip_level{-1};
 		GLuint blit_fbo{0};
 		GLuint blit_tex{0};
-		bool blit_dirty{false};
 	};
 
 	static ptr create(const Config::node& conf);
@@ -44,8 +46,8 @@ public:
 	}
 
 	inline void setDirty(Attachment& attach) {
-		if (attach.blit_fbo)
-			attach.blit_dirty = true;
+		if (attach.mip_level <= 0)
+			attach.dirty = true;
 	}
 	inline void setDirty(const std::string& name) {
 		Attachment& attach = getAttach(name);
@@ -67,6 +69,8 @@ private:
 	bool _attachDepthStencil(Attachment& attach);
 	bool _attachDepth(Attachment& attach);
 	bool _attachDepthCube(Attachment& attach);
+	int _genMipmap(const std::string& name);
+	void _cleanDirty(Attachment& attach);
 
 private:
 	inline static Attachment _empty;
