@@ -9,6 +9,7 @@ bool Render::init() {
 		glDebugMessageCallback(oglDebug, nullptr);
 		//glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, GL_TRUE);
 	}
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	if (EventMgr::inst().getMSAA())
 		glEnable(GL_MULTISAMPLE);
 

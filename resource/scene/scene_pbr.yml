@@ -119,7 +119,7 @@ frames:
   ibl_cube:
     square: true
     size: 0.5
-    colors: [[cube, rgba16f]]
+    colors: [[cube, rgba16f, auto]]
   ibl_diffuse:
     square: true
     size: 0.05

@@ -97,8 +97,6 @@ bool Frame::_attachColor(const Config::node& conf) {
 	}
 	const std::string& base = type[0].as<std::string>();
 	const std::string& pixel = type[1].as<std::string>();
-	if (type.size() > 2)
-		attach.mip_auto = type[2].as<std::string>() == "auto";
 
 	GLenum pf{GL_RGBA};
 	if (pixel == "rgba8")
@@ -125,6 +123,14 @@ bool Frame::_attachColor(const Config::node& conf) {
 		return false;
 	}
 
+	if (type.size() > 2) {
+		attach.mip_auto = type[2].as<std::string>() == "auto";
+		attach.mip_index = attach.index;
+		glBindTexture(attach.type, attach.tex);
+		glGenerateMipmap(attach.type);
+		glTexParameteri(attach.type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glBindTexture(attach.type, 0);
+	}
 	return true;
 }
 
@@ -299,6 +305,8 @@ int Frame::_genMipmap(const std::string& name) {
 	std::string mipname = name.substr(0, begin);
 	std::string miplvl = name.substr(begin + 1, end - begin - 1);
 	for (auto& it: _colors) {
+		if (it.mip_index < 0)
+			continue;
 		if (it.name != mipname)
 			continue;
 
@@ -314,14 +322,6 @@ int Frame::_genMipmap(const std::string& name) {
 			return -1;
 		}
 
-		// 标记自己有mipmap了
-		if (it.mip_index < 0) {
-			it.mip_index = it.index;
-			glBindTexture(it.type, it.tex);
-			glGenerateMipmap(it.type);
-			glTexParameteri(it.type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glBindTexture(it.type, 0);
-		}
 		Attachment attach;
 		attach.index = (int)_colors.size();
 		attach.name = name;

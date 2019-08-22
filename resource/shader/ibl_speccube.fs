@@ -46,6 +46,32 @@ vec3 importance_ggx(vec2 rand, vec3 normal) {
     return normalize(halfdir);
 }
 
+float D_ggx(float cost) {
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float denom = (cost * cost * (a2 - 1.0) + 1.0);
+
+    return a2 / (MATH_PI * denom * denom);
+}
+
+float pdf_mipmap(vec3 normal, vec3 camdir, vec3 halfdir) {
+    if (abs(roughness) < MATH_EPS)
+        return 0.0;
+    
+    float cost = max(dot(normal, halfdir), 0.0);
+    float denom = 4.0 * max(dot(halfdir, camdir), 0.0) + MATH_EPS;
+    float pdf = (D_ggx(cost) * cost / denom) + MATH_EPS;
+
+    float size = textureSize(cube, 0).x;
+    // 每个像素表示多少单位球面积
+    float texel  = 4.0 * MATH_PI / (6.0 * size * size);
+    // 在roughness下，根据pdf，每个采样点的uv步长
+    float delta = 1.0 / (float(samples) * pdf);
+    // delta/texel就等于，每单位球面积表示多少像素
+    // 相当于，步长越大，跨越像素多，就需要越大的mipmap
+    return 0.5 * log2(delta / texel);
+}
+
 void main() {
     vec3 normal = normalize(vertex.pos);    
     vec3 camdir = normal;
@@ -59,7 +85,8 @@ void main() {
 
         float cost = dot(normal, light);
         if(cost > 0.0) {
-            color += texture(cube, light).rgb * cost;
+            float mip = pdf_mipmap(normal, camdir, halfdir);
+            color += textureLod(cube, light, mip).rgb * cost;
             weight += cost;
         }
     }
