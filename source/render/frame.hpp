@@ -14,6 +14,7 @@ public:
 		GLenum type{0};
 		GLuint tex{0};
 		bool dirty{false};
+		bool mip_auto{true};
 		int mip_index{-1};
 		int mip_level{-1};
 		GLuint blit_fbo{0};
@@ -25,17 +26,7 @@ public:
 	virtual ~Frame();
 	void deleteAttach(Attachment& attach);
 
-	inline std::pair<int, int> getView() const {
-		int width = int(EventMgr::inst().getWidth() * _size);
-		int height = int(EventMgr::inst().getHeight() * _size);
-		if (_square) {
-			width = std::max(width, height);
-			height = width;
-		}
-
-		return {width, height};
-	}
-
+	std::pair<int, int> getView(const std::map<GLuint, std::string>& outs) const;
 	inline GLuint getFBO() const { return _fbo; }
 	Attachment& getAttach(const std::string& name);
 

@@ -36,7 +36,7 @@ public:
 	}
 	inline std::pair<int, int> getView() const {
 		if (_outframe)
-			return _outframe->getView();
+			return _outframe->getView(_outcolors);
 		else
 			return {EventMgr::inst().getWidth(), EventMgr::inst().getHeight()};
 	}

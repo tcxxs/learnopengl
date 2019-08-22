@@ -97,6 +97,8 @@ bool Frame::_attachColor(const Config::node& conf) {
 	}
 	const std::string& base = type[0].as<std::string>();
 	const std::string& pixel = type[1].as<std::string>();
+	if (type.size() > 2)
+		attach.mip_auto = type[2].as<std::string>() == "auto";
 
 	GLenum pf{GL_RGBA};
 	if (pixel == "rgba8")
@@ -347,7 +349,7 @@ void Frame::_cleanDirty(Attachment& attach) {
 
 	attach.dirty = false;
 	// 重新生成mipmap
-	if (attach.mip_index >= 0) {
+	if (attach.mip_auto && attach.mip_index >= 0) {
 		glBindTexture(attach.type, attach.tex);
 		glGenerateMipmap(attach.type);
 		glBindTexture(attach.type, 0);
@@ -366,6 +368,29 @@ void Frame::_cleanDirty(Attachment& attach) {
 		glBlitNamedFramebuffer(_fbo, attach.blit_fbo, 0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		if (attach.index > 0)
 			glNamedFramebufferReadBuffer(_fbo, GL_COLOR_ATTACHMENT0);
+	}
+}
+
+std::pair<int, int> Frame::getView(const std::map<GLuint, std::string>& outs) const {
+	int width = int(EventMgr::inst().getWidth() * _size);
+	int height = int(EventMgr::inst().getHeight() * _size);
+	if (_square) {
+		width = std::max(width, height);
+		height = width;
+	}
+
+	if (_colors.empty())
+		return {width, height};
+	else {
+		int mip = 0;
+		for (const auto& it: outs) {
+			const Attachment& attach = _colors[it.first];
+			if (attach.mip_level > mip)
+				mip = attach.mip_level;
+		}
+
+		mip = int(std::pow(2, mip));
+		return {std::max(1, width / mip), std::max(1, height / mip)};
 	}
 }
 

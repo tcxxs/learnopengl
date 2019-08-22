@@ -35,6 +35,11 @@ models:
     materials:
       ibl_cube: ibl_cube
       ibl_diffuse: ibl_diffuse
+      ibl_speccube0: ibl_speccube
+      ibl_speccube1: ibl_speccube
+      ibl_speccube2: ibl_speccube
+      ibl_speccube3: ibl_speccube
+      ibl_speccube4: ibl_speccube
   - type: cube
     pos: [0.0, 0.0, 0.0]
     scale: 90.0
@@ -122,7 +127,7 @@ frames:
   ibl_speccube:
     square: true
     size: 0.2
-    colors: [cube: [cube, rgba16f]]
+    colors: [cube: [cube, rgba16f, manual]]
   ibl_speclut:
     square: true
     size: 0.5
@@ -178,7 +183,7 @@ pass:
         cube: [[frame, ibl_cube, color]]
     output:
       frame: [[frame, ibl_diffuse]]
-  - name: ibl_speccube
+  - name: ibl_speccube0
     #run: [once]
     states:
       clear: [color]
@@ -188,13 +193,67 @@ pass:
       ibl_speccube:
         cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
+        roughness: 0.0
     output:
       frame: [[frame, ibl_speccube]]
       colors:
-        cube[0]: color_rough0
-        cube[1]: color_rough1
-        cube[2]: color_rough2
-        cube[3]: color_rough3
+        cube[0]: color_out
+  - name: ibl_speccube1
+    #run: [once]
+    states:
+      depth: [false]
+      cull: front
+    shaders:
+      ibl_speccube:
+        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
+        cube: [[frame, ibl_cube, color]]
+        roughness: 0.25
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[1]: color_out
+  - name: ibl_speccube2
+    #run: [once]
+    states:
+      depth: [false]
+      cull: front
+    shaders:
+      ibl_speccube:
+        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
+        cube: [[frame, ibl_cube, color]]
+        roughness: 0.5
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[2]: color_out
+  - name: ibl_speccube3
+    #run: [once]
+    states:
+      depth: [false]
+      cull: front
+    shaders:
+      ibl_speccube:
+        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
+        cube: [[frame, ibl_cube, color]]
+        roughness: 0.75
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[3]: color_out
+  - name: ibl_speccube4
+    #run: [once]
+    states:
+      depth: [false]
+      cull: front
+    shaders:
+      ibl_speccube:
+        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
+        cube: [[frame, ibl_cube, color]]
+        roughness: 1.0
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[4]: color_out
   - name: shadow_point
     run: [if, [[light, light_main, ind]]]
     states:
@@ -265,6 +324,7 @@ pass:
         gbuffer.albedo: [[frame, gbuffer, albedo]]
         gbuffer.pbr: [[frame, gbuffer, pbr]]
         ibl_diffuse: [[frame, ibl_diffuse, color]]
+        ibl_speccube: [[frame, ibl_speccube, cube]]
         ssao: [[frame, ssao_blur, color]]
     output:
       frame: [[frame, scene]]
