@@ -184,7 +184,7 @@ pass:
     output:
       frame: [[frame, ibl_diffuse]]
   - name: ibl_speccube0
-    #run: [once]
+    run: [once]
     states:
       clear: [color]
       depth: [false]
@@ -193,13 +193,14 @@ pass:
       ibl_speccube:
         cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
+        samples: 1024
         roughness: 0.0
     output:
       frame: [[frame, ibl_speccube]]
       colors:
         cube[0]: color_out
   - name: ibl_speccube1
-    #run: [once]
+    run: [once]
     states:
       depth: [false]
       cull: front
@@ -207,13 +208,14 @@ pass:
       ibl_speccube:
         cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
+        samples: 1024
         roughness: 0.25
     output:
       frame: [[frame, ibl_speccube]]
       colors:
         cube[1]: color_out
   - name: ibl_speccube2
-    #run: [once]
+    run: [once]
     states:
       depth: [false]
       cull: front
@@ -221,13 +223,14 @@ pass:
       ibl_speccube:
         cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
+        samples: 1024
         roughness: 0.5
     output:
       frame: [[frame, ibl_speccube]]
       colors:
         cube[2]: color_out
   - name: ibl_speccube3
-    #run: [once]
+    run: [once]
     states:
       depth: [false]
       cull: front
@@ -235,6 +238,7 @@ pass:
       ibl_speccube:
         cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
+        samples: 1024
         roughness: 0.75
     output:
       frame: [[frame, ibl_speccube]]
@@ -249,6 +253,7 @@ pass:
       ibl_speccube:
         cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
+        samples: 1024
         roughness: 1.0
     output:
       frame: [[frame, ibl_speccube]]
