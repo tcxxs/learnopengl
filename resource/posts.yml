@@ -4,6 +4,8 @@ show:
   material: show
 defer_light:
   material: defer_light
+ibl_speclut:
+  material: ibl_speclut
 pbr_light:
   material: pbr_light
 ssao_ao:

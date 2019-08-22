@@ -119,7 +119,7 @@ frames:
   ibl_cube:
     square: true
     size: 0.5
-    colors: [[cube, rgba16f, auto]]
+    colors: [[cube, rgba16f, mip_auto]]
   ibl_diffuse:
     square: true
     size: 0.05
@@ -127,11 +127,11 @@ frames:
   ibl_speccube:
     square: true
     size: 0.2
-    colors: [cube: [cube, rgba16f, manual]]
+    colors: [cube: [cube, rgba16f, mip_manual]]
   ibl_speclut:
     square: true
     size: 0.5
-    colors: [[tex, rgba16f]]
+    colors: [[tex, rgba16f, wrap_clamp]]
   shadow_point:
     square: true
     depth: depcube
@@ -245,7 +245,7 @@ pass:
       colors:
         cube[3]: color_out
   - name: ibl_speccube4
-    #run: [once]
+    run: [once]
     states:
       depth: [false]
       cull: front
@@ -259,6 +259,16 @@ pass:
       frame: [[frame, ibl_speccube]]
       colors:
         cube[4]: color_out
+  - name: ibl_speclut
+    run: [once]
+    states:
+      clear: [color]
+      depth: [false]
+    posts:
+      ibl_speclut:
+        samples: 1024
+    output:
+      frame: [[frame, ibl_speclut]]
   - name: shadow_point
     run: [if, [[light, light_main, ind]]]
     states:

@@ -81,12 +81,12 @@ void main() {
     for(int i = 0; i < samples; ++i) {
         vec2 rand = hammersley_sequence(i, samples);
         vec3 halfdir  = importance_ggx(rand, normal);
-        vec3 light  = normalize(2.0 * dot(camdir, halfdir) * halfdir - camdir);
+        vec3 lightdir  = normalize(2.0 * dot(camdir, halfdir) * halfdir - camdir);
 
-        float cost = dot(normal, light);
+        float cost = dot(normal, lightdir);
         if(cost > 0.0) {
             float mip = pdf_mipmap(normal, camdir, halfdir);
-            color += textureLod(cube, light, mip).rgb * cost;
+            color += textureLod(cube, lightdir, mip).rgb * cost;
             weight += cost;
         }
     }

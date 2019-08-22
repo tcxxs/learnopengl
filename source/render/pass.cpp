@@ -11,6 +11,7 @@ Pass::ptr Pass::create(const Config::node& conf) {
 		return {};
 	if (!pass->_initState(conf["states"]))
 		return {};
+	// TODO: 还可以增加一个cubes
 	if (!pass->_initShader(conf["shaders"]))
 		return {};
 	if (!pass->_initPost(conf["posts"]))

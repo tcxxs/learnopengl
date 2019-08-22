@@ -76,6 +76,8 @@ ibl_diffuse:
   shader: ibl_diffuse
 ibl_speccube:
   shader: ibl_speccube
+ibl_speclut:
+  shader: ibl_speclut
 shadow_point:
   shader: shadow_point
 shadow_spot:
