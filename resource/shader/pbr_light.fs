@@ -34,6 +34,13 @@ struct GBuffer {
     sampler2D pbr;
 };
 
+struct IBL {
+    samplerCube diffuse;
+    samplerCube speccube;
+    sampler2D speclut;
+    int speclod;
+};
+
 struct Light {
     int type;
 	vec3 pos;
@@ -92,9 +99,7 @@ uniform Lights {
 uniform Material material;
 uniform Shadow shadow;
 uniform GBuffer gbuffer;
-uniform samplerCube ibl_diffuse;
-uniform samplerCube ibl_speccube;
-uniform samplerCube ibl_speclut;
+uniform IBL ibl;
 uniform sampler2D ssao;
 
 out vec4 color_out;
@@ -233,7 +238,7 @@ vec3 light_radiance() {
     float fac_g = G_smith();
 
     vec3 ks = fac_f;
-    vec3 kd = (vec3(1.0) - ks) * (1.0 - calc.color.metallic);
+    vec3 kd = (1.0 - ks) * (1.0 - calc.color.metallic);
     float theta_v = max(dot(calc.normal, calc.camdir), 0.0);
     float theta_l = max(dot(calc.normal, calc.light.indir), 0.0);
 
@@ -291,9 +296,21 @@ vec3 env_diffuse() {
 #else
     vec3 normal = calc.normal;
 #endif
-    vec3 kd = 1.0 - F_schlick_roughness();
-    vec3 radiance = calc.color.diffuse * texture(ibl_diffuse, normal).rgb;
-    return (kd * radiance) * calc.color.ao;
+    vec3 kd = (1.0 - F_schlick_roughness()) * (1.0 - calc.color.metallic);
+    vec3 radiance = calc.color.diffuse * texture(ibl.diffuse, calc.normal).rgb;
+    return kd * radiance;
+}
+
+vec3 env_specular() {
+    vec3 lightdir = reflect(-calc.camdir, calc.normal);
+    float mip = calc.color.roughness * float(ibl.speclod);
+    vec3 radiance = textureLod(ibl.speccube, lightdir, mip).rgb;
+
+    vec3 fresnel = F_schlick_roughness();
+    float cost = max(dot(calc.normal, calc.camdir), 0.0);
+    vec2 lut  = texture(ibl.speclut, vec2(cost, calc.color.roughness)).rg;
+    
+    return radiance * (fresnel * lut.x + lut.y);
 }
 
 void main() {
@@ -307,7 +324,7 @@ void main() {
             light += light_radiance();
     }
 
-    vec3 env = env_diffuse();
+    vec3 env = (env_diffuse() + env_specular()) * calc.color.ao;
 
     color_out = vec4(env + light, 1.0);
     float bright = dot(color_out.rgb, vec3(0.2126, 0.7152, 0.0722));

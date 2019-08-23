@@ -338,8 +338,10 @@ pass:
         gbuffer.normal: [[frame, gbuffer, normal]]
         gbuffer.albedo: [[frame, gbuffer, albedo]]
         gbuffer.pbr: [[frame, gbuffer, pbr]]
-        ibl_diffuse: [[frame, ibl_diffuse, color]]
-        ibl_speccube: [[frame, ibl_speccube, cube]]
+        ibl.diffuse: [[frame, ibl_diffuse, color]]
+        ibl.speccube: [[frame, ibl_speccube, cube]]
+        ibl.speclut: [[frame, ibl_speclut, color]]
+        ibl.speclod: 4
         ssao: [[frame, ssao_blur, color]]
     output:
       frame: [[frame, scene]]
