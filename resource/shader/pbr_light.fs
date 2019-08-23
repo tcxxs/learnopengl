@@ -303,6 +303,9 @@ vec3 env_diffuse() {
 
 vec3 env_specular() {
     vec3 lightdir = reflect(-calc.camdir, calc.normal);
+#if SPACE_VIEW
+    lightdir = normalize(vec3(inverse(view) * vec4(lightdir, 1.0)));
+#endif
     float mip = calc.color.roughness * float(ibl.speclod);
     vec3 radiance = textureLod(ibl.speccube, lightdir, mip).rgb;
 
