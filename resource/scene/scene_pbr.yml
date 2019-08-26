@@ -167,10 +167,10 @@ pass:
     shaders:
       ibl_cube:
         cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
-        #frame: ibl/MonValley_A_LookoutPoint_2k.hdr
+        frame: ibl/MonValley_A_LookoutPoint_2k.hdr
         #frame: ibl/Newport_Loft_Ref.hdr
         #frame: ibl/Mono_Lake_B_Ref.hdr
-        frame: ibl/WinterForest_Ref.hdr
+        #frame: ibl/WinterForest_Ref.hdr
     output:
       frame: [[frame, ibl_cube]]
   - name: ibl_diffuse
