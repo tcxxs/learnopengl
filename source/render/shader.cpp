@@ -61,13 +61,13 @@ bool Shader::_loadShader(const std::string& ext, int type, GLuint& shader) {
 
 bool Shader::_loadProgram() {
 	GLuint vs{0}, gs{0}, fs{0};
-	if (!_loadShader(".vs", GL_VERTEX_SHADER, vs)) {
+	if (!_loadShader(".vert", GL_VERTEX_SHADER, vs)) {
 		return false;
 	}
-	if (!_loadShader(".gs", GL_GEOMETRY_SHADER, gs)) {
+	if (!_loadShader(".geom", GL_GEOMETRY_SHADER, gs)) {
 		return false;
 	}
-	if (!_loadShader(".fs", GL_FRAGMENT_SHADER, fs)) {
+	if (!_loadShader(".frag", GL_FRAGMENT_SHADER, fs)) {
 		return false;
 	}
 
