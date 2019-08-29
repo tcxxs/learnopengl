@@ -15,11 +15,13 @@ public:
 	bool init();
 	void process();
 
+	static void onError(int error, const char* description);
 	void onResize(int width, int height);
 	void onInput();
 	void onMouse(float xpos, float ypos);
 	void onScroll(float xoffset, float yoffset);
 
+	inline GLFWwindow* getWindow() const { return _window; }
 	inline bool getDebug() const { return _debug; }
 	inline int getFPS() const { return _fps; }
 	inline int getWidth() const { return _width; }

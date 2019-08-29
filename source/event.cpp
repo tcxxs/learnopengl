@@ -1,5 +1,10 @@
 #include "event.hpp"
 #include "render/scene.hpp"
+#include "ui/ui.hpp"
+
+void Event::onError(int error, const char* description) {
+	std::printf("Glfw Error %d: %s\n", error, description);
+}
 
 Event::~Event() {
 	glfwTerminate();
@@ -36,6 +41,7 @@ bool Event::_initConfig() {
 }
 
 bool Event::_initWindow() {
+	glfwSetErrorCallback(Event::onError);
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -51,7 +57,7 @@ bool Event::_initWindow() {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		return false;
 	}
-	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwMakeContextCurrent(_window);
 	glfwSetFramebufferSizeCallback(_window,
 	                               [](GLFWwindow* window, int width, int height) {
@@ -94,6 +100,7 @@ void Event::process() {
 		if (_frame_delta > _frame_interv) {
 			_frame_last = now;
 			RenderMgr::inst().onRender();
+			UIMgr::inst().render();
 			glfwSwapBuffers(_window);
 		}
 
