@@ -91,7 +91,7 @@ private:
 		_front.z = sin(_yaw) * cos(_pitch);
 		_front = glm::normalize(_front);
 
-		Logger::debug("camera", "%.2fyaw, %.2fpitch -> %s", _yaw, _pitch, glm::to_string(_front).c_str());
+		LOG("camera", "%.2fyaw, %.2fpitch -> %s", _yaw, _pitch, glm::to_string(_front).c_str());
 	}
 
 public:

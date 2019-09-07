@@ -29,7 +29,8 @@ set(libs
 )
 
 # main
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:CONSOLE /ENTRY:mainCRTStartup")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:CONSOLE /ENTRY:mainCRTStartup")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 add_executable(learnopengl ${files_contrib} ${files_source})
 set_property(TARGET learnopengl PROPERTY COMPILE_FLAGS "/Od /Ob0 /we4715 /wo4996")
 set_property(TARGET learnopengl PROPERTY CXX_STANDARD 17)

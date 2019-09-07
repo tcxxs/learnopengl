@@ -8,13 +8,15 @@
 
 class UI: public NoCopy {
 public:
-	static bool init(GLFWwindow* window);
-	static bool render();
+	bool init(GLFWwindow* window);
+	bool render();
 
 	virtual ~UI();
+private:
+	bool _renderLog(); 
 
 private:
-	inline static std::map<std::string, ImFont*> _fonts;
+	std::map<std::string, ImFont*> _fonts;
 };
 
 using UIMgr = Singleton<UI>;

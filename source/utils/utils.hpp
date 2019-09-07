@@ -4,6 +4,7 @@
 #include <any>
 #include <map>
 #include <functional>
+#include <filesystem>
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
@@ -20,25 +21,6 @@ inline std::string string_format(const std::string& format, Args... args) {
 	std::snprintf(buf.get(), size, format.c_str(), args...);
 	return std::string(buf.get(), buf.get() + size - 1);
 }
-
-class Logger {
-public:
-	inline static void enable(const std::string& type) {
-		_filter.insert(type);
-	}
-
-	template <typename... Args>
-	inline static void debug(const std::string& type, const std::string& format, Args... args) {
-		if (_filter.count(type) <= 0)
-			return;
-
-		std::string fmt = string_format("[%s] %s\n", type.c_str(), format.c_str());
-		std::printf(fmt.c_str(), args...);
-	}
-
-private:
-	inline static std::set<std::string> _filter;
-};
 
 using strcube = std::array<std::string, 6>;
 namespace YAML {
@@ -171,3 +153,39 @@ public:
 private:
 	AttrMap _attrs;
 };
+
+class Logger {
+public:
+	inline static void init(const Config::node& conf) {
+		std::filesystem::path path = std::filesystem::current_path() / conf[0].as<std::string>();
+		_file = fopen(path.string().c_str(), "wb");
+
+		for (const auto& type: conf[1]) {
+			_filter.insert(type.as<std::string>());
+		}
+	}
+
+	template <typename... Args>
+	inline static void out(const std::string& type, const std::string& format, Args... args) {
+		if (_filter.count(type) <= 0)
+			return;
+
+		std::string fmt = string_format("[%s] %s\n", type.c_str(), format.c_str());
+		std::string log = string_format(fmt, args...);
+		_logs.push_back(log);
+		std::fputs(log.c_str(), _file);
+		std::fflush(_file);
+	}
+
+	inline static const std::vector<std::string>& get() { return _logs; }
+
+private:
+	inline static std::FILE* _file{nullptr};
+	inline static std::set<std::string> _filter;
+	inline static std::vector<std::string> _logs;
+};
+
+#define LOG(type, format, ...) Logger::out(type, format, ##__VA_ARGS__)
+#define INFO(format, ...) Logger::out("info", format, ##__VA_ARGS__)
+#define ERR(format, ...) Logger::out("error", format, ##__VA_ARGS__)
+#define DEBUG(format, ...) Logger::out("debug", format, ##__VA_ARGS__)

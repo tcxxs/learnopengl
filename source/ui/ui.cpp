@@ -8,6 +8,7 @@ bool UI::init(GLFWwindow* window) {
 	ImGui::CreateContext();
 
 	ImGuiIO& io = ImGui::GetIO();
+	io.IniFilename = nullptr;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
@@ -22,12 +23,12 @@ bool UI::init(GLFWwindow* window) {
 		std::printf("ui init font error, default");
 		return false;
 	}
-	_fonts["han"] = io.Fonts->AddFontFromFileTTF("resource\\font\\SourceHanSansCN-Regular.otf", 16.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+	_fonts["han"] = io.Fonts->AddFontFromFileTTF("resource\\font\\SourceHanSansCN-Regular.otf", 24.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 	if (!_fonts["han"]) {
 		std::printf("ui init font error, han");
 		return false;
 	}
-	_fonts["yahei"] = io.Fonts->AddFontFromFileTTF("resource\\font\\YaHei.Consolas.1.12.ttf", 16.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+	_fonts["yahei"] = io.Fonts->AddFontFromFileTTF("resource\\font\\YaHei.Consolas.1.12.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 	if (!_fonts["yahei"]) {
 		std::printf("ui init font error, yahei");
 		return false;
@@ -36,39 +37,56 @@ bool UI::init(GLFWwindow* window) {
 	return true;
 }
 
+UI::~UI() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+}
+
 bool UI::render() {
-	// Start the Dear ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	{
-		static float f = 0.0f;
-		static int counter = 0;
-
-		ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-		ImGui::Text("This is some useful text.");          // Display some text (you can use a format strings too)
-
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-
-		if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::End();
+	static bool _show_log{false};
+	ImGui::PushFont(_fonts["han"]);
+	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+	ImGui::Begin("debug tools");
+	ImGui::Checkbox("log", &_show_log);
+	if (_show_log) {
+		_renderLog();
 	}
+	ImGui::End();
+	ImGui::PopFont();
 
-	// Rendering
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	return true;
 }
 
-UI::~UI() {
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+bool UI::_renderLog() {
+	static bool _auto_scroll{true};
+
+	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+	ImGui::Begin("log");
+	
+	ImGui::Checkbox("auto scroll", &_auto_scroll);
+	ImGui::Separator();
+
+	const std::vector<std::string>& logs = Logger::get();
+	ImGui::BeginChild("scrolling", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGuiListClipper clipper;
+	clipper.Begin((int)logs.size());
+	while (clipper.Step()) {
+		for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+			const std::string& log = logs[i];
+			ImGui::TextUnformatted(log.c_str(), log.c_str() + log.size());
+		}
+	}
+	clipper.End();
+	if (_auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+		ImGui::SetScrollHereY(1.0f);
+
+	ImGui::End();
+	return true;
 }

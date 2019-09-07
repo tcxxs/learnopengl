@@ -13,6 +13,10 @@
 #include "render/scene.hpp"
 #include "ui/ui.hpp"
 
+// TODO: 一个测试用界面
+// TODO: 可重载程序而不重启
+// TODO: shader include/marcro, hlsl > spirv > glsl
+
 int main() {
 	if (!EventMgr::inst().init()) {
 		return -1;
