@@ -5,17 +5,20 @@
 #include "GLFW/glfw3.h"
 #include "glm/gtx/string_cast.hpp"
 #include "utils/pattern.hpp"
+#include "utils/utils.hpp"
 #include "render/render.hpp"
 #include "config.hpp"
 
-class Event: public NoCopy {
+class System: public NoCopy {
 public:
-	~Event();
+	~System();
 
 	bool init();
 	void process();
 
-	static void onError(int error, const char* description);
+	void onError(int error, const char* description) {
+		ERR("Glfw Error %d: %s\n", error, description);
+	}
 	void onResize(int width, int height);
 	void onInput();
 	void onMouse(float xpos, float ypos);
@@ -53,4 +56,4 @@ private:
 	float _fox{0.0f};
 };
 
-using EventMgr = Singleton<Event>;
+using SystemMgr = Singleton<System>;

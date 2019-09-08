@@ -146,9 +146,9 @@ bool Frame::_attachColor(const Config::node& conf) {
 }
 
 bool Frame::_attachTexture(Attachment& attach, GLenum format) {
-	int msaa = EventMgr::inst().getMSAA();
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
+	int msaa = SystemMgr::inst().getMSAA();
+	int width = int(SystemMgr::inst().getWidth() * _size);
+	int height = int(SystemMgr::inst().getHeight() * _size);
 	if (_square) {
 		width = std::max(width, height);
 		height = width;
@@ -198,8 +198,8 @@ bool Frame::_attachTexture(Attachment& attach, GLenum format) {
 }
 
 bool Frame::_attachCubemap(Attachment& attach, GLenum format) {
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
+	int width = int(SystemMgr::inst().getWidth() * _size);
+	int height = int(SystemMgr::inst().getHeight() * _size);
 	if (_square) {
 		width = std::max(width, height);
 		height = width;
@@ -225,9 +225,9 @@ bool Frame::_attachCubemap(Attachment& attach, GLenum format) {
 }
 
 bool Frame::_attachDepthStencil(Attachment& attach) {
-	int msaa = EventMgr::inst().getMSAA();
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
+	int msaa = SystemMgr::inst().getMSAA();
+	int width = int(SystemMgr::inst().getWidth() * _size);
+	int height = int(SystemMgr::inst().getHeight() * _size);
 	if (_square) {
 		width = std::max(width, height);
 		height = width;
@@ -254,8 +254,8 @@ bool Frame::_attachDepthStencil(Attachment& attach) {
 }
 
 bool Frame::_attachDepth(Attachment& attach) {
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
+	int width = int(SystemMgr::inst().getWidth() * _size);
+	int height = int(SystemMgr::inst().getHeight() * _size);
 	if (_square) {
 		width = std::max(width, height);
 		height = width;
@@ -281,8 +281,8 @@ bool Frame::_attachDepth(Attachment& attach) {
 }
 
 bool Frame::_attachDepthCube(Attachment& attach) {
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
+	int width = int(SystemMgr::inst().getWidth() * _size);
+	int height = int(SystemMgr::inst().getHeight() * _size);
 	if (_square) {
 		width = std::max(width, height);
 		height = width;
@@ -321,8 +321,8 @@ int Frame::_genMipmap(const std::string& name) {
 		if (it.name != mipname)
 			continue;
 
-		int width = int(EventMgr::inst().getWidth() * _size);
-		int height = int(EventMgr::inst().getHeight() * _size);
+		int width = int(SystemMgr::inst().getWidth() * _size);
+		int height = int(SystemMgr::inst().getHeight() * _size);
 		int max = int(std::floor(std::log2(std::max(width, height))));
 		int mip = std::stoi(miplvl);
 		if (mip == 0) {
@@ -367,8 +367,8 @@ void Frame::_cleanDirty(Attachment& attach) {
 	}
 	// ÖØÐÂ¿½±´msaa
 	if (attach.blit_fbo) {
-		int width = int(EventMgr::inst().getWidth() * _size);
-		int height = int(EventMgr::inst().getHeight() * _size);
+		int width = int(SystemMgr::inst().getWidth() * _size);
+		int height = int(SystemMgr::inst().getHeight() * _size);
 		if (_square) {
 			width = std::max(width, height);
 			height = width;
@@ -383,8 +383,8 @@ void Frame::_cleanDirty(Attachment& attach) {
 }
 
 std::pair<int, int> Frame::getView(const std::map<GLuint, std::string>& outs) const {
-	int width = int(EventMgr::inst().getWidth() * _size);
-	int height = int(EventMgr::inst().getHeight() * _size);
+	int width = int(SystemMgr::inst().getWidth() * _size);
+	int height = int(SystemMgr::inst().getHeight() * _size);
 	if (_square) {
 		width = std::max(width, height);
 		height = width;

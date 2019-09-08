@@ -38,7 +38,7 @@ public:
 		if (_outframe)
 			return _outframe->getView(_outcolors);
 		else
-			return {EventMgr::inst().getWidth(), EventMgr::inst().getHeight()};
+			return {SystemMgr::inst().getWidth(), SystemMgr::inst().getHeight()};
 	}
 	inline const Camera::ptr& getCamera() const { return _cam; }
 	inline const std::set<Shader::ptr>& getShaders() const { return _shaders; }

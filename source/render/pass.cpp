@@ -1,5 +1,5 @@
 #include "pass.hpp"
-#include "event.hpp"
+#include "system.hpp"
 
 Pass::ptr Pass::create(const Config::node& conf) {
 	Pass::ptr pass = std::make_shared<Pass>();
@@ -224,7 +224,7 @@ void Pass::_stateClear(const Config::node& conf) {
 			const std::string& arg = it.as<std::string>();
 			if (arg == "color") {
 				flags |= GL_COLOR_BUFFER_BIT;
-				color = EventMgr::inst().getBGColor();
+				color = SystemMgr::inst().getBGColor();
 			}
 			else if (arg == "depth")
 				flags |= GL_DEPTH_BUFFER_BIT;

@@ -1,16 +1,12 @@
-#include "event.hpp"
+#include "System.hpp"
 #include "render/scene.hpp"
 #include "ui/ui.hpp"
 
-void Event::onError(int error, const char* description) {
-	std::printf("Glfw Error %d: %s\n", error, description);
-}
-
-Event::~Event() {
+System::~System() {
 	glfwTerminate();
 }
 
-bool Event::init() {
+bool System::init() {
 	if (!_initConfig())
 		return false;
 	if (!_initWindow())
@@ -19,11 +15,11 @@ bool Event::init() {
 	return true;
 }
 
-bool Event::_initConfig() {
+bool System::_initConfig() {
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "config.yml";
 	Config conf;
 	if (!conf.load(path)) {
-		std::cout << "render config error";
+		ERR("render config error");
 		return false;
 	}
 
@@ -38,8 +34,8 @@ bool Event::_initConfig() {
 	return true;
 }
 
-bool Event::_initWindow() {
-	glfwSetErrorCallback(Event::onError);
+bool System::_initWindow() {
+	glfwSetErrorCallback([](int error, const char* desc) { SystemMgr::inst().onError(error, desc); });
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -52,26 +48,17 @@ bool Event::_initWindow() {
 
 	_window = glfwCreateWindow(_width, _height, "LearnOpenGL", nullptr, nullptr);
 	if (_window == nullptr) {
-		std::cout << "Failed to create GLFW window" << std::endl;
+		ERR("Failed to create GLFW window");
 		return false;
 	}
 	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwMakeContextCurrent(_window);
-	glfwSetFramebufferSizeCallback(_window,
-	                               [](GLFWwindow* window, int width, int height) {
-		                               EventMgr::inst().onResize(width, height);
-	                               });
-	glfwSetCursorPosCallback(_window,
-	                         [](GLFWwindow* window, double xpos, double ypos) {
-		                         EventMgr::inst().onMouse((float)xpos, (float)ypos);
-	                         });
-	glfwSetScrollCallback(_window,
-	                      [](GLFWwindow* window, double xoffset, double yoffset) {
-		                      EventMgr::inst().onScroll((float)xoffset, (float)yoffset);
-	                      });
+	glfwSetFramebufferSizeCallback(_window, [](GLFWwindow* window, int width, int height) { SystemMgr::inst().onResize(width, height); });
+	glfwSetCursorPosCallback(_window, [](GLFWwindow* window, double xpos, double ypos) { SystemMgr::inst().onMouse((float)xpos, (float)ypos); });
+	glfwSetScrollCallback(_window, [](GLFWwindow* window, double xoffset, double yoffset) { SystemMgr::inst().onScroll((float)xoffset, (float)yoffset); });
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "Failed to initialize GLAD" << std::endl;
+		ERR("Failed to initialize GLAD");
 		return false;
 	}
 
@@ -82,11 +69,12 @@ bool Event::_initWindow() {
 	return true;
 }
 
-void Event::onResize(int width, int height) {
+void System::onResize(int width, int height) {
+	// TODO: 应该调整width、height，以及所有framebuffer
 	glViewport(0, 0, width, height);
 }
 
-void Event::process() {
+void System::process() {
 	float now;
 	while (!glfwWindowShouldClose(_window)) {
 		now = (float)glfwGetTime();
@@ -98,7 +86,7 @@ void Event::process() {
 		if (_frame_delta > _frame_interv) {
 			_frame_last = now;
 			RenderMgr::inst().onRender();
-			UIMgr::inst().render();
+			UIMgr::inst().onRender();
 			glfwSwapBuffers(_window);
 		}
 
@@ -106,7 +94,7 @@ void Event::process() {
 	}
 }
 
-bool Event::_onClick(int key) {
+bool System::_onClick(int key) {
 	bool press = glfwGetKey(_window, key) == GLFW_PRESS;
 	auto& find = _keys.find(key);
 	if (find == _keys.end()) {
@@ -120,7 +108,7 @@ bool Event::_onClick(int key) {
 	}
 }
 
-void Event::onInput() {
+void System::onInput() {
 	if (_onClick(GLFW_KEY_ESCAPE)) {
 		if (_cursor) {
 			glfwSetWindowShouldClose(_window, true);
@@ -151,7 +139,7 @@ void Event::onInput() {
 		cam->setPos(cam->getPos() + CAM_MOVE * _time_delta * cam->getRight());
 }
 
-void Event::onMouse(float xpos, float ypos) {
+void System::onMouse(float xpos, float ypos) {
 	if (_cursor)
 		return;
 
@@ -172,7 +160,10 @@ void Event::onMouse(float xpos, float ypos) {
 	cam->setPitch(cam->getPitch() - yoffset);
 }
 
-void Event::onScroll(float xoffset, float yoffset) {
+void System::onScroll(float xoffset, float yoffset) {
+	if (_cursor)
+		return;
+
 	auto& cam = Scene::current->getCamera();
 	cam->setFov(cam->getFov() + yoffset * CAM_FOV);
 }

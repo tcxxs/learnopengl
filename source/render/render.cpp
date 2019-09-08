@@ -4,13 +4,13 @@
 #include "render/vertex.hpp"
 
 bool Render::init() {
-	if (EventMgr::inst().getDebug()) {
+	if (SystemMgr::inst().getDebug()) {
 		glEnable(GL_DEBUG_OUTPUT);
 		glDebugMessageCallback(oglDebug, nullptr);
 		//glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_HIGH, 0, nullptr, GL_TRUE);
 	}
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	if (EventMgr::inst().getMSAA())
+	if (SystemMgr::inst().getMSAA())
 		glEnable(GL_MULTISAMPLE);
 
 	if (!VertexProtoMgr::inst().req(VERTEX_BASE))

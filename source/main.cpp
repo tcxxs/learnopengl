@@ -5,7 +5,7 @@
 #include "glm/ext.hpp"
 #include "GLFW/glfw3.h"
 #include "config.hpp"
-#include "event.hpp"
+#include "system.hpp"
 #include "utils/resource.hpp"
 #include "render/render.hpp"
 #include "render/mesh.hpp"
@@ -18,22 +18,22 @@
 // TODO: shader include/marcro, hlsl > spirv > glsl
 
 int main() {
-	if (!EventMgr::inst().init()) {
+	if (!SystemMgr::inst().init()) {
 		return -1;
 	}
-	if (!UIMgr::inst().init(EventMgr::inst().getWindow())) {
+	if (!UIMgr::inst().init(SystemMgr::inst().getWindow())) {
 		return -1;
 	}
 	if (!RenderMgr::inst().init()) {
 		return -1;
 	}
 
-	const std::string& name = EventMgr::inst().getScene();
+	const std::string& name = SystemMgr::inst().getScene();
 	const Scene::ptr& scene = SceneMgr::inst().create(name);
 	if (!scene)
 		return -1;
 	scene->active();
 
-	EventMgr::inst().process();
+	SystemMgr::inst().process();
 	return 0;
 }

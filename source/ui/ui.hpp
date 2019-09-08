@@ -9,7 +9,7 @@
 class UI: public NoCopy {
 public:
 	bool init(GLFWwindow* window);
-	bool render();
+	bool onRender();
 
 	virtual ~UI();
 private:

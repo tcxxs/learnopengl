@@ -43,7 +43,8 @@ UI::~UI() {
 	ImGui::DestroyContext();
 }
 
-bool UI::render() {
+bool UI::onRender()
+{
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();

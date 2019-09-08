@@ -1,6 +1,6 @@
 #include <random>
 #include "scene.hpp"
-#include "event.hpp"
+#include "system.hpp"
 #include "render/command.hpp"
 
 Scene::ptr Scene::create(const std::string& name) {
@@ -167,8 +167,8 @@ bool Scene::_initFrame(const Config::node& conf) {
 }
 
 void Scene::draw() {
-	int width = EventMgr::inst().getWidth();
-	int height = EventMgr::inst().getHeight();
+	int width = SystemMgr::inst().getWidth();
+	int height = SystemMgr::inst().getHeight();
 	CommandQueue cmds;
 	for (const auto& it: _pass) {
 		if (!it->getRun())
@@ -392,7 +392,7 @@ std::any Scene::_genLight(const Config::node& conf) {
 			return pos;
 		}
 		else if (type == "vp") {
-			const float aspect = (float)EventMgr::inst().getWidth() / (float)EventMgr::inst().getHeight();
+			const float aspect = (float)SystemMgr::inst().getWidth() / (float)SystemMgr::inst().getHeight();
 			glm::mat4 proj = glm::perspective(glm::radians(_cam->getFov()), aspect, PROJ_NEAR, PROJ_FAR);
 			glm::mat4 view = glm::lookAt(pos, pos + dir, Camera::up);
 			return proj * view;

@@ -2,7 +2,7 @@
 
 #include "glad/glad.h"
 #include "config.hpp"
-#include "event.hpp"
+#include "system.hpp"
 #include "utils/resource.hpp"
 #include "render/texture.hpp"
 
