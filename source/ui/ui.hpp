@@ -8,12 +8,13 @@
 
 class UI: public NoCopy {
 public:
+	virtual ~UI();
+
 	bool init(GLFWwindow* window);
 	bool onRender();
 
-	virtual ~UI();
 private:
-	bool _renderLog(); 
+	bool _renderLog();
 
 private:
 	std::map<std::string, ImFont*> _fonts;

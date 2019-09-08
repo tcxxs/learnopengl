@@ -4,7 +4,7 @@ UniformProto::ptr UniformProto::create(const std::string& name, const GLint size
 	if (_confs.root().IsNull()) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "uniforms.yml";
 		if (!_confs.load(path)) {
-			ERR("uniforms config error";
+			ERR("uniforms config error");
 			return {};
 		}
 	}

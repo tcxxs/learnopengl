@@ -21,18 +21,18 @@ int main() {
 	if (!SystemMgr::inst().init()) {
 		return -1;
 	}
-	if (!UIMgr::inst().init(SystemMgr::inst().getWindow())) {
-		return -1;
-	}
 	if (!RenderMgr::inst().init()) {
 		return -1;
 	}
-
-	const std::string& name = SystemMgr::inst().getScene();
-	const Scene::ptr& scene = SceneMgr::inst().create(name);
-	if (!scene)
+	if (!UIMgr::inst().init(SystemMgr::inst().getWindow())) {
 		return -1;
-	scene->active();
+	}
+
+	//const std::string& name = SystemMgr::inst().getScene();
+	//const Scene::ptr& scene = SceneMgr::inst().create(name);
+	//if (!scene)
+	//	return -1;
+	//scene->active();
 
 	SystemMgr::inst().process();
 	return 0;

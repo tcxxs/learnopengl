@@ -3,6 +3,12 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+UI::~UI() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+}
+
 bool UI::init(GLFWwindow* window) {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -10,7 +16,6 @@ bool UI::init(GLFWwindow* window) {
 	ImGuiIO& io = ImGui::GetIO();
 	io.IniFilename = nullptr;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
 	ImGui::StyleColorsDark();
 	//ImGui::StyleColorsClassic();
@@ -20,31 +25,24 @@ bool UI::init(GLFWwindow* window) {
 
 	_fonts["default"] = io.Fonts->AddFontDefault();
 	if (!_fonts["default"]) {
-		std::printf("ui init font error, default");
+		ERR("ui init font error, default");
 		return false;
 	}
 	_fonts["han"] = io.Fonts->AddFontFromFileTTF("resource\\font\\SourceHanSansCN-Regular.otf", 24.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 	if (!_fonts["han"]) {
-		std::printf("ui init font error, han");
+		ERR("ui init font error, han");
 		return false;
 	}
 	_fonts["yahei"] = io.Fonts->AddFontFromFileTTF("resource\\font\\YaHei.Consolas.1.12.ttf", 24.0f, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 	if (!_fonts["yahei"]) {
-		std::printf("ui init font error, yahei");
+		ERR("ui init font error, yahei");
 		return false;
 	}
 
 	return true;
 }
 
-UI::~UI() {
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-}
-
-bool UI::onRender()
-{
+bool UI::onRender() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -70,7 +68,7 @@ bool UI::_renderLog() {
 
 	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
 	ImGui::Begin("log");
-	
+
 	ImGui::Checkbox("auto scroll", &_auto_scroll);
 	ImGui::Separator();
 

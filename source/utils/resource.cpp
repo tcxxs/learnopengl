@@ -1,4 +1,5 @@
 #include "resource.hpp"
+#include "utils/utils.hpp"
 
 bool readFile(const std::filesystem::path& path, std::string& content) {
 	std::fstream fs(path, std::ios::in | std::ios::binary | std::ios::ate);

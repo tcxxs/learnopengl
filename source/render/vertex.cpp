@@ -4,7 +4,7 @@ VertexProto::ptr VertexProto::create(const std::string& name) {
 	if (_confs.root().IsNull()) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "vertexs.yml";
 		if (!_confs.load(path)) {
-			ERR("vertexs config error";
+			ERR("vertexs config error");
 			return {};
 		}
 	}

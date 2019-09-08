@@ -82,4 +82,7 @@ void Render::onRender() {
 	if (Scene::current) {
 		Scene::current->draw();
 	}
+	else {
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 }

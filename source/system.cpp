@@ -127,6 +127,8 @@ void System::onInput() {
 
 	if (_cursor)
 		return;
+	if (!Scene::current)
+		return;
 
 	auto& cam = Scene::current->getCamera();
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
@@ -141,6 +143,8 @@ void System::onInput() {
 
 void System::onMouse(float xpos, float ypos) {
 	if (_cursor)
+		return;
+	if (!Scene::current)
 		return;
 
 	if (!_mouse_init) {
@@ -162,6 +166,8 @@ void System::onMouse(float xpos, float ypos) {
 
 void System::onScroll(float xoffset, float yoffset) {
 	if (_cursor)
+		return;
+	if (!Scene::current)
 		return;
 
 	auto& cam = Scene::current->getCamera();
