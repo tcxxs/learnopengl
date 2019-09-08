@@ -44,8 +44,6 @@ bool Post::_initVBO() {
 	glCreateBuffers(1, &_vbo);
 	glNamedBufferStorage(_vbo, size * sizeof(float), verts, GL_DYNAMIC_STORAGE_BIT);
 
-	if (oglError())
-		return false;
 	return true;
 }
 

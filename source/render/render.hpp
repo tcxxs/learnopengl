@@ -13,7 +13,12 @@
 class Render: public NoCopy {
 public:
 	bool init();
-    void onRender();
+	static void APIENTRY onError(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
+	void onRender();
+
+private:
+	bool _initVertex();
+	bool _initFeature();
 };
 
 using RenderMgr = Singleton<Render>;

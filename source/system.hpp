@@ -16,9 +16,7 @@ public:
 	bool init();
 	void process();
 
-	void onError(int error, const char* description) {
-		ERR("Glfw Error %d: %s\n", error, description);
-	}
+	inline static void onError(int error, const char* description);
 	void onResize(int width, int height);
 	void onInput();
 	void onMouse(float xpos, float ypos);
@@ -57,3 +55,7 @@ private:
 };
 
 using SystemMgr = Singleton<System>;
+
+void System::onError(int error, const char* description) {
+	ERR("Glfw Error %d: %s\n", error, description);
+}

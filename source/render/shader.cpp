@@ -14,9 +14,6 @@ Shader::ptr Shader::create(const std::string& name) {
 	if (!shader->_loadFragdata())
 		return {};
 
-	if (oglError())
-		return {};
-
 	return shader;
 }
 

@@ -250,7 +250,7 @@ bool Frame::_attachDepthStencil(Attachment& attach) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	return oglError();
+	return true;
 }
 
 bool Frame::_attachDepth(Attachment& attach) {
@@ -277,7 +277,7 @@ bool Frame::_attachDepth(Attachment& attach) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	return oglError();
+	return true;
 }
 
 bool Frame::_attachDepthCube(Attachment& attach) {
@@ -304,7 +304,7 @@ bool Frame::_attachDepthCube(Attachment& attach) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
-	return oglError();
+	return true;
 }
 
 int Frame::_genMipmap(const std::string& name) {

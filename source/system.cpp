@@ -35,7 +35,7 @@ bool System::_initConfig() {
 }
 
 bool System::_initWindow() {
-	glfwSetErrorCallback([](int error, const char* desc) { SystemMgr::inst().onError(error, desc); });
+	glfwSetErrorCallback(System::onError);
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);

@@ -46,8 +46,6 @@ UniformInst::ptr UniformInst::create(const proto_ptr& proto) {
 	memset(buff, 0, proto->getSize());
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	if (oglError())
-		return {};
 
 	return uniform;
 }

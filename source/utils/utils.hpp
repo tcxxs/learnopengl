@@ -10,9 +10,7 @@
 #include "glm/ext.hpp"
 #include "utils/resource.hpp"
 
-void oglFeature();
 bool oglError();
-void APIENTRY oglDebug(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
 template <typename... Args>
 inline std::string string_format(const std::string& format, Args... args) {
