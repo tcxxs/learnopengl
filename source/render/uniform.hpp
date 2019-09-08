@@ -64,7 +64,7 @@ bool UniformInst::setVar(const std::string& key, const V& var) {
 	const UniformProto::varinfo& info = prototype()->getVar(key);
 	const UniformProto::typeinfo& type = std::get<0>(info);
 	if (typeid(V).hash_code() != std::get<0>(type)) {
-		std::cout << "uniform: " << prototype()->getName() << ", type error: " << key << std::endl;
+		ERR("uniform: %s, type error: %s", prototype()->getName().c_str, key.c_str());
 		return false;
 	}
 

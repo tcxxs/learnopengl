@@ -4,13 +4,13 @@ VertexProto::ptr VertexProto::create(const std::string& name) {
 	if (_confs.root().IsNull()) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "vertexs.yml";
 		if (!_confs.load(path)) {
-			std::cout << "vertexs config error";
+			ERR("vertexs config error";
 			return {};
 		}
 	}
 	Config::node conf = _confs[name];
 	if (!Config::valid(conf)) {
-		std::printf("vertexs config not find, %s", name.c_str());
+		ERR("vertexs config not find, %s", name.c_str());
 		return {};
 	}
 
@@ -25,7 +25,7 @@ VertexProto::ptr VertexProto::create(const std::string& name) {
 		const std::string& type = it.second.as<std::string>();
 		const auto& find = _typenames.find(type);
 		if (find == _typenames.end()) {
-			std::cout << "vertex attribute type unknow: " << name << ", " << type << std::endl;
+			ERR("vertex attribute type unknow: %s, %s", name.c_str(), type.c_str());
 			return {};
 		}
 
@@ -47,11 +47,11 @@ bool VertexInst::setAttr(const std::string& name, GLint loc, GLint type) {
 	const VertexProto::attrinfo& ainfo = _proto->findInfo(name);
 	const VertexProto::attrtype& atype = std::get<0>(ainfo);
 	if (!std::get<0>(atype)) {
-		std::cout << "vertex attribute no define: " << name << std::endl;
+		ERR("vertex attribute no define: %s", name.c_str());
 		return false;
 	}
 	if (std::get<1>(atype) != type) {
-		std::cout << "vertex attribute type error: " << name << std::endl;
+		ERR("vertex attribute type error: %s", name.c_str());
 		return false;
 	}
 

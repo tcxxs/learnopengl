@@ -43,7 +43,7 @@ std::any Config::guess(const Config::node& doc) {
 	// 由连续两层list组成
 	if (doc.IsSequence() && doc.size() == 1 && doc[0].IsSequence()) {
 		if (!gen) {
-			std::printf("config not gen func");
+			ERR("config not gen func");
 			return {};
 		}
 
@@ -90,13 +90,13 @@ bool Attributes::updateConf(const Config::node& doc) {
 
 	for (const auto& it: doc) {
 		if (!it.first.IsScalar()) {
-			std::cout << "attribute guess, key is not string, " << it.first.Mark().line << std::endl;
+			ERR("attribute guess, key is not string, %d", it.first.Mark().line);
 			return false;
 		}
 		const std::string& key = it.first.as<std::string>();
 		std::any value = Config::guess(it.second);
 		if (!value.has_value()) {
-			std::cout << "attribute guess, not know, " << key << std::endl;
+			ERR("attribute guess, not know, %s", key.c_str());
 			return false;
 		}
 		setAttr(key, value);

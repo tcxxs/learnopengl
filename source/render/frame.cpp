@@ -72,7 +72,7 @@ bool Frame::_completeFrame() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (ret != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "frame use, not complete" << std::endl;
+		ERR("frame use, not complete");
 		return false;
 	}
 	return true;
@@ -92,7 +92,7 @@ bool Frame::_attachColor(const Config::node& conf) {
 	}
 
 	if (!type.IsSequence() || type.size() < 2) {
-		std::printf("frame type error, line %d", type.Mark().line);
+		ERR("frame type error, line %d", type.Mark().line);
 		return false;
 	}
 	const std::string& base = type[0].as<std::string>();
@@ -106,7 +106,7 @@ bool Frame::_attachColor(const Config::node& conf) {
 	else if (pixel == "r16f")
 		pf = GL_R16F;
 	else {
-		std::printf("frame color pixel format error, %s", pixel.c_str());
+		ERR("frame color pixel format error, %s", pixel.c_str());
 		return false;
 	}
 
@@ -119,7 +119,7 @@ bool Frame::_attachColor(const Config::node& conf) {
 			return false;
 	}
 	else {
-		std::printf("frame base type error, %s", base.c_str());
+		ERR("frame base type error, %s", base.c_str());
 		return false;
 	}
 
@@ -329,7 +329,7 @@ int Frame::_genMipmap(const std::string& name) {
 			return it.index;
 		}
 		else if (mip > max) {
-			std::printf("frame color %s, mipmap level too high", name.c_str());
+			ERR("frame color %s, mipmap level too high", name.c_str());
 			return -1;
 		}
 

@@ -4,13 +4,13 @@ UniformProto::ptr UniformProto::create(const std::string& name, const GLint size
 	if (_confs.root().IsNull()) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "uniforms.yml";
 		if (!_confs.load(path)) {
-			std::cout << "uniforms config error";
+			ERR("uniforms config error";
 			return {};
 		}
 	}
 	Config::node conf = _confs[name];
 	if (!Config::valid(conf)) {
-		std::printf("uniforms config not find, %s", name.c_str());
+		ERR("uniforms config not find, %s", name.c_str());
 		return {};
 	}
 
@@ -19,14 +19,14 @@ UniformProto::ptr UniformProto::create(const std::string& name, const GLint size
 
 	proto->_size = size;
 	if (conf.size() != vars.size()) {
-		std::cout << "uniform variables number diffrent: " << name << std::endl;
+		ERR("uniform variables number diffrent: %s", name.c_str());
 		return {};
 	}
 	for (const auto& it: conf) {
 		const std::string& var = it.first.as<std::string>();
 		const auto& gl = vars.find(var);
 		if (gl == vars.end()) {
-			std::cout << "uniform variable not define: " << var << std::endl;
+			ERR("uniform variable not define: %s", var.c_str());
 			return {};
 		}
 		const typeinfo& info = _types[it.second.as<std::string>()];

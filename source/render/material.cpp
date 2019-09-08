@@ -5,13 +5,13 @@ Material::ptr Material::create(const std::string& name) {
 	if (_confs.root().IsNull()) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "materials.yml";
 		if (!_confs.load(path)) {
-			std::cout << "materials config error";
+			ERR("materials config error");
 			return {};
 		}
 	}
 	Config::node conf = _confs[name];
 	if (!Config::valid(conf)) {
-		std::printf("materials config not find, %s", name.c_str());
+		ERR("materials config not find, %s", name.c_str());
 		return {};
 	}
 	
@@ -20,7 +20,7 @@ Material::ptr Material::create(const std::string& name) {
 
 	mate->_shader = ShaderMgr::inst().req(conf["shader"].as<std::string>());
 	if (!mate->_shader) {
-		std::cout << "material shader error, " << name << std::endl;
+		ERR("material shader error, %s", name.c_str());
 		return {};
 	}
 

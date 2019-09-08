@@ -43,7 +43,7 @@ public:
 	inline void setVar(const GLuint& loc, const std::string& var) {
 		const Texture::ptr& tex = TextureMgr::inst().req(var);
 		if (!tex) {
-			std::printf("shader set var, texture not found, file %s", var.c_str());
+			ERR("shader set var, texture not found, file %s", var.c_str());
 			return;
 		}
 		setVar(loc, tex->getValue());
@@ -63,7 +63,7 @@ public:
 	inline void setVar(const GLuint& loc, const Texture::val& var) {
 		const auto& find = _samplers.find(loc);
 		if (find == _samplers.end()) {
-			std::printf("shader set var, texture not found , locale %d", loc);
+			ERR("shader set var, texture not found , locale %d", loc);
 			return;
 		}
 		glBindTextureUnit(find->second.first, var.tex);

@@ -3,7 +3,7 @@
 bool readFile(const std::filesystem::path& path, std::string& content) {
 	std::fstream fs(path, std::ios::in | std::ios::binary | std::ios::ate);
 	if (fs.fail()) {
-		std::cout << "read file fail: " << path << std::endl;
+		ERR("read file fail: %s", path.string().c_str());
 		return false;
 	}
 

@@ -5,13 +5,13 @@ Post::ptr Post::create(const std::string& name) {
 	if (_confs.root().IsNull()) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "posts.yml";
 		if (!_confs.load(path)) {
-			std::cout << "posteffects config error";
+			ERR("posteffects config error");
 			return {};
 		}
 	}
 	Config::node conf = _confs[name];
 	if (!Config::valid(conf)) {
-		std::printf("posts config not find, %s", name.c_str());
+		ERR("posts config not find, %s", name.c_str());
 		return {};
 	}
 

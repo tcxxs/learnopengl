@@ -5,13 +5,13 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 	if (_confs.root().IsNull()) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "models.yml";
 		if (!_confs.load(path)) {
-			std::cout << "models config error";
+			ERR("models config error");
 			return {};
 		}
 	}
 	Config::node conf = _confs[name];
 	if (!Config::valid(conf)) {
-		std::printf("models config not find, %s", name.c_str());
+		ERR("models config not find, %s", name.c_str());
 		return {};
 	}
 
@@ -43,7 +43,7 @@ bool ModelProto::_loadAssimp(const Config::node& conf) {
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / name;
 	const aiScene* scene = _imp.ReadFile(path.string(), aiProcess_Triangulate | aiProcess_CalcTangentSpace);
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-		std::cout << "model assimp error, " << _imp.GetErrorString() << std::endl;
+		ERR("model assimp error, %s", _imp.GetErrorString());
 		return false;
 	}
 

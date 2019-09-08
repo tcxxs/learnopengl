@@ -26,7 +26,7 @@ bool Pass::_initConf(const Config::node& conf) {
 	if (Config::valid(conf["camera"])) {
 		std::any ret = Config::guess(conf["camera"]);
 		if (!ret.has_value()) {
-			std::printf("pass %s, camera %s, not valid\n", _name.c_str(), conf["camera"].Scalar().c_str());
+			ERR("pass %s, camera %s, not valid\n", _name.c_str(), conf["camera"].Scalar().c_str());
 			return false;
 		}
 		_cam = std::any_cast<Camera::ptr>(ret);
@@ -39,7 +39,7 @@ bool Pass::_initRun(const Config::node& conf) {
 	if (!Config::valid(conf))
 		return true;
 	if (!conf.IsSequence() || conf.size() < 1) {
-		std::printf("pass %s, run arguments error", _name.c_str());
+		ERR("pass %s, run arguments error", _name.c_str());
 		return false;
 	}
 
@@ -56,7 +56,7 @@ bool Pass::_initRun(const Config::node& conf) {
 	}
 	else if (type == "if") {
 		if (conf.size() < 2) {
-			std::printf("pass %s, run if arguments error", _name.c_str());
+			ERR("pass %s, run if arguments error", _name.c_str());
 			return false;
 		}
 
@@ -75,7 +75,7 @@ bool Pass::_initShaderAttrs(const Config::node& conf, const Shader::ptr& shader)
 
 	auto insert = _sattrs.try_emplace(shader->getName(), ShaderAttrs());
 	if (!insert.second) {
-		std::printf("pass %s, shader %s, duplicate\n", _name.c_str(), shader->getName().c_str());
+		ERR("pass %s, shader %s, duplicate\n", _name.c_str(), shader->getName().c_str());
 		return false;
 	}
 	ShaderAttrs& attrs = insert.first->second;
@@ -85,13 +85,13 @@ bool Pass::_initShaderAttrs(const Config::node& conf, const Shader::ptr& shader)
 		const std::string& name = it.first.as<std::string>();
 		loc = shader->getVar(name);
 		if (loc < 0) {
-			std::printf("pass %s, shader %s, uniform %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str());
+			ERR("pass %s, shader %s, uniform %s, not found\n", _name.c_str(), shader->getName().c_str(), name.c_str());
 			continue;
 		}
 
 		std::any val = Config::guess(it.second);
 		if (!val.has_value()) {
-			std::printf("pass %s, shader %s, uniform %s, value %s, not valid\n", _name.c_str(), shader->getName().c_str(), name.c_str(), it.second.Scalar().c_str());
+			ERR("pass %s, shader %s, uniform %s, value %s, not valid\n", _name.c_str(), shader->getName().c_str(), name.c_str(), it.second.Scalar().c_str());
 			return false;
 		}
 		if (val.type() == typeid(ShaderAttrs::frameattach)) {
@@ -114,7 +114,7 @@ bool Pass::_initShader(const Config::node& conf) {
 		const std::string& name = it.first.as<std::string>();
 		const Shader::ptr& shader = ShaderMgr::inst().req(name);
 		if (!shader) {
-			std::cout << "pass shader not found, " << name << std::endl;
+			ERR("pass shader not found, %s", name.c_str());
 			return false;
 		}
 		if (!_initShaderAttrs(it.second, shader))
@@ -132,7 +132,7 @@ bool Pass::_initPost(const Config::node& conf) {
 		const std::string& name = it.first.as<std::string>();
 		const Post::ptr& post = PostMgr::inst().req(name);
 		if (!post) {
-			std::cout << "pass shader not found, " << name << std::endl;
+			ERR("pass shader not found, %s", name.c_str());
 			return false;
 		}
 		if (!_initShaderAttrs(it.second, post->getMaterial()->getShader()))
@@ -148,7 +148,7 @@ bool Pass::_initOutput(const Config::node& conf) {
 
 	std::any ret = Config::guess(conf["frame"]);
 	if (!ret.has_value()) {
-		std::printf("pass %s, output %s, not valid\n", _name.c_str(), conf["frame"].Scalar().c_str());
+		ERR("pass %s, output %s, not valid\n", _name.c_str(), conf["frame"].Scalar().c_str());
 		return false;
 	}
 	_outframe = std::any_cast<const Frame::ptr&>(ret);
@@ -160,7 +160,7 @@ bool Pass::_initOutput(const Config::node& conf) {
 
 			const Frame::Attachment& attach = _outframe->getAttach(fname);
 			if (!attach.type) {
-				std::printf("pass %s, output %s, attach %s not found\n", _name.c_str(), _outframe->getName().c_str(), fname.c_str());
+				ERR("pass %s, output %s, attach %s not found\n", _name.c_str(), _outframe->getName().c_str(), fname.c_str());
 				return false;
 			}
 			_outcolors[attach.index] = sname;

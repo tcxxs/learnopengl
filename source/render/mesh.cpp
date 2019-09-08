@@ -182,7 +182,7 @@ bool MeshInst::changeMaterial(const Material::ptr& mate) {
 	}
 	glCreateVertexArrays(1, &_vao);
 	if (!mate->getShader()->bindVertex(VERTEX_BASE, _vao, _proto->getVBO())) {
-		std::cout << "mesh change material, bind vertex base, " << mate << std::endl;
+		ERR("mesh change material, bind vertex base, %s", mate->getName().c_str());
 		return false;
 	}
 	glVertexArrayElementBuffer(_vao, _proto->getIBO());

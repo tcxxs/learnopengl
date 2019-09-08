@@ -4,13 +4,13 @@ LightProto::ptr LightProto::create(const std::string& name) {
 	if (_confs.root().IsNull()) {
 		std::filesystem::path path = std::filesystem::current_path() / "resource" / "lights.yml";
 		if (!_confs.load(path)) {
-			std::cout << "lights config error";
+			ERR("lights config error");
 			return {};
 		}
 	}
 	Config::node conf = _confs[name];
 	if (!Config::valid(conf)) {
-		std::printf("lights config not find, %s", name.c_str());
+		ERR("lights config not find, %s", name.c_str());
 		return {};
 	}
 

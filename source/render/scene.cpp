@@ -10,7 +10,7 @@ Scene::ptr Scene::create(const std::string& name) {
 	Config conf;
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "scene" / (name + ".yml");
 	if (!conf.load(path)) {
-		std::cout << "scene config error, " << path << std::endl;
+		ERR("scene config error, %s", path.c_str());
 		return {};
 	}
 
@@ -32,7 +32,7 @@ Scene::ptr Scene::create(const std::string& name) {
 	const std::string cam = conf["camera"].as<std::string>();
 	const auto& find = scene->_cams.find(cam);
 	if (find == scene->_cams.end()) {
-		std::cout << "scene camera not found, " << cam << std::endl;
+		ERR("scene camera not found, %s", cam.c_str());
 		return {};
 	}
 	scene->_cam = find->second;
@@ -114,7 +114,7 @@ bool Scene::addPass(const Config::node& conf) {
 		if (Config::valid(it["copy"])) {
 			const auto& find = names.find(it["copy"].as<std::string>());
 			if (find == names.end()) {
-				std::printf("pass %d, copy not found\n", i);
+				ERR("pass %d, copy not found\n", i);
 				return false;
 			}
 

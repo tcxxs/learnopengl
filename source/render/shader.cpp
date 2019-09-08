@@ -47,9 +47,7 @@ bool Shader::_loadShader(const std::string& ext, int type, GLuint& shader) {
 	if (!success) {
 		GLchar infoLog[512];
 		glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-		std::cout << "load shader: " << _name
-		          << ", compile fail: \n"
-		          << infoLog << std::endl;
+		ERR("load shader: %s, compile fail: %s", _name.c_str(), infoLog);
 		return false;
 	}
 
@@ -80,8 +78,7 @@ bool Shader::_loadProgram() {
 	if (!success) {
 		GLchar infoLog[512];
 		glGetProgramInfoLog(_prog, 512, nullptr, infoLog);
-		std::cout << "load program, link fail: \n"
-		          << infoLog << std::endl;
+		ERR("load program, link fail: %s", infoLog);
 		return false;
 	}
 
@@ -128,7 +125,7 @@ bool Shader::_loadVertex() {
 			}
 		}
 		if (!vertfind) {
-			std::cout << "shader vertex attribute not define: " << name.c_str() << std::endl;
+			ERR("shader vertex attribute not define: %s", name.c_str());
 			return false;
 		}
 		vertfind->setAttr(name.c_str(), values[0], values[1]);
@@ -264,14 +261,14 @@ void Shader::setVar(const GLuint& loc, const std::any& var) {
 		setVar(loc, std::any_cast<const Texture::val&>(var));
 	}
 	else {
-		std::cout << "shader var unknow, loc: " << loc << ", type: " << var.type().name() << std::endl;
+		ERR("shader var unknow, loc: %d, type: %s", loc, var.type().name());
 	}
 }
 
 bool Shader::bindVertex(const std::string& name, const GLuint vao, const GLuint vbo) {
 	const auto& it = _verts.find(name);
 	if (it == _verts.end()) {
-		std::cout << "shader, bind vertex, not found, " << name << std::endl;
+		ERR("shader, bind vertex, not found, %s", name.c_str());
 		return false;
 	}
 

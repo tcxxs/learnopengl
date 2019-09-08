@@ -23,7 +23,7 @@ Texture::ptr Texture::create(const std::string& name, const std::filesystem::pat
 	if (hdr) {
 		float* data = stbi_loadf(path.string().c_str(), &texture->_w, &texture->_h, &texture->_n, 3);
 		if (!data) {
-			std::cout << "stb image: " << path.string() << ", error: " << stbi_failure_reason() << std::endl;
+			ERR("stb image: %s, error: %s", path.string().c_str(), stbi_failure_reason());
 			return {};
 		}
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, texture->_w, texture->_h, 0, GL_RGB, GL_FLOAT, data);
@@ -32,7 +32,7 @@ Texture::ptr Texture::create(const std::string& name, const std::filesystem::pat
 	else {
 		unsigned char* data = stbi_load(path.string().c_str(), &texture->_w, &texture->_h, &texture->_n, 4);
 		if (!data) {
-			std::cout << "stb image: " << path.string() << ", error: " << stbi_failure_reason() << std::endl;
+			ERR("stb image: %s, error: %s", path.string().c_str(), stbi_failure_reason());
 			return {};
 		}
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->_w, texture->_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -57,7 +57,7 @@ Texture::ptr Texture::create(const strcube& cube) {
 		path = std::filesystem::current_path() / "resource" / "texture" / cube[i];
 		unsigned char* data = stbi_load(path.string().c_str(), &w, &h, &n, 4);
 		if (!data) {
-			std::cout << "stb image: " << path.string() << ", error: " << stbi_failure_reason() << std::endl;
+			ERR("stb image: %s, error: %s", path.string().c_str(), stbi_failure_reason());
 			return {};
 		}
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
