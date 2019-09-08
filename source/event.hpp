@@ -34,6 +34,8 @@ private:
 	bool _initConfig();
 	bool _initWindow();
 
+	bool _onClick(int key);
+
 private:
 	bool _debug{false};
 	int _fps{0};
@@ -42,6 +44,8 @@ private:
 	int _msaa{0};
 	std::string _scene;
 	GLFWwindow* _window{nullptr};
+	std::map<int, bool> _keys;
+	bool _cursor{false};
 	float _time_last{0.0f}, _time_delta{0.0f};
 	float _frame_interv{0.0f}, _frame_last{0.0f}, _frame_delta{0.0f};
 	bool _mouse_init{false};

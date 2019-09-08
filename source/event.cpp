@@ -55,7 +55,7 @@ bool Event::_initWindow() {
 		std::cout << "Failed to create GLFW window" << std::endl;
 		return false;
 	}
-	//glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwMakeContextCurrent(_window);
 	glfwSetFramebufferSizeCallback(_window,
 	                               [](GLFWwindow* window, int width, int height) {
@@ -106,9 +106,39 @@ void Event::process() {
 	}
 }
 
+bool Event::_onClick(int key) {
+	bool press = glfwGetKey(_window, key) == GLFW_PRESS;
+	auto& find = _keys.find(key);
+	if (find == _keys.end()) {
+		_keys[key] = press;
+		return false;
+	}
+	else {
+		bool click = find->second && !press;
+		find->second = press;
+		return click;
+	}
+}
+
 void Event::onInput() {
-	if (glfwGetKey(_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(_window, true);
+	if (_onClick(GLFW_KEY_ESCAPE)) {
+		if (_cursor) {
+			glfwSetWindowShouldClose(_window, true);
+		}
+		else {
+			_cursor = true;
+			glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+	}
+	if (_onClick(GLFW_KEY_ENTER)) {
+		if (_cursor) {
+			_cursor = false;
+			glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+	}
+
+	if (_cursor)
+		return;
 
 	auto& cam = Scene::current->getCamera();
 	if (glfwGetKey(_window, GLFW_KEY_W) == GLFW_PRESS)
@@ -122,6 +152,9 @@ void Event::onInput() {
 }
 
 void Event::onMouse(float xpos, float ypos) {
+	if (_cursor)
+		return;
+
 	if (!_mouse_init) {
 		_mouse_init = true;
 		_mouse_x = xpos;
