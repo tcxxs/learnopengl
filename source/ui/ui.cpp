@@ -1,7 +1,7 @@
 #include "ui/ui.hpp"
-
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "render/scene.hpp"
 
 UI::~UI() {
 	ImGui_ImplOpenGL3_Shutdown();
@@ -49,12 +49,17 @@ bool UI::onRender() {
 
 	static bool _show_log{false};
 	ImGui::PushFont(_fonts["han"]);
-	ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
 	ImGui::Begin("debug tools");
+
 	ImGui::Checkbox("log", &_show_log);
 	if (_show_log) {
 		_renderLog();
 	}
+
+	_renderScene();
+
 	ImGui::End();
 	ImGui::PopFont();
 
@@ -66,6 +71,7 @@ bool UI::onRender() {
 bool UI::_renderLog() {
 	static bool _auto_scroll{true};
 
+	ImGui::SetNextWindowPos(ImVec2(500, 50), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
 	ImGui::Begin("log");
 
@@ -85,7 +91,28 @@ bool UI::_renderLog() {
 	clipper.End();
 	if (_auto_scroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
 		ImGui::SetScrollHereY(1.0f);
+	ImGui::EndChild();
 
 	ImGui::End();
+	return true;
+}
+
+bool UI::_renderScene() {
+	static std::vector<std::string> files = Scene::list();
+	static int select = 0;
+	if (ImGui::BeginCombo("scene", files[select].c_str(), select)) {
+		for (int i = 0; i < files.size(); i++) {
+			bool is_selected = (select == i);
+			if (ImGui::Selectable(files[i].c_str(), is_selected))
+				select = i;
+			if (is_selected)
+				ImGui::SetItemDefaultFocus();
+		}
+		ImGui::EndCombo();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("load")) {
+		Scene::reload(files[select]);
+	}
 	return true;
 }

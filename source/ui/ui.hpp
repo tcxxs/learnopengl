@@ -15,6 +15,7 @@ public:
 
 private:
 	bool _renderLog();
+	bool _renderScene();
 
 private:
 	std::map<std::string, ImFont*> _fonts;

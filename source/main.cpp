@@ -28,12 +28,6 @@ int main() {
 		return -1;
 	}
 
-	//const std::string& name = SystemMgr::inst().getScene();
-	//const Scene::ptr& scene = SceneMgr::inst().create(name);
-	//if (!scene)
-	//	return -1;
-	//scene->active();
-
 	SystemMgr::inst().process();
 	return 0;
 }

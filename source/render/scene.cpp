@@ -3,6 +3,40 @@
 #include "system.hpp"
 #include "render/command.hpp"
 
+std::vector<std::string> Scene::list() {
+	std::vector<std::string> files;
+	std::filesystem::path path = std::filesystem::current_path() / "resource" / "scene";
+	for (const auto& it: std::filesystem::directory_iterator(path)) {
+		if (!it.is_regular_file())
+			continue;
+
+		files.emplace_back(it.path().stem().string());
+	}
+
+	return files;
+}
+
+bool Scene::reload(const std::string& name) {
+	if (Scene::current) {
+		Scene::current = nullptr;
+	}
+	SceneMgr::inst().clear();
+	ModelProtoMgr::inst().clear();
+	LightProtoMgr::inst().clear();
+	PostMgr::inst().clear();
+	MaterialMgr::inst().clear();
+	ShaderMgr::inst().clear();
+	TextureMgr::inst().clear();
+	UniformProtoMgr::inst().clear();
+	VertexProtoMgr::inst().purge();
+
+	const Scene::ptr& scene = SceneMgr::inst().create(name);
+	if (!scene)
+		return false;
+	scene->active();
+	return true;
+}
+
 Scene::ptr Scene::create(const std::string& name) {
 	Scene::ptr scene = std::make_shared<Scene>();
 	scene->setName(name);

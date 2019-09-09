@@ -15,6 +15,8 @@
 // TODO: 写插件从blender导出是正路
 class Scene: public Res<Scene> {
 public:
+	static std::vector<std::string> list();
+	static bool reload(const std::string& name);
 	static ptr create(const std::string& name);
 	inline virtual ~Scene() {
 		Config::gen = nullptr;
