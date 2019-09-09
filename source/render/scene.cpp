@@ -14,13 +14,13 @@ Scene::ptr Scene::create(const std::string& name) {
 		return {};
 	}
 
+	// TODO: 这个时机不算太好
+	Config::gen = std::bind(&Scene::generateConf, scene.get(), std::placeholders::_1);
 	scene->_cfuncs.emplace("base", std::bind(&Scene::_genBase, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("camera", std::bind(&Scene::_genCamera, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("light", std::bind(&Scene::_genLight, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("frame", std::bind(&Scene::_genFrame, scene.get(), std::placeholders::_1));
 	scene->_cfuncs.emplace("ssao", std::bind(&Scene::_genSSAO, scene.get(), std::placeholders::_1));
-	// TODO: 这个时机不算太好
-	Config::gen = std::bind(&Scene::generateConf, scene, std::placeholders::_1);
 
 	if (!scene->_initFrame(conf["frames"]))
 		return {};
@@ -64,9 +64,6 @@ Scene::ptr Scene::create(const std::string& name) {
 		return {};
 
 	return scene;
-}
-
-Scene::~Scene() {
 }
 
 void Scene::addCamera(const std::string& name, const Config::node& conf) {

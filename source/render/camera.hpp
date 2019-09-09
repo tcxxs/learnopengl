@@ -13,7 +13,6 @@
 class Camera: public Res<Camera> {
 public:
 	static ptr create();
-	virtual ~Camera();
 
 	inline void lookAt(const glm::vec3& pos, const glm::vec3& tar) {
 		_pos = pos;

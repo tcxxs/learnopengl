@@ -80,6 +80,7 @@ Texture::~Texture() {
 		glDeleteTextures(1, &_tex);
 		_tex = 0;
 	}
+	_type = 0;
 }
 
 GLuint Texture::getDefault(const GLenum type) {

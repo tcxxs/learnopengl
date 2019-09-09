@@ -5,6 +5,3 @@ Camera::ptr Camera::create() {
 	
 	return camera;
 }
-
-Camera::~Camera() {
-}

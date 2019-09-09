@@ -14,7 +14,7 @@
 bool readFile(const std::filesystem::path& path, std::string& content);
 
 template <typename R>
-class Res : public std::enable_shared_from_this<R> {
+class Res: public std::enable_shared_from_this<R> {
 public:
 	using ptr = std::shared_ptr<R>;
 	using idt = unsigned long long;
@@ -30,11 +30,12 @@ public:
 	inline const nat& getName() const { return _name; }
 
 protected:
-	inline Res() : _id(++_total){};
-	inline Res(const std::string& name) : Res(), _name(name){};
+	inline Res(): _id(++_total){};
+	inline Res(const std::string& name): Res(), _name(name){};
 
 public:
 	inline static ptr empty{};
+
 protected:
 	inline static idt _total{0};
 	idt _id;
@@ -42,12 +43,12 @@ protected:
 };
 
 template <typename P, typename I>
-class ResInst : public Res<I> {
+class ResInst: public Res<I> {
 public:
 	using proto_ptr = typename Res<P>::ptr;
 	using inst_ptr = typename Res<I>::ptr;
 
-	template <typename ...ARGS>
+	template <typename... ARGS>
 	inline static inst_ptr create(const proto_ptr& proto, ARGS... args) {
 		inst_ptr inst = I::create(proto, args...);
 		if (!inst)
@@ -64,11 +65,14 @@ protected:
 };
 
 template <typename P, typename I>
-class ResProto : public Res<P> {
+class ResProto: public Res<P> {
 public:
 	using insmap = std::map<typename I::idt, typename I::ptr>;
 
-	template <typename ...ARGS>
+	inline void purge() {
+		_insts.clear();
+	};
+	template <typename... ARGS>
 	inline typename I::ptr instance(ARGS... args) {
 		typename I::ptr inst = ResInst<P, I>::create(shared_from_this(), args...);
 		if (!inst)
@@ -84,7 +88,7 @@ protected:
 };
 
 template <typename R>
-class ResContainer : public NoCopy {
+class ResContainer: public NoCopy {
 public:
 	using resptr = typename R::ptr;
 	using resid = typename R::idt;
@@ -149,6 +153,18 @@ public:
 			return get(id);
 		else
 			return create(key, args...);
+	}
+
+	inline void clear() {
+		_kmap.clear();
+		_rmap.clear();
+	}
+
+	//template <std::void_t<std::enable_if<std::is_base_of<ResProto, R>::value>::type>>
+	inline void purge() {
+		for (const auto& it: _rmap) {
+			it.second->purge();
+		}
 	}
 
 	inline resmap& container() { return _rmap; }

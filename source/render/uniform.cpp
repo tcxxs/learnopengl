@@ -53,6 +53,7 @@ UniformInst::ptr UniformInst::create(const proto_ptr& proto) {
 UniformInst::~UniformInst() {
 	if (_ubo) {
 		glDeleteBuffers(1, &_ubo);
+		_ubo = 0;
 	}
 }
 

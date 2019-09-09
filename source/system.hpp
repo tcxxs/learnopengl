@@ -11,7 +11,7 @@
 
 class System: public NoCopy {
 public:
-	~System();
+	virtual ~System();
 
 	bool init();
 	void process();

@@ -16,7 +16,9 @@
 class Scene: public Res<Scene> {
 public:
 	static ptr create(const std::string& name);
-	virtual ~Scene();
+	inline virtual ~Scene() {
+		Config::gen = nullptr;
+	}
 
 	const Camera::ptr& getCamera() const { return _cam; }
 	void addCamera(const std::string& name, const Config::node& conf);

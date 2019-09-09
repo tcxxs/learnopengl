@@ -59,6 +59,9 @@ void Frame::deleteAttach(Attachment& attach) {
 		glDeleteFramebuffers(1, &attach.blit_fbo);
 		attach.blit_fbo = 0;
 	}
+
+	attach.index = 0;
+	attach.type = 0;
 }
 
 bool Frame::_completeFrame() {
