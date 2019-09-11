@@ -108,7 +108,7 @@ bool ModelProto::_initAttrs(const Config::node& conf) {
 }
 
 ModelInst::ptr ModelInst::create(const ModelProto::ptr& proto, const Config::node& conf) {
-	ModelInst::ptr model = ModelInst::ptr(new ModelInst());
+	ModelInst::ptr model = std::make_shared<ModelInst>();
 	model->_proto = proto;
 	if (Config::valid(conf["name"]))
 		model->setName(conf["name"].as<std::string>());

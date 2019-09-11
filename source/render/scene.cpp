@@ -16,10 +16,12 @@ std::vector<std::string> Scene::list() {
 	return files;
 }
 
-bool Scene::reload(const std::string& name) {
-	if (Scene::current) {
-		Scene::current = nullptr;
+void Scene::unload() {
+	Config::gen = nullptr;
+	if (current) {
+		current = nullptr;
 	}
+
 	SceneMgr::inst().clear();
 	ModelProtoMgr::inst().clear();
 	LightProtoMgr::inst().clear();
@@ -29,8 +31,11 @@ bool Scene::reload(const std::string& name) {
 	TextureMgr::inst().clear();
 	UniformProtoMgr::inst().clear();
 	VertexProtoMgr::inst().purge();
+}
 
-	const Scene::ptr& scene = SceneMgr::inst().create(name);
+bool Scene::reload(const std::string& name) {
+	unload();
+	const Scene::ptr& scene = create(name);
 	if (!scene)
 		return false;
 	scene->active();

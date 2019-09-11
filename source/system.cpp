@@ -51,7 +51,7 @@ bool System::_initWindow() {
 		ERR("Failed to create GLFW window");
 		return false;
 	}
-	glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwMakeContextCurrent(_window);
 	glfwSetFramebufferSizeCallback(_window, [](GLFWwindow* window, int width, int height) { SystemMgr::inst().onResize(width, height); });
 	glfwSetCursorPosCallback(_window, [](GLFWwindow* window, double xpos, double ypos) { SystemMgr::inst().onMouse((float)xpos, (float)ypos); });
