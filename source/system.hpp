@@ -19,7 +19,8 @@ public:
 	inline static void onError(int error, const char* description);
 	void onResize(int width, int height);
 	void onInput();
-	void onMouse(float xpos, float ypos);
+	void onMouse(int button, int action);
+	void onCursor(float xpos, float ypos);
 	void onScroll(float xoffset, float yoffset);
 
 	inline GLFWwindow* getWindow() const { return _window; }

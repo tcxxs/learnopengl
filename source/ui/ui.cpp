@@ -114,5 +114,9 @@ bool UI::_renderScene() {
 	if (ImGui::Button("load")) {
 		Scene::reload(files[select]);
 	}
+	ImGui::SameLine();
+	if (ImGui::Button("unload")) {
+		Scene::unload();
+	}
 	return true;
 }

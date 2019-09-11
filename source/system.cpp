@@ -54,7 +54,8 @@ bool System::_initWindow() {
 	//glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwMakeContextCurrent(_window);
 	glfwSetFramebufferSizeCallback(_window, [](GLFWwindow* window, int width, int height) { SystemMgr::inst().onResize(width, height); });
-	glfwSetCursorPosCallback(_window, [](GLFWwindow* window, double xpos, double ypos) { SystemMgr::inst().onMouse((float)xpos, (float)ypos); });
+	glfwSetMouseButtonCallback(_window, [](GLFWwindow* window, int button, int action, int mods) { SystemMgr::inst().onMouse(button, action); });
+	glfwSetCursorPosCallback(_window, [](GLFWwindow* window, double xpos, double ypos) { SystemMgr::inst().onCursor((float)xpos, (float)ypos); });
 	glfwSetScrollCallback(_window, [](GLFWwindow* window, double xoffset, double yoffset) { SystemMgr::inst().onScroll((float)xoffset, (float)yoffset); });
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -141,7 +142,20 @@ void System::onInput() {
 		cam->setPos(cam->getPos() + CAM_MOVE * _time_delta * cam->getRight());
 }
 
-void System::onMouse(float xpos, float ypos) {
+void System::onMouse(int button, int action) {
+	if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		if (action == GLFW_PRESS) {
+			_cursor = false;
+			glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		else {
+			_cursor = true;
+			glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+	}
+}
+
+void System::onCursor(float xpos, float ypos) {
 	if (_cursor)
 		return;
 	if (!Scene::current)
