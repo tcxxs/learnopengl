@@ -16,17 +16,22 @@ source_group(TREE "${CMAKE_SOURCE_DIR}/source" FILES ${files_source})
 add_library(glad_lib ${CMAKE_SOURCE_DIR}/contrib/source/glad/glad.c)
 file(GLOB_RECURSE imgui_src "contrib/source/imgui/*")
 add_library(imgui_lib ${imgui_src})
-set(libs
+set(libs_inter
     opengl32.lib
     glad_lib
     imgui_lib
+)
+set(libs_prebuild
     ${CMAKE_SOURCE_DIR}/contrib/lib/glfw3.lib
     ${CMAKE_SOURCE_DIR}/contrib/lib/libyaml-cppmd.lib
     ${CMAKE_SOURCE_DIR}/contrib/lib/assimp.lib
     ${CMAKE_SOURCE_DIR}/contrib/lib/IrrXML.lib
     ${CMAKE_SOURCE_DIR}/contrib/lib/zlibstatic.lib
-    ${CMAKE_SOURCE_DIR}/contrib/lib/freetype.lib
+    #${CMAKE_SOURCE_DIR}/contrib/lib/freetype.lib
 )
+list(TRANSFORM libs_prebuild REPLACE "^(.*)\\.lib$" "debug \\1_debug.lib optimized \\1.lib")
+string(JOIN " " libs_prebuild ${libs_prebuild})
+string(REPLACE " " ";" libs_prebuild ${libs_prebuild})
 
 # main
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:CONSOLE /ENTRY:mainCRTStartup")
@@ -35,4 +40,5 @@ add_executable(learnopengl ${files_contrib} ${files_source})
 set_property(TARGET learnopengl PROPERTY COMPILE_FLAGS "/Od /Ob0 /we4715 /wo4996")
 set_property(TARGET learnopengl PROPERTY CXX_STANDARD 17)
 set_property(TARGET learnopengl PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-target_link_libraries(learnopengl ${libs})
+target_link_libraries(learnopengl ${libs_inter})
+target_link_libraries(learnopengl ${libs_prebuild})
