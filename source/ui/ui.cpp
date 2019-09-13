@@ -50,7 +50,7 @@ bool UI::onRender() {
 	static bool _show_log{false};
 	ImGui::PushFont(_fonts["han"]);
 	ImGui::SetNextWindowPos(ImVec2(50, 50), ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
 	ImGui::Begin("debug tools");
 
 	ImGui::Checkbox("log", &_show_log);
@@ -71,7 +71,7 @@ bool UI::onRender() {
 bool UI::_renderLog() {
 	static bool _auto_scroll{true};
 
-	ImGui::SetNextWindowPos(ImVec2(500, 50), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2(600, 50), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
 	ImGui::Begin("log");
 

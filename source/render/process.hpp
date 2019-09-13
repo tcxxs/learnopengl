@@ -8,27 +8,27 @@
 #include "render/frame.hpp"
 #include "render/command.hpp"
 
-class Post: public Res<Post> {
+class Process: public Res<Process> {
 public:
-	using framevec = std::vector<Frame::ptr>;
-
 	static ptr create(const std::string& name);
-	virtual ~Post();
+	virtual ~Process();
 
 	int draw(CommandQueue& cmds);
 	inline const Material::ptr& getMaterial() const { return _material; }
 
 private:
-	bool static _initVBO();
+	void static _initVBO();
 	bool _initVAO();
 
 public:
 	Attributes attrs;
+
 private:
 	inline static Config _confs;
-	inline static GLuint _vbo{0};
+	inline static std::map<std::string, GLuint> _vbos;
+	GLuint _vbo;
 	Material::ptr _material;
 	GLuint _vao{0};
 };
 
-using PostMgr = ResMgr<Post>;
+using PostMgr = ResMgr<Process>;

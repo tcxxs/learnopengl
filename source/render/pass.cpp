@@ -130,7 +130,7 @@ bool Pass::_initPost(const Config::node& conf) {
 
 	for (const auto& it: conf) {
 		const std::string& name = it.first.as<std::string>();
-		const Post::ptr& post = PostMgr::inst().req(name);
+		const Process::ptr& post = PostMgr::inst().req(name);
 		if (!post) {
 			ERR("pass shader not found, %s", name.c_str());
 			return false;

@@ -1,18 +1,24 @@
-post:
-  material: post
 show:
+  shape: screen
   material: show
 defer_light:
+  shape: screen
   material: defer_light
 ibl_speclut:
+  shape: screen
   material: ibl_speclut
 pbr_light:
+  shape: screen
   material: pbr_light
 ssao_ao:
+  shape: screen
   material: ssao_ao
 ssao_blur:
+  shape: screen
   material: ssao_blur
 bloom:
+  shape: screen
   material: bloom
 hdr:
+  shape: screen
   material: hdr

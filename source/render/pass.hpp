@@ -6,7 +6,7 @@
 #include "utils/resource.hpp"
 #include "render/frame.hpp"
 #include "render/shader.hpp"
-#include "render/post.hpp"
+#include "render/process.hpp"
 #include "render/command.hpp"
 #include "render/model.hpp"
 #include "render/uniform.hpp"
@@ -66,7 +66,7 @@ private:
 	Camera::ptr _cam;
 	std::vector<statefunc> _states;
 	std::set<Shader::ptr> _shaders;
-	std::set<Post::ptr> _posts;
+	std::set<Process::ptr> _posts;
 	std::map<std::string, ShaderAttrs> _sattrs;
 	Frame::ptr _outframe;
 	std::map<GLuint, std::string> _outcolors;
