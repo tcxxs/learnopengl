@@ -4,3 +4,4 @@ bin/
 *.code-workspace
 resource/download
 log.out
+contrib/lib/assimp_debug.lib
