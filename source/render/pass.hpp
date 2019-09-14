@@ -53,7 +53,7 @@ private:
 	bool _initState(const Config::node& conf);
 	bool _initShaderAttrs(const Config::node& conf, const Shader::ptr& shader);
 	bool _initShader(const Config::node& conf);
-	bool _initPost(const Config::node& conf);
+	bool _initProc(const Config::node& conf);
 	bool _initOutput(const Config::node& conf);
 
 	void _stateClear(const Config::node& conf);
@@ -66,7 +66,7 @@ private:
 	Camera::ptr _cam;
 	std::vector<statefunc> _states;
 	std::set<Shader::ptr> _shaders;
-	std::set<Process::ptr> _posts;
+	std::set<Process::ptr> _procs;
 	std::map<std::string, ShaderAttrs> _sattrs;
 	Frame::ptr _outframe;
 	std::map<GLuint, std::string> _outcolors;

@@ -19,16 +19,18 @@ public:
 private:
 	void static _initVBO();
 	bool _initVAO();
+	bool _initCube(const Config::node& conf);
 
 public:
 	Attributes attrs;
 
 private:
 	inline static Config _confs;
-	inline static std::map<std::string, GLuint> _vbos;
-	GLuint _vbo;
-	Material::ptr _material;
+	inline static std::map<std::string, std::pair<int, GLuint>> _shapes;
 	GLuint _vao{0};
+	GLuint _vbo;
+	int _vsize{0};
+	Material::ptr _material;
 };
 
 using PostMgr = ResMgr<Process>;

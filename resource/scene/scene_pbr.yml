@@ -30,18 +30,6 @@ models:
     scale: 0.02
   - type: cube
     pos: [0.0, 0.0, 0.0]
-    scale: 1.0
-    material: ibl_cube
-    materials:
-      ibl_cube: ibl_cube
-      ibl_diffuse: ibl_diffuse
-      ibl_speccube0: ibl_speccube
-      ibl_speccube1: ibl_speccube
-      ibl_speccube2: ibl_speccube
-      ibl_speccube3: ibl_speccube
-      ibl_speccube4: ibl_speccube
-  - type: cube
-    pos: [0.0, 0.0, 0.0]
     scale: 90.0
     material: sky
   - type: ball
@@ -164,9 +152,8 @@ pass:
       clear: [color]
       depth: [false]
       cull: front
-    shaders:
+    procs:
       ibl_cube:
-        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         frame: ibl/MonValley_A_LookoutPoint_2k.hdr
         #frame: ibl/Newport_Loft_Ref.hdr
         #frame: ibl/Mono_Lake_B_Ref.hdr
@@ -179,9 +166,8 @@ pass:
       clear: [color]
       depth: [false]
       cull: front
-    shaders:
+    procs:
       ibl_diffuse:
-        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
     output:
       frame: [[frame, ibl_diffuse]]
@@ -191,9 +177,8 @@ pass:
       clear: [color]
       depth: [false]
       cull: front
-    shaders:
+    procs:
       ibl_speccube:
-        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
         samples: 1024
         roughness: 0.0
@@ -206,9 +191,8 @@ pass:
     states:
       depth: [false]
       cull: front
-    shaders:
+    procs:
       ibl_speccube:
-        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
         samples: 1024
         roughness: 0.25
@@ -221,9 +205,8 @@ pass:
     states:
       depth: [false]
       cull: front
-    shaders:
+    procs:
       ibl_speccube:
-        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
         samples: 1024
         roughness: 0.5
@@ -236,9 +219,8 @@ pass:
     states:
       depth: [false]
       cull: front
-    shaders:
+    procs:
       ibl_speccube:
-        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
         samples: 1024
         roughness: 0.75
@@ -251,9 +233,8 @@ pass:
     states:
       depth: [false]
       cull: front
-    shaders:
+    procs:
       ibl_speccube:
-        cubevp: [[base, cubevp, [0.0, 0.0, 0.0]]]
         cube: [[frame, ibl_cube, color]]
         samples: 1024
         roughness: 1.0
@@ -266,7 +247,7 @@ pass:
     states:
       clear: [color]
       depth: [false]
-    posts:
+    procs:
       ibl_speclut:
         samples: 1024
     output:
@@ -308,7 +289,7 @@ pass:
     states:
       clear: [color]
       depth: [false]
-    posts:
+    procs:
       ssao_ao:
         samples: [[ssao, samples, 64]]
         noise: [[ssao, noise, 4]]
@@ -320,7 +301,7 @@ pass:
     states:
       clear: [color]
       depth: [false]
-    posts:
+    procs:
       ssao_blur:
         noise: 4
         frame: [[frame, ssao_ao, color]]
@@ -330,7 +311,7 @@ pass:
     states:
       clear: [color, depth]
       depth: [true]
-    posts:
+    procs:
       pbr_light:
         shadow.probe: [[light, spot, index]]
         shadow.point: [[frame, shadow_point, depth]]
@@ -378,7 +359,7 @@ pass:
     states:
       clear: [color]
       depth: [false]
-    posts:
+    procs:
       bloom:
         horizontal: 1
         frame: [[frame, scene, bloom]]
@@ -388,7 +369,7 @@ pass:
     states:
       clear: [color]
       depth: [false]
-    posts:
+    procs:
       bloom:
         horizontal: 0
         frame: [[frame, bloom1, color]]
@@ -398,7 +379,7 @@ pass:
     states:
       clear: [color]
       depth: [false]
-    posts:
+    procs:
       bloom:
         horizontal: 1
         frame: [[frame, bloom2, color]]
@@ -415,7 +396,7 @@ pass:
     states:
       clear: [color, depth, stencil]
       depth: [false]
-    posts:
+    procs:
       hdr:
         scene: [[frame, scene, scene]]
         bloom: [[frame, bloom2, color]]

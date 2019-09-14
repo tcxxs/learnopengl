@@ -4,6 +4,18 @@ show:
 defer_light:
   shape: screen
   material: defer_light
+ibl_cube:
+  shape: cube
+  cube: [cubevp, [0.0, 0.0, 0.0]]
+  material: ibl_cube
+ibl_diffuse:
+  shape: cube
+  cube: [cubevp, [0.0, 0.0, 0.0]]
+  material: ibl_diffuse
+ibl_speccube:
+  shape: cube
+  cube: [cubevp, [0.0, 0.0, 0.0]]
+  material: ibl_speccube
 ibl_speclut:
   shape: screen
   material: ibl_speclut

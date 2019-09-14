@@ -14,7 +14,7 @@ Pass::ptr Pass::create(const Config::node& conf) {
 	// TODO: 还可以增加一个cubes
 	if (!pass->_initShader(conf["shaders"]))
 		return {};
-	if (!pass->_initPost(conf["posts"]))
+	if (!pass->_initProc(conf["procs"]))
 		return {};
 	if (!pass->_initOutput(conf["output"]))
 		return {};
@@ -69,6 +69,7 @@ bool Pass::_initRun(const Config::node& conf) {
 	return true;
 }
 
+// TODO: 会不会可能相同shader，不同参数
 bool Pass::_initShaderAttrs(const Config::node& conf, const Shader::ptr& shader) {
 	if (!Config::valid(conf))
 		return true;
@@ -124,20 +125,20 @@ bool Pass::_initShader(const Config::node& conf) {
 	return true;
 }
 
-bool Pass::_initPost(const Config::node& conf) {
+bool Pass::_initProc(const Config::node& conf) {
 	if (!Config::valid(conf))
 		return true;
 
 	for (const auto& it: conf) {
 		const std::string& name = it.first.as<std::string>();
-		const Process::ptr& post = PostMgr::inst().req(name);
-		if (!post) {
+		const Process::ptr& proc = PostMgr::inst().req(name);
+		if (!proc) {
 			ERR("pass shader not found, %s", name.c_str());
 			return false;
 		}
-		if (!_initShaderAttrs(it.second, post->getMaterial()->getShader()))
+		if (!_initShaderAttrs(it.second, proc->getMaterial()->getShader()))
 			return false;
-		_posts.insert(post);
+		_procs.insert(proc);
 	}
 	return true;
 }
@@ -329,7 +330,7 @@ int Pass::drawPass(CommandQueue& cmds, const modelvec& models) {
 		}
 	}
 
-	for (const auto& it: _posts) {
+	for (const auto& it: _procs) {
 		n = it->draw(cmds);
 		if (n < 0)
 			return -1;
