@@ -4,4 +4,3 @@ bin/
 *.code-workspace
 resource/download
 log.out
-contrib/lib/*_debug.lib
