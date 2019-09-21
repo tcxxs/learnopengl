@@ -145,6 +145,8 @@ frames:
     colors: [[tex, rgba16f]]
   bloom2:
     colors: [[tex, rgba16f]]
+  fxaa:
+    colors: [[tex, rgba8]]
 pass:
   - name: ibl_cube
     run: [once]
@@ -394,9 +396,18 @@ pass:
   - {name: bloom_copy, copy: bloom_ver}
   - name: hdr
     states:
-      clear: [color, depth, stencil]
+      clear: [color]
       depth: [false]
     procs:
       hdr:
         scene: [[frame, scene, scene]]
         bloom: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, fxaa]]
+  - name: fxaa
+    states:
+      clear: [color]
+      depth: [false]
+    procs:
+      fxaa:
+        frame: [[frame, fxaa, color]]

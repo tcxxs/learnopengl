@@ -96,3 +96,5 @@ hdr:
   shader: hdr
   vars:
     exposure: 0.5
+fxaa:
+  shader: fxaa

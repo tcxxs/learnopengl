@@ -34,3 +34,6 @@ bloom:
 hdr:
   shape: screen
   material: hdr
+fxaa:
+  shape: screen
+  material: fxaa
