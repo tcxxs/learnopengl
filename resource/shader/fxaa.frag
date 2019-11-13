@@ -18,8 +18,12 @@
 //   0.00 - completely off
 #define CONTRAST_THRESHOLD 0.0625
 #define CONTRAST_RELATIVE 0.125
-#define SUBPIXEL_BLEND 1.0
+#define SUBPIXEL_BLEND 0.75
 
+#define EDGE_COUNT 10
+#define EDGE_GUESS 8
+const float EDGE_STEPS[EDGE_COUNT] = {1, 1.5, 2, 2, 2, 2, 2, 2, 2, 4};
+        
 struct luminance {
     float m, n, e, s, w;
     float ne, nw, se, sw;
@@ -131,18 +135,25 @@ float blend_edge(luminance l, edge e, vec2 uv) {
     vec2 pnext = edge_uv;
     float pdelta;
     bool pend = false;
-    for (int i = 0; i < 9 && !pend; i++) {
-        pnext += edge_step;
+    for (int i = 0; i < EDGE_COUNT && !pend; i++) {
+        pnext += edge_step * EDGE_STEPS[i];
         pdelta = sample_luminance(pnext, vec2(0.0)) - edge_luminance;
         pend = abs(pdelta) >= threshold;
     }
+    if (!pend) {
+        pnext += edge_step * EDGE_GUESS;
+    }
+
     vec2 nnext = edge_uv;
     float ndelta;
     bool nend = false;
-    for (int i = 0; i < 9 && !nend; i++) {
-        nnext -= edge_step;
+    for (int i = 0; i < EDGE_COUNT && !nend; i++) {
+        nnext -= edge_step * EDGE_STEPS[i];
         ndelta = sample_luminance(nnext, vec2(0.0)) - edge_luminance;
         nend = abs(ndelta) >= threshold;
+    }
+    if (!nend) {
+        nnext -= edge_step * EDGE_GUESS;
     }
 
     float pdis, ndis;
