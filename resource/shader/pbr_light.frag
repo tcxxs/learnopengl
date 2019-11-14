@@ -101,6 +101,8 @@ uniform Shadow shadow;
 uniform GBuffer gbuffer;
 uniform IBL ibl;
 uniform sampler2D ssao;
+uniform vec3 fog_color;
+uniform float fog_density;
 
 out vec4 color_out;
 out vec4 color_bloom;
@@ -316,6 +318,12 @@ vec3 env_specular() {
     return radiance * (fresnel * lut.x + lut.y);
 }
 
+vec3 fog_exp(vec3 color) {
+    float dis = length(calc.pos - calc.camera);
+    float fac = exp2(-fog_density * dis);
+    return mix(fog_color, color, fac);
+}
+
 void main() {
     init_calc();
 
@@ -330,6 +338,7 @@ void main() {
     vec3 env = (env_diffuse() + env_specular()) * calc.color.ao;
 
     color_out = vec4(env + light, 1.0);
+    color_out.rgb = fog_exp(color_out.rgb);
     float bright = dot(color_out.rgb, vec3(0.2126, 0.7152, 0.0722));
     if (bright > BLOOM_LIMIT)
         color_bloom = color_out;
