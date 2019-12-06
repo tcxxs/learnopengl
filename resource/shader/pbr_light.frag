@@ -16,6 +16,8 @@
 #define BLOOM_LIMIT 1.0
 #define PBR_BASEF0 vec3(0.04)
 
+#define FOG_ENABLE 1
+
 struct Material {
     float specular_factor;
 };
@@ -101,8 +103,10 @@ uniform Shadow shadow;
 uniform GBuffer gbuffer;
 uniform IBL ibl;
 uniform sampler2D ssao;
+#if FOG_ENABLE
 uniform vec3 fog_color;
 uniform float fog_density;
+#endif
 
 out vec4 color_out;
 out vec4 color_bloom;
@@ -338,7 +342,9 @@ void main() {
     vec3 env = (env_diffuse() + env_specular()) * calc.color.ao;
 
     color_out = vec4(env + light, 1.0);
+#if FOG_ENABLE
     color_out.rgb = fog_exp(color_out.rgb);
+#endif
     float bright = dot(color_out.rgb, vec3(0.2126, 0.7152, 0.0722));
     if (bright > BLOOM_LIMIT)
         color_bloom = color_out;
