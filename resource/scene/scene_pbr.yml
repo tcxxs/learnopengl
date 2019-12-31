@@ -32,6 +32,8 @@ models:
     pos: [0.0, 0.0, 0.0]
     scale: 90.0
     material: sky
+  - type: plane
+    pos: [0.0, 0.0, 0.0]
   - type: ball
     pos: [0.0, 0.0, 0.0]
     scale: 0.12
@@ -287,19 +289,6 @@ pass:
         normal: color_normal
         albedo: color_albedo
         pbr: color_pbr
-  # - name: defer_transparent
-  #   states:
-  #     clear: [color, depth, stencil]
-  #     depth: [test]
-  #   shaders:
-  #     pbr_geo:
-  #   output:
-  #     frame: [[frame, gbuffer]]
-  #     colors:
-  #       position: color_pos
-  #       normal: color_normal
-  #       albedo: color_albedo
-  #       pbr: color_pbr
   - name: ssao_ao
     states:
       clear: [color]
@@ -355,6 +344,16 @@ pass:
       color:
       cube:
         cube: [[frame, ibl_cube, color]]
+    output:
+      frame: [[frame, scene]]
+      colors:
+        scene: color_out
+        bloom: color_bloom
+  - name: scene_trasparent
+    states:
+      depth: [test]
+    shaders:
+      color:
     output:
       frame: [[frame, scene]]
       colors:
