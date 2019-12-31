@@ -152,7 +152,7 @@ pass:
     run: [once]
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
       cull: front
     procs:
       ibl_cube:
@@ -166,7 +166,7 @@ pass:
     run: [once]
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
       cull: front
     procs:
       ibl_diffuse:
@@ -177,7 +177,7 @@ pass:
     run: [once]
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
       cull: front
     procs:
       ibl_speccube:
@@ -191,7 +191,7 @@ pass:
   - name: ibl_speccube1
     run: [once]
     states:
-      depth: [false]
+      depth: [no]
       cull: front
     procs:
       ibl_speccube:
@@ -205,7 +205,7 @@ pass:
   - name: ibl_speccube2
     run: [once]
     states:
-      depth: [false]
+      depth: [no]
       cull: front
     procs:
       ibl_speccube:
@@ -219,7 +219,7 @@ pass:
   - name: ibl_speccube3
     run: [once]
     states:
-      depth: [false]
+      depth: [no]
       cull: front
     procs:
       ibl_speccube:
@@ -233,7 +233,7 @@ pass:
   - name: ibl_speccube4
     run: [once]
     states:
-      depth: [false]
+      depth: [no]
       cull: front
     procs:
       ibl_speccube:
@@ -248,7 +248,7 @@ pass:
     run: [once]
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
     procs:
       ibl_speclut:
         samples: 1024
@@ -287,10 +287,23 @@ pass:
         normal: color_normal
         albedo: color_albedo
         pbr: color_pbr
+  # - name: defer_transparent
+  #   states:
+  #     clear: [color, depth, stencil]
+  #     depth: [test]
+  #   shaders:
+  #     pbr_geo:
+  #   output:
+  #     frame: [[frame, gbuffer]]
+  #     colors:
+  #       position: color_pos
+  #       normal: color_normal
+  #       albedo: color_albedo
+  #       pbr: color_pbr
   - name: ssao_ao
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
     procs:
       ssao_ao:
         samples: [[ssao, samples, 64]]
@@ -302,7 +315,7 @@ pass:
   - name: ssao_blur
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
     procs:
       ssao_blur:
         noise: 4
@@ -312,7 +325,7 @@ pass:
   - name: defer_light
     states:
       clear: [color, depth]
-      depth: [true]
+      depth: [update]
     procs:
       pbr_light:
         shadow.probe: [[light, spot, index]]
@@ -337,7 +350,7 @@ pass:
         bloom: color_bloom
   - name: scene_model
     states:
-      depth: [true]
+      depth: [update]
     shaders:
       color:
       cube:
@@ -349,7 +362,7 @@ pass:
         bloom: color_bloom
   - name: scene_sky
     states:
-      depth: [true, lesseq]
+      depth: [update, lesseq]
       cull: front
     shaders:
       sky:
@@ -362,7 +375,7 @@ pass:
   - name: bloom_first
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
     procs:
       bloom:
         horizontal: 1
@@ -372,7 +385,7 @@ pass:
   - name: bloom_ver
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
     procs:
       bloom:
         horizontal: 0
@@ -382,7 +395,7 @@ pass:
   - name: bloom_hor
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
     procs:
       bloom:
         horizontal: 1
@@ -399,7 +412,7 @@ pass:
   - name: hdr
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
     procs:
       hdr:
         scene: [[frame, scene, scene]]
@@ -409,7 +422,7 @@ pass:
   - name: fxaa
     states:
       clear: [color]
-      depth: [false]
+      depth: [no]
     procs:
       fxaa:
         frame: [[frame, fxaa, color]]

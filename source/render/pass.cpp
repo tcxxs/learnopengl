@@ -165,7 +165,7 @@ bool Pass::_initOutput(const Config::node& conf) {
 				return false;
 			}
 			_outcolors[attach.index] = sname;
-			
+
 			//for (const auto& it: _shaders) {
 			//	if (floc != it->getVar(sname)) {
 			//		std::printf("pass %s, output %s, shader %s, %s(%d) -> %s(%d) color index error\n", _name.c_str(), it->getName().c_str(),
@@ -246,7 +246,17 @@ void Pass::_stateClear(const Config::node& conf) {
 }
 
 void Pass::_stateDepth(const Config::node& conf) {
-	bool enable = conf[0].as<bool>();
+	const std::string& mode = conf[0].as<std::string>();
+	bool enable = false;
+	bool write = false;
+	if (mode == "update") {
+		enable = true;
+		write = true;
+	}
+	else if (mode == "test") {
+		enable = true;
+	}
+
 	GLenum func = GL_LESS;
 	if (enable) {
 		if (conf.size() > 1) {
@@ -261,10 +271,11 @@ void Pass::_stateDepth(const Config::node& conf) {
 		}
 	}
 
-	_states.emplace_back([enable, func] {
+	_states.emplace_back([enable, write, func] {
 		if (enable) {
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(func);
+			glDepthMask(write);
 		}
 		else
 			glDisable(GL_DEPTH_TEST);
@@ -380,7 +391,7 @@ int Pass::drawPass(CommandQueue& cmds, const modelvec& models) {
 						if (find == outs.end())
 							it.buffs.push_back(GL_NONE);
 						else
-							it.buffs.push_back(find->second);					
+							it.buffs.push_back(find->second);
 					}
 				}
 			}
