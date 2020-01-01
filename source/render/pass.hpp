@@ -59,6 +59,7 @@ private:
 	void _stateClear(const Config::node& conf);
 	void _stateDepth(const Config::node& conf);
 	void _stateCull(const Config::node& conf);
+	void _stateBlend(const Config::node& conf);
 
 private:
 	runfunc _run;

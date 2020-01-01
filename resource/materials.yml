@@ -2,6 +2,10 @@ color:
   shader: color
   vars:
     material.color: [1.0, 1.0, 1.0]
+transparent:
+  shader: transparent
+  vars:
+    material.color: [1.0, 1.0, 1.0]
 cube:
   shader: cube
 forward:

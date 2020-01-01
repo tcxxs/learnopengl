@@ -352,8 +352,9 @@ pass:
   - name: scene_trasparent
     states:
       depth: [test]
+      blend: [src, 1-src]
     shaders:
-      color:
+      transparent:
     output:
       frame: [[frame, scene]]
       colors:

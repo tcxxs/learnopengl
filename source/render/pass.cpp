@@ -197,6 +197,8 @@ bool Pass::_initState(const Config::node& conf) {
 				_stateDepth(it.second);
 			else if (key == "cull")
 				_stateCull(it.second);
+			else if (key == "blend")
+				_stateBlend(it.second);
 		}
 	}
 
@@ -248,10 +250,10 @@ void Pass::_stateClear(const Config::node& conf) {
 void Pass::_stateDepth(const Config::node& conf) {
 	const std::string& mode = conf[0].as<std::string>();
 	bool enable = false;
-	bool write = false;
+	GLboolean write = GL_FALSE;
 	if (mode == "update") {
 		enable = true;
-		write = true;
+		write = GL_TRUE;
 	}
 	else if (mode == "test") {
 		enable = true;
@@ -294,6 +296,30 @@ void Pass::_stateCull(const Config::node& conf) {
 	});
 }
 
+void Pass::_stateBlend(const Config::node& conf) {
+	GLenum fac[2] = {GL_ONE, GL_ONE};
+	for (int i = 0; i < 2; ++i) {
+		const std::string& str = conf[i].as<std::string>();
+		if (str == "one") {
+			fac[i] = GL_ONE;
+		}
+		else if (str == "zero") {
+			fac[i] = GL_ZERO;
+		}
+		else if (str == "src") {
+			fac[i] = GL_SRC_ALPHA;
+		}
+		else if (str == "1-src") {
+			fac[i] = GL_ONE_MINUS_SRC_ALPHA;
+		}
+	}
+
+	_states.emplace_back([src=fac[0], dst=fac[1]] {
+		glEnable(GL_BLEND);
+		glBlendFunc(src, dst);
+	});
+}
+
 void Pass::drawBegin() {
 	if (_outframe) {
 		glBindFramebuffer(GL_FRAMEBUFFER, _outframe->getFBO());
@@ -311,8 +337,10 @@ void Pass::drawBegin() {
 	std::pair<int, int> view = getView();
 	glViewport(0, 0, GLsizei(view.first), GLsizei(view.second));
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
 	glEnable(GL_STENCIL_TEST);
-	glEnable(GL_BLEND);
+	glDisable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	for (const auto& it: _states)
