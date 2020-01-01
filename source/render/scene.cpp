@@ -210,7 +210,7 @@ void Scene::draw() {
 		if (!it->getRun())
 			continue;
 
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, string_format("pass %s", it->getName()).c_str());
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, string_format("pass %s", it->getName().c_str()).c_str());
 		cmds.clear();
 		it->drawBegin();
 
