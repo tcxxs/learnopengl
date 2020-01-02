@@ -84,8 +84,12 @@ ibl_speclut:
   shader: ibl_speclut
 shadow_point:
   shader: shadow_point
+  vars:
+    cutout_alpha: 0.3
 shadow_spot:
   shader: shadow_spot
+  vars:
+    cutout_alpha: 0.3
 show:
   shader: show
 post:

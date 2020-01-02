@@ -33,7 +33,11 @@ models:
     scale: 90.0
     material: sky
   - type: plane
-    pos: [0.0, 0.0, 0.0]
+    pos: [0.0, 0.0, 0.3]
+    rotate: [0.0, 120.0, 0.0]
+    materials:
+      shadow_point: shadow_point
+      shadow_spot: shadow_spot
   - type: ball
     pos: [0.0, 0.0, 0.0]
     scale: 0.12
@@ -331,7 +335,7 @@ pass:
         ibl.speclod: 4
         ssao: [[frame, ssao_blur, color]]
         fog_color: [1.0, 0.0, 0.0]
-        fog_density: 0.2
+        fog_density: 0.05
     output:
       frame: [[frame, scene]]
       colors:
