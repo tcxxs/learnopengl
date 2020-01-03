@@ -85,11 +85,13 @@ ibl_speclut:
 shadow_point:
   shader: shadow_point
   vars:
-    cutout_alpha: 0.3
+    cutout_alpha: 0.1
+    dither: dither.png
 shadow_spot:
   shader: shadow_spot
   vars:
-    cutout_alpha: 0.3
+    cutout_alpha: 0.1
+    dither: dither.png
 show:
   shader: show
 post:
