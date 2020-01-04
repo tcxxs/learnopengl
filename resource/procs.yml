@@ -31,9 +31,15 @@ ssao_blur:
 bloom:
   shape: screen
   material: bloom
+dof_focus:
+  shape: screen
+  material: dof_focus
 dof_coc:
   shape: screen
   material: dof_coc
+dof_blur:
+  shape: screen
+  material: dof_blur
 hdr:
   shape: screen
   material: hdr
