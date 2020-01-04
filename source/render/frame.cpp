@@ -17,12 +17,12 @@ Frame::ptr Frame::create(const Config::node& conf) {
 
 	if (Config::valid(conf["depth"])) {
 		const std::string& type = conf["depth"].as<std::string>();
-		if (type == "depst")
-			frame->_attachDepthStencil(frame->_depth);
-		else if (type == "depth")
-			frame->_attachDepth(frame->_depth);
-		else if (type == "depcube")
-			frame->_attachDepthCube(frame->_depth);
+		if (type == "rb_ds")
+			frame->_attachRenderDS(frame->_depth);
+		else if (type == "tex_ds")
+			frame->_attachTextureDS(frame->_depth);
+		else if (type == "cube_d")
+			frame->_attachCubeDepth(frame->_depth);
 	}
 
 	if (!frame->_completeFrame())
@@ -108,6 +108,8 @@ bool Frame::_attachColor(const Config::node& conf) {
 		pf = GL_RGBA16F;
 	else if (pixel == "r16f")
 		pf = GL_R16F;
+	else if (pixel == "r8")
+		pf = GL_R8;
 	else {
 		ERR("frame color pixel format error, %s", pixel.c_str());
 		return false;
@@ -227,7 +229,7 @@ bool Frame::_attachCubemap(Attachment& attach, GLenum format) {
 	return true;
 }
 
-bool Frame::_attachDepthStencil(Attachment& attach) {
+bool Frame::_attachRenderDS(Attachment& attach) {
 	int msaa = SystemMgr::inst().getMSAA();
 	int width = int(SystemMgr::inst().getWidth() * _size);
 	int height = int(SystemMgr::inst().getHeight() * _size);
@@ -256,7 +258,7 @@ bool Frame::_attachDepthStencil(Attachment& attach) {
 	return true;
 }
 
-bool Frame::_attachDepth(Attachment& attach) {
+bool Frame::_attachTextureDS(Attachment& attach) {
 	int width = int(SystemMgr::inst().getWidth() * _size);
 	int height = int(SystemMgr::inst().getHeight() * _size);
 	if (_square) {
@@ -267,7 +269,7 @@ bool Frame::_attachDepth(Attachment& attach) {
 	attach.type = GL_TEXTURE_2D;
 	glGenTextures(1, &attach.tex);
 	glBindTexture(GL_TEXTURE_2D, attach.tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
 	GLfloat border[] = {1.0, 1.0, 1.0, 1.0};
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -276,14 +278,14 @@ bool Frame::_attachDepth(Attachment& attach) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, attach.tex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, attach.tex, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return true;
 }
 
-bool Frame::_attachDepthCube(Attachment& attach) {
+bool Frame::_attachCubeDepth(Attachment& attach) {
 	int width = int(SystemMgr::inst().getWidth() * _size);
 	int height = int(SystemMgr::inst().getHeight() * _size);
 	if (_square) {

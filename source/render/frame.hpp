@@ -57,9 +57,9 @@ private:
 	bool _attachColor(const Config::node& conf);
 	bool _attachTexture(Attachment& attach, GLenum format);
 	bool _attachCubemap(Attachment& attach, GLenum format);
-	bool _attachDepthStencil(Attachment& attach);
-	bool _attachDepth(Attachment& attach);
-	bool _attachDepthCube(Attachment& attach);
+	bool _attachRenderDS(Attachment& attach);
+	bool _attachTextureDS(Attachment& attach);
+	bool _attachCubeDepth(Attachment& attach);
 	int _genMipmap(const std::string& name);
 	void _cleanDirty(Attachment& attach);
 

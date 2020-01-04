@@ -128,21 +128,21 @@ frames:
     colors: [[tex, rgba16f, wrap_clamp]]
   shadow_point:
     square: true
-    depth: depcube
+    depth: cube_d
   shadow_spot:
-    depth: depth
+    depth: tex_ds
   gbuffer:
     colors:
       - position: [tex, rgba16f]
       - normal: [tex, rgba16f]
       - albedo: [tex, rgba8]
       - pbr: [tex, rgba8]
-    depth: depst
+    depth: tex_ds
   scene:
     colors:
       - scene: [tex, rgba16f]
       - bloom: [tex, rgba16f]
-    depth: depst
+    depth: tex_ds
   ssao_ao:
     colors: [[tex, r16f]]
   ssao_blur:
@@ -151,6 +151,12 @@ frames:
     colors: [[tex, rgba16f]]
   bloom2:
     colors: [[tex, rgba16f]]
+  dof_coc:
+    size: 0.5
+    colors: [[tex, r16f]]
+  dof_blur:
+    size: 0.5
+    colors: [[tex, rgba8]]
   fxaa:
     colors: [[tex, rgba8]]
 pass:
@@ -413,6 +419,15 @@ pass:
   - {name: bloom_copy, copy: bloom_ver}
   - {name: bloom_copy, copy: bloom_hor}
   - {name: bloom_copy, copy: bloom_ver}
+  - name: dof_coc
+    states:
+      clear: [color, depth]
+      depth: [update]
+    procs:
+      dof_coc:
+        frame: [[frame, scene, depth]]
+    output:
+      frame: [[frame, dof_coc]]
   - name: hdr
     states:
       clear: [color]
