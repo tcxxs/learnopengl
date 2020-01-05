@@ -151,9 +151,6 @@ frames:
     colors: [[tex, rgba16f]]
   bloom2:
     colors: [[tex, rgba16f]]
-  dof_focus:
-    size: 0.25
-    colors: [[tex, r16f]]
   dof_coc:
     size: 0.25
     colors: [[tex, rgba8]]
@@ -422,22 +419,14 @@ pass:
   - {name: bloom_copy, copy: bloom_ver}
   - {name: bloom_copy, copy: bloom_hor}
   - {name: bloom_copy, copy: bloom_ver}
-  - name: dof_focus
-    states:
-      clear: [color]
-      depth: [no]
-    procs:
-      dof_focus:
-        frame: [[frame, scene, depth]]
-    output:
-      frame: [[frame, dof_focus]]
   - name: dof_coc
     states:
       clear: [color]
       depth: [no]
     procs:
       dof_coc:
-        frame: [[frame, scene, scene]]
+        scene: [[frame, scene, scene]]
+        depth: [[frame, scene, depth]]
     output:
       frame: [[frame, dof_coc]]
   - name: dof_blur

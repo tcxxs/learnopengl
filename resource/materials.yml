@@ -102,14 +102,11 @@ ssao_blur:
   shader: ssao_blur
 bloom:
   shader: bloom
-dof_focus:
-  shader: dof_focus
-  vars:
-    focus_dis: 2.0
-    focus_range: 1.0
 dof_coc:
   shader: dof_coc
   vars:
+    focus_dis: 4.0
+    focus_range: 1.0
     coc_radius: 16
 dof_blur:
   shader: dof_blur
