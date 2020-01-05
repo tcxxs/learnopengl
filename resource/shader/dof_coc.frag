@@ -68,20 +68,26 @@ float calc_coc() {
     return cmax >= -cmin ? cmax : cmin;
 }
 
+float sample_weight(float coc, float length) {
+    if (coc > length)
+        return 1;
+
+    return (length - coc) * coc;
+}
+
 void main() {
-    float coc = calc_coc();
+    float coc = abs(calc_coc());
 
     vec4 total = vec4(0.0);
-    int count = 0;
+    float weight = 0;
     vec2 size = textureSize(scene, 0);
     size = 1.0 / size;
     for (int i = 0; i < disc_num; i++) {
-        if (abs(coc) < disc_samplers[i].z)
-            continue;
+        float w = sample_weight(coc, disc_samplers[i].z);
         vec2 offset = disc_samplers[i].xy * size * coc_radius;
-        total += texture(scene, fg_uv + offset);
-        count += 1;
+        total += texture(scene, fg_uv + offset) * w;
+        weight += w;
     }
 
-    color_out = total / count;
+    color_out = total / weight;
 }
