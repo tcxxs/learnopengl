@@ -100,16 +100,20 @@ ssao_ao:
   shader: ssao_ao
 ssao_blur:
   shader: ssao_blur
-bloom:
-  shader: bloom
+bloom_split:
+  shader: bloom_split
+bloom_blur:
+  shader: bloom_blur
 dof_coc:
   shader: dof_coc
   vars:
     focus_dis: 3.0
-    focus_range: 3.0
-    coc_radius: 16
+    focus_range: 1.5
+    coc_radius: 8
 dof_blur:
   shader: dof_blur
+dof_scene:
+  shader: dof_scene
 hdr:
   shader: hdr
   vars:

@@ -13,7 +13,6 @@
 #define LIGHT_POINT 2
 #define LIGHT_SPOT 3
 
-#define BLOOM_LIMIT 1.0
 #define PBR_BASEF0 vec3(0.04)
 
 #define FOG_ENABLE 1
@@ -109,7 +108,6 @@ uniform float fog_density;
 #endif
 
 out vec4 color_out;
-out vec4 color_bloom;
 
 void init_calc() {
     vec4 position = texture(gbuffer.position, fg_uv);
@@ -345,9 +343,4 @@ void main() {
 #if FOG_ENABLE
     color_out.rgb = fog_exp(color_out.rgb);
 #endif
-    float bright = dot(color_out.rgb, vec3(0.2126, 0.7152, 0.0722));
-    if (bright > BLOOM_LIMIT)
-        color_bloom = color_out;
-    else
-        color_bloom = vec4(0.0);
 } 

@@ -45,16 +45,16 @@ float linear_depth(float z) {
     return z;
 }
 
-float calc_coc() {
+float calc_coc(vec2 uv) {
     vec2 size = textureSize(depth, 0);
     size = 1.0 / size;
 
     float coc[4];
     vec4 offset = size.xyxy * vec2(-0.5, 0.5).xxyy;
-    coc[0] = texture(depth, fg_uv + offset.xy).x;
-    coc[1] = texture(depth, fg_uv + offset.zy).x;
-    coc[2] = texture(depth, fg_uv + offset.xw).x;
-    coc[3] = texture(depth, fg_uv + offset.zw).x;
+    coc[0] = texture(depth, uv + offset.xy).x;
+    coc[1] = texture(depth, uv + offset.zy).x;
+    coc[2] = texture(depth, uv + offset.xw).x;
+    coc[3] = texture(depth, uv + offset.zw).x;
 
     float cmin = 1;
     float cmax = -1;
@@ -69,25 +69,40 @@ float calc_coc() {
 }
 
 float sample_weight(float coc, float length) {
-    if (coc > length)
-        return 1;
-
-    return (length - coc) * coc;
+    return clamp((coc - length + 2) / 2, 0, 1);
 }
 
 void main() {
-    float coc = abs(calc_coc());
+    float coc = calc_coc(fg_uv);
 
-    vec4 total = vec4(0.0);
-    float weight = 0;
+    vec4 fg_color = vec4(0.0);
+    float fg_weight = 0;
+    vec4 bg_color = vec4(0.0);
+    float bg_weight = 0;
     vec2 size = textureSize(scene, 0);
     size = 1.0 / size;
     for (int i = 0; i < disc_num; i++) {
-        float w = sample_weight(coc, disc_samplers[i].z);
-        vec2 offset = disc_samplers[i].xy * size * coc_radius;
-        total += texture(scene, fg_uv + offset) * w;
-        weight += w;
+        vec2 uv = fg_uv + disc_samplers[i].xy * size * coc_radius;
+        float c = calc_coc(uv);
+        if (coc > 0) {
+            float w = sample_weight(max(0, c), disc_samplers[i].z);
+            bg_color += texture(scene, uv) * w;
+            bg_weight += w;
+        }
+        else {
+            float w = sample_weight(-min(0, c), disc_samplers[i].z);
+            fg_color += texture(scene, uv) * w;
+            fg_weight += w;
+        }
     }
 
-    color_out = total / weight;
+    if (fg_weight > 0)
+        fg_color /= fg_weight;
+    if (bg_weight > 0)
+        bg_color /= bg_weight;
+    float gfac = min(1, fg_weight / disc_num);
+    color_out = mix(bg_color, fg_color, gfac);
+
+    float cfac = smoothstep(0.1, 1, abs(coc));
+    color_out.a = cfac + gfac - cfac * gfac;
 }
