@@ -68,16 +68,44 @@ float calc_coc(vec2 uv) {
     return cmax >= -cmin ? cmax : cmin;
 }
 
-float sample_weight(float coc, float length) {
+float coc_weight(float coc, float length) {
     return clamp((coc - length + 2) / 2, 0, 1);
+}
+
+float color_weight(vec3 color) {
+    return 1 / (1 + max(max(color.r, color.g), color.b));
+}
+
+vec3 calc_color(vec2 uv) {
+    vec2 size = textureSize(scene, 0);
+    size = 1.0 / size;
+
+    vec3 color[4];
+    vec4 offset = size.xyxy * vec2(-0.5, 0.5).xxyy;
+    color[0] = texture(scene, uv + offset.xy).rgb;
+    color[1] = texture(scene, uv + offset.zy).rgb;
+    color[2] = texture(scene, uv + offset.xw).rgb;
+    color[3] = texture(scene, uv + offset.zw).rgb;
+
+    vec3 total = vec3(0);
+    float weight = 0;
+    for (int i = 0; i < 4; ++i) {
+        float w = color_weight(color[i]);
+        total += color[i] * w;
+        weight += w;
+    }
+    if (weight > 0)
+        return total / weight;
+    else
+        return vec3(0);
 }
 
 void main() {
     float coc = calc_coc(fg_uv);
 
-    vec4 fg_color = vec4(0.0);
+    vec3 fg_color = vec3(0.0);
     float fg_weight = 0;
-    vec4 bg_color = vec4(0.0);
+    vec3 bg_color = vec3(0.0);
     float bg_weight = 0;
     vec2 size = textureSize(scene, 0);
     size = 1.0 / size;
@@ -85,13 +113,13 @@ void main() {
         vec2 uv = fg_uv + disc_samplers[i].xy * size * coc_radius;
         float c = calc_coc(uv);
         if (coc > 0) {
-            float w = sample_weight(max(0, c), disc_samplers[i].z);
-            bg_color += texture(scene, uv) * w;
+            float w = coc_weight(max(0, c), disc_samplers[i].z);
+            bg_color += texture(scene, uv).rgb * w;
             bg_weight += w;
         }
         else {
-            float w = sample_weight(-min(0, c), disc_samplers[i].z);
-            fg_color += texture(scene, uv) * w;
+            float w = coc_weight(-min(0, c), disc_samplers[i].z);
+            fg_color += texture(scene, uv).rgb * w;
             fg_weight += w;
         }
     }
@@ -101,7 +129,7 @@ void main() {
     if (bg_weight > 0)
         bg_color /= bg_weight;
     float gfac = min(1, fg_weight / disc_num);
-    color_out = mix(bg_color, fg_color, gfac);
+    color_out.rgb = mix(bg_color, fg_color, gfac);
 
     float cfac = smoothstep(0.1, 1, abs(coc));
     color_out.a = cfac + gfac - cfac * gfac;
