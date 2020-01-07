@@ -69,7 +69,7 @@ float calc_coc(vec2 uv) {
 }
 
 float coc_weight(float coc, float length) {
-    return clamp((coc - length + 2) / 2, 0, 1);
+    return clamp(coc * coc / length, 0, 1);
 }
 
 float color_weight(vec3 color) {
@@ -114,12 +114,12 @@ void main() {
         float c = calc_coc(uv);
         if (coc > 0) {
             float w = coc_weight(max(0, c), disc_samplers[i].z);
-            bg_color += texture(scene, uv).rgb * w;
+            bg_color += calc_color(uv) * w;
             bg_weight += w;
         }
         else {
             float w = coc_weight(-min(0, c), disc_samplers[i].z);
-            fg_color += texture(scene, uv).rgb * w;
+            fg_color += calc_color(uv) * w;
             fg_weight += w;
         }
     }

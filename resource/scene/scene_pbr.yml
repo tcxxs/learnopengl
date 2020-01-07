@@ -159,8 +159,6 @@ frames:
     colors: [[tex, rgba16f]]
   hdr:
     colors: [[tex, rgba8]]
-  fxaa:
-    colors: [[tex, rgba8]]
 pass:
   - name: ibl_cube
     run: [once]
@@ -372,13 +370,42 @@ pass:
         uf_cube: [[frame, ibl_cube, color]]
     output:
       frame: [[frame, scene]]
+  - name: dof_coc
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      dof_coc:
+        scene: [[frame, scene, color]]
+        depth: [[frame, scene, depth]]
+    output:
+      frame: [[frame, dof_coc]]
+  - name: dof_blur
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      dof_blur:
+        frame: [[frame, dof_coc, color]]
+    output:
+      frame: [[frame, dof_blur]]
+  - name: dof_scene
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      dof_scene:
+        scene: [[frame, scene, color]]
+        dof: [[frame, dof_blur, color]]
+    output:
+      frame: [[frame, dof_scene]]
   - name: bloom_split
     states:
       clear: [color]
       depth: [no]
     procs:
       bloom_split:
-        frame: [[frame, scene, color]]
+        frame: [[frame, dof_scene, color]]
     output:
       frame: [[frame, bloom1]]
   - name: bloom_ver
@@ -413,43 +440,14 @@ pass:
       depth: [no]
     procs:
       hdr:
-        scene: [[frame, scene, color]]
+        scene: [[frame, dof_scene, color]]
         bloom: [[frame, bloom1, color]]
     output:
       frame: [[frame, hdr]]
-  - name: dof_coc
+  - name: fxaa
     states:
       clear: [color]
       depth: [no]
     procs:
-      dof_coc:
-        scene: [[frame, hdr, color]]
-        depth: [[frame, scene, depth]]
-    output:
-      frame: [[frame, dof_coc]]
-  - name: dof_blur
-    states:
-      clear: [color]
-      depth: [no]
-    procs:
-      dof_blur:
-        frame: [[frame, dof_coc, color]]
-    output:
-      frame: [[frame, dof_blur]]
-  - name: dof_scene
-    states:
-      clear: [color]
-      depth: [no]
-    procs:
-      dof_scene:
-        scene: [[frame, scene, color]]
-        dof: [[frame, dof_blur, color]]
-    # output:
-    #   frame: [[frame, dof_scene]]
-  # - name: fxaa
-  #   states:
-  #     clear: [color]
-  #     depth: [no]
-  #   procs:
-  #     fxaa:
-  #       frame: [[frame, fxaa, color]]
+      fxaa:
+        frame: [[frame, hdr, color]]
