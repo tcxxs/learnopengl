@@ -55,6 +55,7 @@ public:
 	inline const meshvec& getMeshs() const { return _meshs; }
 
 protected:
+	bool _loadMtl(const Config::node& conf);
 	bool _loadAssimp(const Config::node& conf);
 	bool _loadNode(const Config::node& conf, aiNode* node, const aiScene* scene);
 	bool _loadVertex(const Config::node& conf);
@@ -65,8 +66,16 @@ public:
 	Attributes attrs;
 
 private:
+	inline static MeshProto::mtl_map mtl_type = {
+	    {"diffuse", aiTextureType_DIFFUSE},		// map_Kd
+	    {"normal", aiTextureType_NORMALS},		// map_Kn
+	    {"bump", aiTextureType_HEIGHT},			// map_bump
+	    {"specular", aiTextureType_SPECULAR},	// map_Ks
+	    {"ambient", aiTextureType_AMBIENT},		// map_Ka
+	};
 	inline static Config _confs;
 	inline static Assimp::Importer _imp;
+	MeshProto::mtl_map _mtl;
 	Material::ptr _mate;
 	meshvec _meshs;
 };

@@ -74,10 +74,26 @@ gun:
     material.normal: gun/Cerberus_N.tga
 nanosuit:
   file: nanosuit/nanosuit.obj
-  material: color
+  material: pbr_geo
+  mtl:
+    material.diffuse: diffuse
+    material.normal: bump
+    material.specular: specular
 aircraft:
   file: aircraft/aircraft.obj
-  material: color
+  material: pbr_geo
+  mtl:
+    material.diffuse: diffuse
+    material.normal: bump
+    material.specular: specular
+sponza:
+  file: sponza/sponza.obj
+  material: pbr_geo
+  mtl:
+    material.diffuse: diffuse
+    material.normal: normal
+    material.metallic: ambient
+    material.roughness: specular
 cube:
   file:
     layout: [3, 2, 3]

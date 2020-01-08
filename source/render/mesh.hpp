@@ -29,8 +29,10 @@ private:
 
 class MeshProto: public ResProto<MeshProto, MeshInst> {
 public:
+	using mtl_map = std::map<std::string, aiTextureType>;
+
 	static ptr create(const Config::node& conf);
-	static ptr create(const Config::node& conf, const aiMesh* ms, const aiScene* scene);
+	static ptr create(const Config::node& conf, const aiMesh* ms, const aiScene* scene, const mtl_map& mtl);
 	virtual ~MeshProto();
 
 	inline const GLuint getVBO() const { return _vbo; }
@@ -41,7 +43,7 @@ public:
 protected:
 	bool _loadRaw(const Config::node& conf);
 	bool _loadVertex(const aiMesh* mesh);
-	bool _loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene* scene);
+	bool _loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene* scene, const mtl_map& mtl);
 	bool _loadTexture(const std::filesystem::path& path, const aiMaterial* mat, const aiTextureType type, const std::string& name);
 
 public:

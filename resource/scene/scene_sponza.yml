@@ -1,0 +1,457 @@
+camera: eye
+cameras:
+  eye:
+    fov: 45.0
+    pos: [0.5, 1.0, 1.0]
+    target: [0.0, 0.0, -1.0]
+lights:
+  - type: point
+    name: light_main
+    pos: [0.0, 0.3, 0.8]
+  - type: point_blue
+    name: light_blue
+    pos: [0.0, 1.0, 0.0]
+  - type: spot
+    name: spot
+    pos: [-1.0, 0.0, 0.0]
+    dir: [1.0, 0.0, 0.5]
+  - type: dir
+    dir: [-0.5, 0.0, 0.5]
+models:
+  - type: sun
+    pos: [[light, light_main, pos]]
+    scale: 0.02
+  - type: sun
+    pos: [[light, light_blue, pos]]
+    scale: 0.02
+  - type: lamp
+    pos: [[light, spot, pos]]
+    faceto: [-1.0, 0.0, 0.5]
+    scale: 0.02
+  - type: cube
+    pos: [0.0, 0.0, 0.0]
+    scale: 90.0
+    material: sky
+  - type: plane
+    pos: [0.0, 0.0, 0.3]
+    rotate: [0.0, 120.0, 0.0]
+    materials:
+      shadow_point: shadow_point
+      shadow_spot: shadow_spot
+  - type: ball
+    pos: [0.0, 0.0, 0.0]
+    scale: 0.12
+  - type: ball2
+    pos: [0.4, 0.0, 0.0]
+    scale: 0.12
+  - type: ball3
+    pos: [-0.4, 0.0, 0.0]
+    scale: 0.12
+    materials:
+      shadow_point: shadow_point
+      shadow_spot: shadow_spot
+  - type: ball4
+    pos: [-0.4, 0.0, 0.4]
+    scale: 0.12
+  - type: ball5
+    pos: [-0.4, 0.0, 0.8]
+    scale: 0.12
+  - type: ball6
+    pos: [0.4, 0.0, 0.4]
+    scale: 0.12
+  - type: gun
+    pos: [1.0, 0.0, 1.0]
+    scale: 1.0
+    materials:
+      shadow_point: shadow_point
+      shadow_spot: shadow_spot
+  - type: cube
+    pos: [-0.2, 0.4, -0.1]
+    scale: 0.1
+    material: box_pbr
+  - type: cube
+    pos: [-0.8, 0.5, 1.2]
+    scale: 0.4
+    rotate: [0.0, 0.0, 30.0]
+    material: box_pbr
+  - type: cube
+    pos: [0.3, -0.1, 1.0]
+    scale: 0.2
+    rotate: [45.0, 0.0, 45.0]
+    material: box_pbr
+  - type: wall
+    pos: [0.0, -1.0, 0.0]
+    scale: 3.0
+    material: pbr_geo
+  - type: wall
+    pos: [2.0, 0.5, 0.0]
+    rotate: [0.0, 0.0, 90.0]
+    scale: 1.0
+    material: pbr_geo
+  - type: wall
+    pos: [0.0, 0.5, -1.5]
+    rotate: [90.0, 0.0, 0.0]
+    scale: 1.0
+    material: pbr_geo
+  - type: nanosuit
+    name: nanosuit
+    pos: [0.5, -0.2, -0.3]
+    scale: 0.05
+    materials:
+      shadow_point: shadow_point
+      shadow_spot: shadow_spot
+  - type: aircraft
+    pos: [-0.3, 0.0, -0.5]
+    rotate: [30.0, -45.0, 0.0]
+    scale: 0.1
+    materials:
+      shadow_point: shadow_point
+      shadow_spot: shadow_spot
+  - type: sponza
+    pos: [0.0, -5.0, 0.0]
+    scale: 0.01
+    materials:
+      shadow_point: shadow_point
+      shadow_spot: shadow_spot
+frames:
+  ibl_cube:
+    square: true
+    size: 0.5
+    colors: [[cube, rgba16f, mip_auto]]
+  ibl_diffuse:
+    square: true
+    size: 0.05
+    colors: [[cube, rgba16f]]
+  ibl_speccube:
+    square: true
+    size: 0.2
+    colors: [cube: [cube, rgba16f, mip_manual]]
+  ibl_speclut:
+    square: true
+    size: 0.5
+    colors: [[tex, rgba16f, wrap_clamp]]
+  shadow_point:
+    square: true
+    depth: cube_d
+  shadow_spot:
+    depth: tex_ds
+  gbuffer:
+    colors:
+      - position: [tex, rgba16f]
+      - normal: [tex, rgba16f]
+      - albedo: [tex, rgba8]
+      - pbr: [tex, rgba8]
+    depth: tex_ds
+  scene:
+    colors: [[tex, rgba16f]]
+    depth: tex_ds
+  ssao_ao:
+    colors: [[tex, r16f]]
+  ssao_blur:
+    colors: [[tex, r16f]]
+  dof_coc:
+    size: 0.5
+    colors: [[tex, rgba16f]]
+  dof_blur:
+    size: 0.5
+    colors: [[tex, rgba16f]]
+  dof_scene:
+    colors: [[tex, rgba16f]]
+  bloom1:
+    colors: [[tex, rgba16f]]
+  bloom2:
+    colors: [[tex, rgba16f]]
+  hdr:
+    colors: [[tex, rgba8]]
+pass:
+  - name: ibl_cube
+    run: [once]
+    states:
+      clear: [color]
+      depth: [no]
+      cull: front
+    procs:
+      ibl_cube:
+        frame: ibl/MonValley_A_LookoutPoint_2k.hdr
+        #frame: ibl/Newport_Loft_Ref.hdr
+        #frame: ibl/Mono_Lake_B_Ref.hdr
+        #frame: ibl/WinterForest_Ref.hdr
+    output:
+      frame: [[frame, ibl_cube]]
+  - name: ibl_diffuse
+    run: [once]
+    states:
+      clear: [color]
+      depth: [no]
+      cull: front
+    procs:
+      ibl_diffuse:
+        cube: [[frame, ibl_cube, color]]
+    output:
+      frame: [[frame, ibl_diffuse]]
+  - name: ibl_speccube0
+    run: [once]
+    states:
+      clear: [color]
+      depth: [no]
+      cull: front
+    procs:
+      ibl_speccube:
+        cube: [[frame, ibl_cube, color]]
+        samples: 1024
+        roughness: 0.0
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[0]: color_out
+  - name: ibl_speccube1
+    run: [once]
+    states:
+      depth: [no]
+      cull: front
+    procs:
+      ibl_speccube:
+        cube: [[frame, ibl_cube, color]]
+        samples: 1024
+        roughness: 0.25
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[1]: color_out
+  - name: ibl_speccube2
+    run: [once]
+    states:
+      depth: [no]
+      cull: front
+    procs:
+      ibl_speccube:
+        cube: [[frame, ibl_cube, color]]
+        samples: 1024
+        roughness: 0.5
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[2]: color_out
+  - name: ibl_speccube3
+    run: [once]
+    states:
+      depth: [no]
+      cull: front
+    procs:
+      ibl_speccube:
+        cube: [[frame, ibl_cube, color]]
+        samples: 1024
+        roughness: 0.75
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[3]: color_out
+  - name: ibl_speccube4
+    run: [once]
+    states:
+      depth: [no]
+      cull: front
+    procs:
+      ibl_speccube:
+        cube: [[frame, ibl_cube, color]]
+        samples: 1024
+        roughness: 1.0
+    output:
+      frame: [[frame, ibl_speccube]]
+      colors:
+        cube[4]: color_out
+  - name: ibl_speclut
+    run: [once]
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      ibl_speclut:
+        samples: 1024
+    output:
+      frame: [[frame, ibl_speclut]]
+  - name: shadow_point
+    run: [if, [[light, light_main, index]]]
+    states:
+      clear: [color, depth, stencil]
+      cull: front
+    shaders:
+      shadow_point:
+        light_pos: [[light, light_main, pos]]
+        light_vp: [[base, cubevp, [[light, light_main, pos]]]]
+    output:
+      frame: [[frame, shadow_point]]
+  - name: shadow_spot
+    run: [if, [[light, spot, index]]]
+    states:
+      clear: [color, depth, stencil]
+      cull: front
+    shaders:
+      shadow_spot:
+        light: [[light, spot, vp]]
+    output:
+      frame: [[frame, shadow_spot]]
+  - name: defer_geo
+    states:
+      clear: [color, depth, stencil]
+    shaders:
+      pbr_geo:
+    output:
+      frame: [[frame, gbuffer]]
+      colors:
+        position: color_pos
+        normal: color_normal
+        albedo: color_albedo
+        pbr: color_pbr
+  - name: ssao_ao
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      ssao_ao:
+        samples: [[ssao, samples, 64]]
+        noise: [[ssao, noise, 4]]
+        gbuffer.position: [[frame, gbuffer, position]]
+        gbuffer.normal: [[frame, gbuffer, normal]]
+    output:
+      frame: [[frame, ssao_ao]]
+  - name: ssao_blur
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      ssao_blur:
+        noise: 4
+        frame: [[frame, ssao_ao, color]]
+    output:
+      frame: [[frame, ssao_blur]]
+  - name: defer_light
+    states:
+      clear: [color, depth]
+      depth: [update]
+    procs:
+      pbr_light:
+        shadow.probe: [[light, spot, index]]
+        shadow.point: [[frame, shadow_point, depth]]
+        shadow.spot_vp: [[light, spot, vp]]
+        shadow.spot_map: [[frame, shadow_spot, depth]]
+        gbuffer.position: [[frame, gbuffer, position]]
+        gbuffer.normal: [[frame, gbuffer, normal]]
+        gbuffer.albedo: [[frame, gbuffer, albedo]]
+        gbuffer.pbr: [[frame, gbuffer, pbr]]
+        ibl.diffuse: [[frame, ibl_diffuse, color]]
+        ibl.speccube: [[frame, ibl_speccube, cube]]
+        ibl.speclut: [[frame, ibl_speclut, color]]
+        ibl.speclod: 4
+        ssao: [[frame, ssao_blur, color]]
+        fog_color: [1.0, 0.0, 0.0]
+        fog_density: 0.05
+    output:
+      frame: [[frame, scene]]
+  - name: scene_model
+    states:
+      depth: [update]
+    shaders:
+      color:
+      cube:
+        cube: [[frame, ibl_cube, color]]
+    output:
+      frame: [[frame, scene]]
+  - name: scene_trasparent
+    states:
+      depth: [test]
+      blend: [src, 1-src]
+    shaders:
+      transparent:
+    output:
+      frame: [[frame, scene]]
+  - name: scene_sky
+    states:
+      depth: [update, lesseq]
+      cull: front
+    shaders:
+      sky:
+        uf_cube: [[frame, ibl_cube, color]]
+    output:
+      frame: [[frame, scene]]
+  # - name: dof_coc
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     dof_coc:
+  #       scene: [[frame, scene, color]]
+  #       depth: [[frame, scene, depth]]
+  #   output:
+  #     frame: [[frame, dof_coc]]
+  # - name: dof_blur
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     dof_blur:
+  #       frame: [[frame, dof_coc, color]]
+  #   output:
+  #     frame: [[frame, dof_blur]]
+  # - name: dof_scene
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     dof_scene:
+  #       scene: [[frame, scene, color]]
+  #       dof: [[frame, dof_blur, color]]
+  #   output:
+  #     frame: [[frame, dof_scene]]
+  - name: bloom_split
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      bloom_split:
+        frame: [[frame, scene, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - name: bloom_ver
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      bloom_blur:
+        horizontal: 0
+        frame: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, bloom2]]
+  - name: bloom_hor
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      bloom_blur:
+        horizontal: 1
+        frame: [[frame, bloom2, color]]
+    output:
+      frame: [[frame, bloom1]]
+  - {name: bloom_copy, copy: bloom_ver}
+  - {name: bloom_copy, copy: bloom_hor}
+  - {name: bloom_copy, copy: bloom_ver}
+  - {name: bloom_copy, copy: bloom_hor}
+  - {name: bloom_copy, copy: bloom_ver}
+  - {name: bloom_copy, copy: bloom_hor}
+  - name: hdr
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      hdr:
+        scene: [[frame, scene, color]]
+        bloom: [[frame, bloom1, color]]
+    output:
+      frame: [[frame, hdr]]
+  - name: fxaa
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      fxaa:
+        frame: [[frame, hdr, color]]

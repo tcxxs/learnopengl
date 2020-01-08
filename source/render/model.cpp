@@ -18,6 +18,11 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 	ModelProto::ptr model = std::make_shared<ModelProto>();
 	model->setName(name);
 
+	if (Config::valid(conf["mtl"])) {
+		if (!model->_loadMtl(conf["mtl"]))
+			return {};
+	}
+
 	if (conf["file"].IsScalar()) {
 		if (!model->_loadAssimp(conf))
 			return {};
@@ -38,6 +43,21 @@ ModelProto::ptr ModelProto::create(const std::string& name) {
 	return model;
 }
 
+bool ModelProto::_loadMtl(const Config::node& conf) {
+	for (auto& it: conf) {
+		const std::string& var = it.first.as<std::string>();
+		const std::string& mtl = it.second.as<std::string>();
+		const auto& find = mtl_type.find(mtl);
+		if (find == mtl_type.end()) {
+			ERR("model mtl error, remap %s", mtl.c_str());
+			return false;
+		}
+		_mtl[var] = find->second;
+	}
+
+	return true;
+}
+
 bool ModelProto::_loadAssimp(const Config::node& conf) {
 	std::string name = conf["file"].as<std::string>();
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / name;
@@ -56,7 +76,7 @@ bool ModelProto::_loadAssimp(const Config::node& conf) {
 bool ModelProto::_loadNode(const Config::node& conf, aiNode* node, const aiScene* scene) {
 	for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
 		aiMesh* ms = scene->mMeshes[node->mMeshes[i]];
-		MeshProto::ptr mesh = MeshProto::create(conf, ms, scene);
+		MeshProto::ptr mesh = MeshProto::create(conf, ms, scene, _mtl);
 		if (!mesh)
 			return false;
 		_meshs.push_back(mesh);

@@ -9,14 +9,14 @@ MeshProto::ptr MeshProto::create(const Config::node& conf) {
 	return mesh;
 }
 
-MeshProto::ptr MeshProto::create(const Config::node& conf, const aiMesh* ms, const aiScene* scene) {
+MeshProto::ptr MeshProto::create(const Config::node& conf, const aiMesh* ms, const aiScene* scene, const mtl_map& mtl) {
 	MeshProto::ptr mesh = std::make_shared<MeshProto>();
 	// mesh->setName(name);
 
 	if (!mesh->_loadVertex(ms))
 		return {};
 	std::filesystem::path path = std::filesystem::current_path() / "resource" / "model" / conf["file"].as<std::string>();
-	if (!mesh->_loadMaterial(path.parent_path(), ms, scene))
+	if (!mesh->_loadMaterial(path.parent_path(), ms, scene, mtl))
 		return {};
 
 	return mesh;
@@ -132,16 +132,12 @@ bool MeshProto::_loadVertex(const aiMesh* mesh) {
 	return true;
 }
 
-bool MeshProto::_loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene* scene) {
+bool MeshProto::_loadMaterial(const std::filesystem::path& path, const aiMesh* mesh, const aiScene* scene, const mtl_map& mtl) {
 	aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
-	if (!_loadTexture(path, mat, aiTextureType_DIFFUSE, "material.diffuse"))
-		return false;
-	if (!_loadTexture(path, mat, aiTextureType_SPECULAR, "material.specular"))
-		return false;
-	if (!_loadTexture(path, mat, aiTextureType_HEIGHT, "material.normal"))
-		return false;
-	if (!_loadTexture(path, mat, aiTextureType_DISPLACEMENT, "material.displace"))
-		return false;
+	for (auto& it: mtl) {
+		if (!_loadTexture(path, mat, it.second, it.first))
+			return false;
+	}
 
 	return true;
 }
