@@ -72,6 +72,7 @@ private:
 	    {"bump", aiTextureType_HEIGHT},			// map_bump
 	    {"specular", aiTextureType_SPECULAR},	// map_Ks
 	    {"ambient", aiTextureType_AMBIENT},		// map_Ka
+	    {"displace", aiTextureType_DISPLACEMENT},   // disp
 	};
 	inline static Config _confs;
 	inline static Assimp::Importer _imp;

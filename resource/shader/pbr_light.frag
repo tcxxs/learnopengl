@@ -15,7 +15,7 @@
 
 #define PBR_BASEF0 vec3(0.04)
 
-#define FOG_ENABLE 1
+#define FOG_ENABLE 0
 
 struct Material {
     float specular_factor;
@@ -320,11 +320,13 @@ vec3 env_specular() {
     return radiance * (fresnel * lut.x + lut.y);
 }
 
+#if FOG_ENABLE
 vec3 fog_exp(vec3 color) {
     float dis = length(calc.pos - calc.camera);
     float fac = exp2(-fog_density * dis);
     return mix(fog_color, color, fac);
 }
+#endif
 
 void main() {
     init_calc();
