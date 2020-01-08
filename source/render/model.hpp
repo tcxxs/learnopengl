@@ -73,6 +73,7 @@ private:
 	    {"specular", aiTextureType_SPECULAR},	// map_Ks
 	    {"ambient", aiTextureType_AMBIENT},		// map_Ka
 	    {"displace", aiTextureType_DISPLACEMENT},   // disp
+		{"opacity", aiTextureType_OPACITY},		// map_d
 	};
 	inline static Config _confs;
 	inline static Assimp::Importer _imp;

@@ -9,12 +9,14 @@
 
 struct Material {
     sampler2D diffuse;
+    sampler2D normal;
+    sampler2D displace;
+    float displace_factor;
     sampler2D metallic;
     sampler2D roughness;
     sampler2D ao;
-    sampler2D normal;
-    float displace_factor;
-    sampler2D displace;
+    sampler2D mask;
+    float mask_factor;
 };
 
 struct TextureArg {
@@ -24,6 +26,7 @@ struct TextureArg {
     bool metallic;
     bool roughness;
     bool ao;
+    bool mask;
 };
 
 struct ColorArg {
@@ -84,6 +87,14 @@ void init_calc() {
     if (textureSize(material.diffuse, 0).x > 1) {
         calc.tex.diffuse = true;
     }
+    calc.tex.normal = false;
+    if (textureSize(material.normal, 0).x > 1) {
+        calc.tex.normal = true;
+    }
+    calc.tex.displace = false;
+    if (textureSize(material.displace, 0).x > 1) {
+        calc.tex.displace = true;
+    }
     calc.tex.metallic = false;
     if (textureSize(material.metallic, 0).x > 1) {
         calc.tex.metallic = true;
@@ -96,13 +107,9 @@ void init_calc() {
     if (textureSize(material.ao, 0).x > 1) {
         calc.tex.ao = true;
     }
-    calc.tex.normal = false;
-    if (textureSize(material.normal, 0).x > 1) {
-        calc.tex.normal = true;
-    }
-    calc.tex.displace = false;
-    if (textureSize(material.displace, 0).x > 1) {
-        calc.tex.displace = true;
+    calc.tex.mask = false;
+    if (textureSize(material.mask, 0).x > 1) {
+        calc.tex.mask = true;
     }
 }
 
@@ -137,6 +144,12 @@ void calc_displace() {
 }
 
 void sample_texture() {
+    if (calc.tex.mask) {
+        float m = texture(material.mask, calc.uv).r;
+        if (m < material.mask_factor)
+            discard;
+    }
+
     calc.color.diffuse = vec3(1.0);
     if (calc.tex.diffuse) {
         calc.color.diffuse = texture(material.diffuse, calc.uv).rgb;

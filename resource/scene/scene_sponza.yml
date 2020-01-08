@@ -331,7 +331,7 @@ pass:
       depth: [update]
     procs:
       pbr_light:
-        shadow.probe: [[light, spot, index]]
+        shadow.probe: [[light, light_main, index]]
         shadow.point: [[frame, shadow_point, depth]]
         shadow.spot_vp: [[light, spot, vp]]
         shadow.spot_map: [[frame, shadow_spot, depth]]

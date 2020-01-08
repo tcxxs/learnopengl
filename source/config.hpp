@@ -11,7 +11,7 @@
 #define PROJ_FAR 100.0f
 
 #define CAM_FOV 1.0f
-#define CAM_MOVE 1.0f
+#define CAM_MOVE 2.0f
 #define CAM_ROTATE 0.0005f
 
 #define VERTEX_BASE "Vertex"

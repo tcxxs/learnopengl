@@ -25,6 +25,7 @@ pbr_geo:
   shader: pbr_geo
   vars:
     material.displace_factor: 0.1
+    material.mask_factor: 0.1
 pbr_light:
   shader: pbr_light
 box_forward:

@@ -102,6 +102,7 @@ sponza:
     material.normal: normal
     material.metallic: ambient
     material.roughness: specular
+    material.mask: opacity
 cube:
   file:
     layout: [3, 2, 3]
