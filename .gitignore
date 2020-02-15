@@ -4,3 +4,5 @@ bin/
 *.code-workspace
 resource/download
 log.out
+*.cap
+*.nsight-gfxproj

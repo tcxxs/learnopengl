@@ -344,8 +344,8 @@ pass:
         ibl.speclut: [[frame, ibl_speclut, color]]
         ibl.speclod: 4
         ssao: [[frame, ssao_blur, color]]
-        fog_color: [1.0, 0.0, 0.0]
-        fog_density: 0.05
+        # fog_color: [1.0, 0.0, 0.0]
+        # fog_density: 0.05
     output:
       frame: [[frame, scene]]
   - name: scene_model

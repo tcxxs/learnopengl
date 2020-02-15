@@ -3,7 +3,7 @@
 in vec2 fg_uv;
 
 uniform sampler2D frame;
-uniform int horizontal;
+uniform bool horizontal;
 
 out vec4 color_out;
 

@@ -210,21 +210,21 @@ void Scene::draw() {
 		if (!it->getRun())
 			continue;
 
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, string_format("pass %s", it->getName().c_str()).c_str());
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, string_format("pass %s", it->getName().c_str()).c_str());
 		cmds.clear();
 		it->drawBegin();
 
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "uniforms");
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "uniforms");
 		drawUniforms(it);
 		glPopDebugGroup();
 
 		// TODO: 同shader、同attr应该合批
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "collect");
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "collect");
 		int n = it->drawPass(cmds, _models);
 		glPopDebugGroup();
 
 		if (n >= 0) {
-			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, 0, "draw");
+			glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, "draw");
 			for (auto& itc: cmds) {
 				drawCommand(itc);
 			}
