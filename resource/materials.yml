@@ -103,8 +103,8 @@ ssao_blur:
   shader: ssao_blur
 bloom_split:
   shader: bloom_split
-bloom_blur:
-  shader: bloom_blur
+blur:
+  shader: blur
 dof_coc:
   shader: dof_coc
   vars:
@@ -123,3 +123,5 @@ fxaa:
   shader: fxaa
 ssr:
   shader: ssr
+ssr_scene:
+  shader: ssr_scene

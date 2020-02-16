@@ -31,9 +31,9 @@ ssao_blur:
 bloom_split:
   shape: screen
   material: bloom_split
-bloom_blur:
+blur:
   shape: screen
-  material: bloom_blur
+  material: blur
 dof_focus:
   shape: screen
   material: dof_focus
@@ -55,4 +55,7 @@ fxaa:
 ssr:
   shape: screen
   material: ssr
+ssr_scene:
+  shape: screen
+  material: ssr_scene
 
