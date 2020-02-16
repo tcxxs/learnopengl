@@ -152,7 +152,9 @@ frames:
     colors: [[tex, rgba32f]]
     depth: tex_ds
   ssr:
-    colors: [[tex, rgba32f]]
+    colors:
+      - uv: [tex, rgba32f]
+      - reflect: [tex, rgba32f]
   ssao_ao:
     colors: [[tex, r32f]]
   ssao_blur:
@@ -390,15 +392,20 @@ pass:
       ssr:
         gbuffer.position: [[frame, gbuffer, position]]
         gbuffer.normal: [[frame, gbuffer, normal]]
+        gbuffer.pbr: [[frame, gbuffer, pbr]]
+        scene: [[frame, scene, color]]
     output:
       frame: [[frame, ssr]]
+      colors:
+          uv: color_uv
+          reflect: color_reflect
   - name: show
     states:
       clear: [color]
       depth: [no]
     procs:
       show:
-        frame: [[frame, ssr, o1]]
+        frame: [[frame, ssr, reflect]]
   # # - name: dof_coc
   # #   states:
   # #     clear: [color]

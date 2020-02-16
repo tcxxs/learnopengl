@@ -200,6 +200,6 @@ void main() {
 
     color_pos = vec4(calc.pos, calc.depth);
     color_normal = vec4(calc.normal, 1.0);
-    color_albedo = vec4(calc.color.diffuse, calc.color.metallic);
-    color_pbr = vec4(calc.color.roughness, calc.color.ao, 0.0, 0.0);
+    color_albedo = vec4(calc.color.diffuse, calc.color.ao);
+    color_pbr = vec4(calc.color.roughness, calc.color.metallic, 0.0, 0.0);
 } 

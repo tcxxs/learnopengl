@@ -12,10 +12,12 @@
 struct GBuffer {
     sampler2D position;
     sampler2D normal;
+    sampler2D pbr;
 };
 
 in vec2 fg_uv;
 uniform GBuffer gbuffer;
+uniform sampler2D scene;
 #if SPACE_VIEW
 uniform MatrixVP {
     mat4 view;
@@ -23,20 +25,22 @@ uniform MatrixVP {
 };
 #endif
 
-out vec4 color_out;
+out vec4 color_uv;
+out vec4 color_reflect;
 
 void main()
 {
+    color_uv = vec4(0);
+    color_reflect = vec4(0);
+
     vec2 tex_size  = textureSize(gbuffer.position, 0).xy;
     vec4 fg_pos = texture(gbuffer.position, fg_uv);
     if (length(fg_pos.xyz) < MATH_EPS && abs(fg_pos.w - 1.0) < MATH_EPS) {
-        color_out = vec4(1, 0, 0, 1);
         return;
     }
     vec3 ray_cast = normalize(fg_pos.xyz);
     vec3 normal = normalize(texture(gbuffer.normal, fg_uv).xyz);
     if (dot(normal, ray_cast) > 0) {
-        color_out = vec4(1, 0, 0, 1);
         return;
     }
     vec3 ray_reflect = normalize(reflect(ray_cast, normal));
@@ -78,15 +82,14 @@ void main()
     float march_iter = march_x ? abs(march_delta.x) : abs(march_delta.y);
     march_iter *= SSR_RESOLVE;
     if (march_iter < 1) {
-        color_out = vec4(0, 1, 0, 1);
         return;
     }
     vec2 march_inc = march_delta / march_iter;
 
     vec2 now_scr = start_scr;
     vec2 now_uv = vec2(0);
-    vec4 now_pos = vec4(0);
-    float now_mix = 0;
+    vec3 now_pos = vec3(0);
+    vec3 prev_pos = start_pos;
     float find_prev = 0;
     float find_cur = 0;
     float find_depth = 0;
@@ -97,7 +100,13 @@ void main()
     for (int i = 0; i < int(march_iter); ++i) {
         now_scr += march_inc;
         now_uv = now_scr / tex_size;
-        now_pos = texture(gbuffer.position, now_uv);
+        now_pos = texture(gbuffer.position, now_uv).xyz;
+        // 避免连续平面反射自己
+        if (length(now_pos - prev_pos) > SSR_THICKNESS * 1.5) {
+            prev_pos = now_pos;
+        } else {
+            continue;
+        }
 
         vec2 inter = (now_scr - start_scr) / march_delta;
         find_cur = clamp(march_x ? inter.x : inter.y, 0, 1);
@@ -112,7 +121,6 @@ void main()
         }
     }
     if (!find_hit) {
-        color_out = vec4(0, 0, 1, 1);
         return;
     }
 
@@ -120,7 +128,7 @@ void main()
     for (int i = 0; i < SSR_FINDSTEPS; ++i) {
         now_scr = mix(start_scr, end_scr, find_cur);
         now_uv = now_scr / tex_size;
-        now_pos = texture(gbuffer.position, now_uv);
+        now_pos = texture(gbuffer.position, now_uv).xyz;
 
         find_depth = (start_pos.z * end_pos.z) / min(mix(end_pos.z, start_pos.z, find_cur), -MATH_EPS);
         find_diff = find_depth - now_pos.z;
@@ -137,8 +145,10 @@ void main()
     float vis = 1;
     vis *= 1 - max(dot(-ray_cast, ray_reflect), 0);
     vis *= 1 - clamp(abs(find_diff) / SSR_THICKNESS, 0, 1);
-    vis *= 1 - clamp(length(now_pos - fg_pos) / SSR_DISTANCE, 0, 1);
+    vis *= 1 - clamp(length(now_pos - fg_pos.xyz) / SSR_DISTANCE, 0, 1);
     vis = clamp(vis, 0, 1);
 
-    color_out = vec4(now_uv, vis, 1);
+    color_uv = vec4(now_uv, texture(gbuffer.pbr, fg_uv).rg);
+    color_reflect.rgb = texture(scene, now_uv).rgb;
+    color_reflect.a = vis;
 }

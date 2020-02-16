@@ -3,7 +3,7 @@ dir:
   color: [0.2, 0.2, 0.2]
 point:
   type: point
-  color: [100.0, 100.0, 100.0]
+  color: [20.0, 20.0, 20.0]
 point_blue:
   type: point
   color: [0.0, 0.0, 1.0]

@@ -134,11 +134,11 @@ void init_calc() {
 #endif
     calc.camdir = normalize(calc.camera - calc.pos);
 
-    calc.color.metallic = albedo.a;
+    calc.color.metallic = pbr.g;
     calc.color.roughness = pbr.r + MATH_EPS;
     calc.color.diffuse = albedo.rgb * (1 - calc.color.metallic);
     calc.color.specular = mix(PBR_BASEF0, albedo.rgb, calc.color.metallic);
-    calc.color.ao = pbr.g;
+    calc.color.ao = albedo.a;
     if (textureSize(ssao, 0).x > 1) {
         calc.color.ao *= texture(ssao, fg_uv).r;
     }
