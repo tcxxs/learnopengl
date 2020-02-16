@@ -157,6 +157,7 @@ bool Shader::_loadUniform() {
 		else
 			uname = name.substr(0, pos);
 
+		type = 0;
 		switch (values_uniform[0]) {
 		case GL_SAMPLER_2D: type = GL_TEXTURE_2D; break;
 		case GL_SAMPLER_CUBE: type = GL_TEXTURE_CUBE_MAP; break;

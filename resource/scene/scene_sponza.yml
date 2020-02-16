@@ -8,6 +8,9 @@ lights:
   - type: point
     name: light_main
     pos: [0.0, 0.3, 0.8]
+  - type: point
+    name: light_under
+    pos: [0.0, -4.0, 0.0]
   - type: point_blue
     name: light_blue
     pos: [0.0, 1.0, 0.0]
@@ -20,6 +23,9 @@ lights:
 models:
   - type: sun
     pos: [[light, light_main, pos]]
+    scale: 0.02
+  - type: sun
+    pos: [[light, light_under, pos]]
     scale: 0.02
   - type: sun
     pos: [[light, light_blue, pos]]
@@ -107,29 +113,29 @@ models:
     materials:
       shadow_point: shadow_point
       shadow_spot: shadow_spot
-  - type: sponza
-    pos: [0.0, -5.0, 0.0]
-    scale: 0.01
-    materials:
-      shadow_point: shadow_point
-      shadow_spot: shadow_spot
+  # - type: sponza
+  #   pos: [0.0, -5.0, 0.0]
+  #   scale: 0.01
+  #   materials:
+  #     shadow_point: shadow_point
+  #     shadow_spot: shadow_spot
 frames:
   ibl_cube:
     square: true
     size: 0.5
-    colors: [[cube, rgba16f, mip_auto]]
+    colors: [[cube, rgba32f, mip_auto]]
   ibl_diffuse:
     square: true
     size: 0.05
-    colors: [[cube, rgba16f]]
+    colors: [[cube, rgba32f]]
   ibl_speccube:
     square: true
     size: 0.2
-    colors: [cube: [cube, rgba16f, mip_manual]]
+    colors: [cube: [cube, rgba32f, mip_manual]]
   ibl_speclut:
     square: true
     size: 0.5
-    colors: [[tex, rgba16f, wrap_clamp]]
+    colors: [[tex, rgba32f, wrap_clamp]]
   shadow_point:
     square: true
     depth: cube_d
@@ -137,30 +143,32 @@ frames:
     depth: tex_ds
   gbuffer:
     colors:
-      - position: [tex, rgba16f]
-      - normal: [tex, rgba16f]
+      - position: [tex, rgba32f]
+      - normal: [tex, rgba32f]
       - albedo: [tex, rgba8]
       - pbr: [tex, rgba8]
     depth: tex_ds
   scene:
-    colors: [[tex, rgba16f]]
+    colors: [[tex, rgba32f]]
     depth: tex_ds
+  ssr:
+    colors: [[tex, rgba32f]]
   ssao_ao:
-    colors: [[tex, r16f]]
+    colors: [[tex, r32f]]
   ssao_blur:
-    colors: [[tex, r16f]]
+    colors: [[tex, r32f]]
   dof_coc:
     size: 0.5
-    colors: [[tex, rgba16f]]
+    colors: [[tex, rgba32f]]
   dof_blur:
     size: 0.5
-    colors: [[tex, rgba16f]]
+    colors: [[tex, rgba32f]]
   dof_scene:
-    colors: [[tex, rgba16f]]
+    colors: [[tex, rgba32f]]
   bloom1:
-    colors: [[tex, rgba16f]]
+    colors: [[tex, rgba32f]]
   bloom2:
-    colors: [[tex, rgba16f]]
+    colors: [[tex, rgba32f]]
   hdr:
     colors: [[tex, rgba8]]
 pass:
@@ -344,8 +352,8 @@ pass:
         ibl.speclut: [[frame, ibl_speclut, color]]
         ibl.speclod: 4
         ssao: [[frame, ssao_blur, color]]
-        fog_color: [1.0, 0.0, 0.0]
-        fog_density: 0.05
+        # fog_color: [1.0, 0.0, 0.0]
+        # fog_density: 0.05
     output:
       frame: [[frame, scene]]
   - name: scene_model
@@ -374,84 +382,101 @@ pass:
         uf_cube: [[frame, ibl_cube, color]]
     output:
       frame: [[frame, scene]]
-  # - name: dof_coc
+  - name: ssr
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      ssr:
+        gbuffer.position: [[frame, gbuffer, position]]
+        gbuffer.normal: [[frame, gbuffer, normal]]
+    output:
+      frame: [[frame, ssr]]
+  - name: show
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      show:
+        frame: [[frame, ssr, o1]]
+  # # - name: dof_coc
+  # #   states:
+  # #     clear: [color]
+  # #     depth: [no]
+  # #   procs:
+  # #     dof_coc:
+  # #       scene: [[frame, scene, color]]
+  # #       depth: [[frame, scene, depth]]
+  # #   output:
+  # #     frame: [[frame, dof_coc]]
+  # # - name: dof_blur
+  # #   states:
+  # #     clear: [color]
+  # #     depth: [no]
+  # #   procs:
+  # #     dof_blur:
+  # #       frame: [[frame, dof_coc, color]]
+  # #   output:
+  # #     frame: [[frame, dof_blur]]
+  # # - name: dof_scene
+  # #   states:
+  # #     clear: [color]
+  # #     depth: [no]
+  # #   procs:
+  # #     dof_scene:
+  # #       scene: [[frame, scene, color]]
+  # #       dof: [[frame, dof_blur, color]]
+  # #   output:
+  # #     frame: [[frame, dof_scene]]
+  # - name: bloom_split
   #   states:
   #     clear: [color]
   #     depth: [no]
   #   procs:
-  #     dof_coc:
+  #     bloom_split:
+  #       frame: [[frame, scene, color]]
+  #   output:
+  #     frame: [[frame, bloom1]]
+  # - name: bloom_ver
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     bloom_blur:
+  #       horizontal: 0
+  #       frame: [[frame, bloom1, color]]
+  #   output:
+  #     frame: [[frame, bloom2]]
+  # - name: bloom_hor
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     bloom_blur:
+  #       horizontal: 1
+  #       frame: [[frame, bloom2, color]]
+  #   output:
+  #     frame: [[frame, bloom1]]
+  # - {name: bloom_copy, copy: bloom_ver}
+  # - {name: bloom_copy, copy: bloom_hor}
+  # - {name: bloom_copy, copy: bloom_ver}
+  # - {name: bloom_copy, copy: bloom_hor}
+  # - {name: bloom_copy, copy: bloom_ver}
+  # - {name: bloom_copy, copy: bloom_hor}
+  # - name: hdr
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     hdr:
   #       scene: [[frame, scene, color]]
-  #       depth: [[frame, scene, depth]]
+  #       bloom: [[frame, bloom1, color]]
   #   output:
-  #     frame: [[frame, dof_coc]]
-  # - name: dof_blur
+  #     frame: [[frame, hdr]]
+  # - name: fxaa
   #   states:
   #     clear: [color]
   #     depth: [no]
   #   procs:
-  #     dof_blur:
-  #       frame: [[frame, dof_coc, color]]
-  #   output:
-  #     frame: [[frame, dof_blur]]
-  # - name: dof_scene
-  #   states:
-  #     clear: [color]
-  #     depth: [no]
-  #   procs:
-  #     dof_scene:
-  #       scene: [[frame, scene, color]]
-  #       dof: [[frame, dof_blur, color]]
-  #   output:
-  #     frame: [[frame, dof_scene]]
-  - name: bloom_split
-    states:
-      clear: [color]
-      depth: [no]
-    procs:
-      bloom_split:
-        frame: [[frame, scene, color]]
-    output:
-      frame: [[frame, bloom1]]
-  - name: bloom_ver
-    states:
-      clear: [color]
-      depth: [no]
-    procs:
-      bloom_blur:
-        horizontal: 0
-        frame: [[frame, bloom1, color]]
-    output:
-      frame: [[frame, bloom2]]
-  - name: bloom_hor
-    states:
-      clear: [color]
-      depth: [no]
-    procs:
-      bloom_blur:
-        horizontal: 1
-        frame: [[frame, bloom2, color]]
-    output:
-      frame: [[frame, bloom1]]
-  - {name: bloom_copy, copy: bloom_ver}
-  - {name: bloom_copy, copy: bloom_hor}
-  - {name: bloom_copy, copy: bloom_ver}
-  - {name: bloom_copy, copy: bloom_hor}
-  - {name: bloom_copy, copy: bloom_ver}
-  - {name: bloom_copy, copy: bloom_hor}
-  - name: hdr
-    states:
-      clear: [color]
-      depth: [no]
-    procs:
-      hdr:
-        scene: [[frame, scene, color]]
-        bloom: [[frame, bloom1, color]]
-    output:
-      frame: [[frame, hdr]]
-  - name: fxaa
-    states:
-      clear: [color]
-      depth: [no]
-    procs:
-      fxaa:
-        frame: [[frame, hdr, color]]
+  #     fxaa:
+  #       frame: [[frame, hdr, color]]

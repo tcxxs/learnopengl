@@ -121,3 +121,5 @@ hdr:
     exposure: 0.5
 fxaa:
   shader: fxaa
+ssr:
+  shader: ssr

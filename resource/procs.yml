@@ -52,3 +52,7 @@ hdr:
 fxaa:
   shape: screen
   material: fxaa
+ssr:
+  shape: screen
+  material: ssr
+

@@ -106,8 +106,12 @@ bool Frame::_attachColor(const Config::node& conf) {
 		pf = GL_RGBA;
 	else if (pixel == "rgba16f")
 		pf = GL_RGBA16F;
+	else if (pixel == "rgba32f")
+		pf = GL_RGBA32F;
 	else if (pixel == "r16f")
 		pf = GL_R16F;
+	else if (pixel == "r32f")
+		pf = GL_R32F;
 	else if (pixel == "r8")
 		pf = GL_R8;
 	else {
