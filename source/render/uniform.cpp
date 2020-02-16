@@ -41,7 +41,7 @@ UniformInst::ptr UniformInst::create(const proto_ptr& proto) {
 
 	glGenBuffers(1, &uniform->_ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, uniform->_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, proto->getSize(), nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, proto->getSize(), nullptr, GL_DYNAMIC_READ);
 	void* buff = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	memset(buff, 0, proto->getSize());
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
