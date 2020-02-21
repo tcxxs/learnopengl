@@ -457,91 +457,84 @@ pass:
         scene: [[frame, scene, color]]
     output:
       frame: [[frame, ssr_scene]]
-  - name: show
+  # - name: dof_coc
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     dof_coc:
+  #       scene: [[frame, scene, color]]
+  #       depth: [[frame, scene, depth]]
+  #   output:
+  #     frame: [[frame, dof_coc]]
+  # - name: dof_blur
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     dof_blur:
+  #       frame: [[frame, dof_coc, color]]
+  #   output:
+  #     frame: [[frame, dof_blur]]
+  # - name: dof_scene
+  #   states:
+  #     clear: [color]
+  #     depth: [no]
+  #   procs:
+  #     dof_scene:
+  #       scene: [[frame, scene, color]]
+  #       dof: [[frame, dof_blur, color]]
+  #   output:
+  #     frame: [[frame, dof_scene]]
+  - name: bloom_split
     states:
       clear: [color]
       depth: [no]
     procs:
-      show:
+      bloom_split:
         frame: [[frame, ssr_scene, color]]
-  # # - name: dof_coc
-  # #   states:
-  # #     clear: [color]
-  # #     depth: [no]
-  # #   procs:
-  # #     dof_coc:
-  # #       scene: [[frame, scene, color]]
-  # #       depth: [[frame, scene, depth]]
-  # #   output:
-  # #     frame: [[frame, dof_coc]]
-  # # - name: dof_blur
-  # #   states:
-  # #     clear: [color]
-  # #     depth: [no]
-  # #   procs:
-  # #     dof_blur:
-  # #       frame: [[frame, dof_coc, color]]
-  # #   output:
-  # #     frame: [[frame, dof_blur]]
-  # # - name: dof_scene
-  # #   states:
-  # #     clear: [color]
-  # #     depth: [no]
-  # #   procs:
-  # #     dof_scene:
-  # #       scene: [[frame, scene, color]]
-  # #       dof: [[frame, dof_blur, color]]
-  # #   output:
-  # #     frame: [[frame, dof_scene]]
-  # - name: bloom_split
-  #   states:
-  #     clear: [color]
-  #     depth: [no]
-  #   procs:
-  #     bloom_split:
-  #       frame: [[frame, scene, color]]
-  #   output:
-  #     frame: [[frame, bloom1]]
-  # - name: bloom_ver
-  #   states:
-  #     clear: [color]
-  #     depth: [no]
-  #   procs:
-  #     blur:
-  #       horizontal: 0
-  #       frame: [[frame, bloom1, color]]
-  #   output:
-  #     frame: [[frame, bloom2]]
-  # - name: bloom_hor
-  #   states:
-  #     clear: [color]
-  #     depth: [no]
-  #   procs:
-  #     blur:
-  #       horizontal: 1
-  #       frame: [[frame, bloom2, color]]
-  #   output:
-  #     frame: [[frame, bloom1]]
-  # - {name: bloom_copy, copy: bloom_ver}
-  # - {name: bloom_copy, copy: bloom_hor}
-  # - {name: bloom_copy, copy: bloom_ver}
-  # - {name: bloom_copy, copy: bloom_hor}
-  # - {name: bloom_copy, copy: bloom_ver}
-  # - {name: bloom_copy, copy: bloom_hor}
-  # - name: hdr
-  #   states:
-  #     clear: [color]
-  #     depth: [no]
-  #   procs:
-  #     hdr:
-  #       scene: [[frame, scene, color]]
-  #       bloom: [[frame, bloom1, color]]
-  #   output:
-  #     frame: [[frame, hdr]]
-  # - name: fxaa
-  #   states:
-  #     clear: [color]
-  #     depth: [no]
-  #   procs:
-  #     fxaa:
-  #       frame: [[frame, hdr, color]]
+    output:
+      frame: [[frame, blur1]]
+  - name: blur_ver
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      blur:
+        horizontal: 0
+        frame: [[frame, blur1, color]]
+    output:
+      frame: [[frame, blur2]]
+  - name: blur_hor
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      blur:
+        horizontal: 1
+        frame: [[frame, blur2, color]]
+    output:
+      frame: [[frame, blur1]]
+  - {name: blur_copy, copy: blur_ver}
+  - {name: blur_copy, copy: blur_hor}
+  - {name: blur_copy, copy: blur_ver}
+  - {name: blur_copy, copy: blur_hor}
+  - {name: blur_copy, copy: blur_ver}
+  - {name: blur_copy, copy: blur_hor}
+  - name: hdr
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      hdr:
+        scene: [[frame, scene, color]]
+        bloom: [[frame, blur1, color]]
+    output:
+      frame: [[frame, hdr]]
+  - name: fxaa
+    states:
+      clear: [color]
+      depth: [no]
+    procs:
+      fxaa:
+        frame: [[frame, hdr, color]]
