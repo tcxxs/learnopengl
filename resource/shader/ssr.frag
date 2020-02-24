@@ -111,7 +111,7 @@ void main()
         vec2 inter = (now_scr - start_scr) / march_delta;
         find_cur = clamp(march_x ? inter.x : inter.y, 0, 1);
         find_depth = (start_pos.z * end_pos.z) / min(mix(end_pos.z, start_pos.z, find_cur), -MATH_EPS);
-        find_diff = abs(find_depth - now_pos.z);
+        find_diff = -(find_depth - now_pos.z);
         if (find_diff > 0 && find_diff < SSR_THICKNESS) {
             find_hit = true;
             break;
@@ -131,7 +131,7 @@ void main()
         now_pos = texture(gbuffer.position, now_uv).xyz;
 
         find_depth = (start_pos.z * end_pos.z) / min(mix(end_pos.z, start_pos.z, find_cur), -MATH_EPS);
-        find_diff = abs(find_depth - now_pos.z);
+        find_diff = -(find_depth - now_pos.z);
         if (find_diff > 0 && find_diff < SSR_THICKNESS) {
             find_cur = find_prev + ((find_cur - find_prev) / 2);
         }
