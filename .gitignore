@@ -6,3 +6,4 @@ resource/download
 log.out
 *.cap
 *.nsight-gfxproj
+__pycache__
