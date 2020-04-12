@@ -1,0 +1,6 @@
+blur:
+    input:
+        horizontal: bool
+        frame: buffer
+    output:
+        color: buffer

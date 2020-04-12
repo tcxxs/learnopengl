@@ -10,7 +10,6 @@ def init_graph():
 
     GRAPH = NodeGraph()
     setup_context_menu(GRAPH)
-    GRAPH.register_node(nodes.Model)
 
     PROP = PropertiesBinWidget(node_graph=GRAPH)
     PROP.setWindowFlags(QtCore.Qt.Tool)
@@ -25,5 +24,10 @@ def show_props(node):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
+    
     init_graph()
+    nodes.Shader.load_shaders('shaders.yaml')
+    for cls in nodes.Shader.SHADERS:
+        GRAPH.register_node(cls)
+    
     app.exec_()
